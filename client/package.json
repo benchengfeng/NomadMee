@@ -13,7 +13,7 @@
   },
   "scripts": {
     "start": "react-scripts --openssl-legacy-provider start",
-    "build": "react-scripts build",
+    "build": "react-scripts build --openssl-legacy-provider",
     "build-prod": "react-scripts build && rsync -av --delete ./build/* /www/ && rsync -av --delete ./public /www/",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
