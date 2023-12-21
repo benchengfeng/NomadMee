@@ -11,7 +11,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: benchengfeng/NomadMee@v2
+        uses: benchengfeng/NomadMee@v1
         with:
           ref: main
 
