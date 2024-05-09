@@ -121,10 +121,11 @@ header
 .header .logo {
   font-size: x-large;
   font-family:"Brush Script MT";
-  /* text-transform: uppercases; */
+  /* text-transform: uppercase; */
   font-weight: 800;
   margin: 20px;
 }
+/* OVH_WEBSITE_DOCUMENTROOT */
 
 .header .logo .fas {
   color: #1890ff;
