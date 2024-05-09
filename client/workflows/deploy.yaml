@@ -23,5 +23,5 @@ jobs:
 
       - name: Deploy to Production
         run: |
-          rsync -av --delete ./client/build/* ../www
-          rsync -av --delete ./client/public ../www
+          rsync -av --delete ./client/build/* ../www/nomadmee
+          rsync -av --delete ./client/public ../www/nomadmee
