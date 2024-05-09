@@ -121,7 +121,7 @@ header
 .header .logo {
   font-size: x-large;
   font-family:"Brush Script MT";
-  /* text-transform: uppercase; */
+  /* text-transform: uppercases; */
   font-weight: 800;
   margin: 20px;
 }
