@@ -2,6 +2,10 @@ import React, { useState } from 'react';
 
 import { Anchor, Drawer, Button } from 'antd';
 import FetcherHook from '../../api/fetcher';
+import { color1 } from '../../global';
+import { Image } from "rebass";
+import logonomadmee from "../../assets/images/logonomadmee.png"
+
 
 const { Link } = Anchor;
 
@@ -18,10 +22,11 @@ function AppHeader() {
 
   return (
     <div className="container-fluid">
-      <div className="header">
+      <div className="header" style={{backgroundColor:`${color1}`}}>
         <div className="logo">
           {/* <i className="fas fa-bolt"></i> */}
-          <div>NomadMee</div>
+          {/* <div style={{color:`${color4}`}}>NomadMee</div> */}
+          <Image src={logonomadmee} sx={{width:"23%"}}></Image>
           <FetcherHook/>
         </div>
         <div className="mobileHidden">

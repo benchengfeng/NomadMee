@@ -11,8 +11,9 @@ body {
 
 .container-fluid {
   margin: 0 auto;
-  max-width: 1200px;
-  padding: 0 15px;
+  width: 100%;
+  /* max-width: 1200px; */
+  /* padding: 0 15px; */
 }
 
 .main{
@@ -20,6 +21,7 @@ body {
 }
 
 .mainButtonContainer{
+  margin-top: 7em;
   display: flex;
   flex-direction: column;
   justify-content: center;
