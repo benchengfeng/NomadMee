@@ -20,15 +20,15 @@ function AppHeader() {
     <div className="container-fluid">
       <div className="header">
         <div className="logo">
-          <i className="fas fa-bolt"></i>
-          <a href="http://google.com">Cheng Feng ltd</a>
+          {/* <i className="fas fa-bolt"></i> */}
+          <div>NomadMee</div>
           <FetcherHook/>
         </div>
         <div className="mobileHidden">
           <Anchor targetOffset={65}>
-            <Link href="/" title="Home" />
+            {/* <Link href="/" title="Home" /> */}
             {/* <Link href="#about" title="About" /> */}
-            <Link href="features" title="Features" />
+            {/* <Link href="features" title="Features" /> */}
             {/* <Link href="#works" title="How it works" /> */}
             {/* <Link href="#faq" title="FAQ" /> */}
             {/* <Link href="pricing" title="Pricing" /> */}

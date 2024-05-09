@@ -15,17 +15,55 @@ body {
   padding: 0 15px;
 }
 
-.ant-layout {
-  background: #fff !important;
+.main{
+  height: 100vh;
 }
 
+.mainButtonContainer{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 80vh;
+}
+.mainButton{
+  display: flex;
+  z-index: 999;
+  margin: 2em;
+  border-radius: 5%;
+  border-style: groove;
+  width: 10vh;
+  height: 10vh;
+  align-items: center;
+}
+.mainButtonText{
+  width: inherit;
+  height: auto;
+  text-align: center;
+}
 .mainLayout .ant-layout-header {
   background: #f8f8f8;
+  height: 100vh;
+  width: auto;
   padding: 0;
-  height: auto;
   line-height: 1.6;
 }
 
+.myButton{
+  margin: 50px;
+  padding: 0;
+  background: #f8f8f8;
+  width: 15%;
+  height: 15%;
+  border-radius: 23%;
+  font-family:"Brush Script MT";
+  font-size: xx-large;
+  cursor: pointer;
+  /* position: absolute; */
+  /* top: 50%;
+  left: 50%; */
+  /* transform: translate(-50%, -50%); */
+  z-index: 999;
+}
 p {
   font-size: 16px;
   line-height: 1.6;
@@ -81,9 +119,11 @@ header
 }
 
 .header .logo {
-  font-size: 22px;
-  text-transform: uppercase;
-  font-weight: 400;
+  font-size: x-large;
+  font-family:"Brush Script MT";
+  /* text-transform: uppercase; */
+  font-weight: 800;
+  margin: 20px;
 }
 
 .header .logo .fas {
@@ -201,9 +241,12 @@ hero
 ---- 
 */
 .heroBlock {
-  background: url('assets/images/bg-hero.jpg') no-repeat;
   background-position: 50% 100%;
   background-size: cover;
+  /* background: #ebebeb; */
+  display: "flex";
+  justify-content: "center";
+  align-items: "center";
   height: 100vh;
 }
 
