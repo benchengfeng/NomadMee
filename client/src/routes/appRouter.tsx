@@ -10,7 +10,7 @@ const AppRouter = () => {
   return (
     <Router>
       <Routes>
-      <Route path="/" element={ isBrandEnabled ? <AppHome /> : " On Dit Quoi ??"} />
+      <Route path="/" element={ isBrandEnabled.enabled ? <AppHome /> : " On Dit Quoi ??"} />
         <Route path="/features" element={<Features />} />
       </Routes>
     </Router>
