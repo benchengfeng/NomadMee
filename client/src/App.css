@@ -630,6 +630,9 @@ responsive
     transform: scale(1);
   }
 
+  .contacts {
+    top: 20px; /* Adjusts vertical alignment */
+  }
   .mobileVisible {
     display: block;
   }

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Anchor, Drawer, Button } from "antd";
+import { Anchor, Drawer } from "antd";
 import FetcherHook from "../../api/fetcher";
 import { color1, color4 } from "../../global";
 import { Image } from "rebass";
@@ -10,9 +10,9 @@ const { Link } = Anchor;
 function AppHeader() {
   const [visible, setVisible] = useState(false);
 
-  const showDrawer = () => {
-    setVisible(true);
-  };
+  // const showDrawer = () => {
+  //   setVisible(true);
+  // };
 
   const onClose = () => {
     setVisible(false);
@@ -74,9 +74,9 @@ function AppHeader() {
           </Anchor>
         </div>
         <div className="mobileVisible" style={{ marginTop: "10px" }}>
-          <Button type="primary" onClick={showDrawer}>
+          {/* <Button type="primary" onClick={showDrawer}>
             <i className="fas fa-bars"></i>
-          </Button>
+          </Button> */}
           <Drawer
             placement="right"
             closable={false}
