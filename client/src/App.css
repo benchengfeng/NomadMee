@@ -16,18 +16,18 @@ body {
   /* padding: 0 15px; */
 }
 
-.main{
+.main {
   height: 100vh;
 }
 
-.mainButtonContainer{
+.mainButtonContainer {
   margin-top: 7em;
   display: flex;
   flex-direction: column;
   justify-content: center;
   height: 80vh;
 }
-.mainButton{
+.mainButton {
   display: flex;
   z-index: 999;
   margin: 2em;
@@ -37,27 +37,28 @@ body {
   height: 10vh;
   align-items: center;
 }
-.mainButtonText{
+.mainButtonText {
   width: inherit;
   height: auto;
   text-align: center;
 }
 .mainLayout .ant-layout-header {
-  background: #f8f8f8;
-  height: 100vh;
-  width: auto;
-  padding: 0;
-  line-height: 1.6;
+  background: #f8f8f8; /* Light background color */
+  min-height: 100px; /* Adjust height to fit your needs */
+  width: 100%; /* Stretch to full width */
+  padding: 0; /* Padding for internal spacing */
+  line-height: 1.6; /* Adjust line height for text readability */
+  position: relative; /* Ensure it stays in the document flow */
 }
 
-.myButton{
+.myButton {
   margin: 50px;
   padding: 0;
   background: #f8f8f8;
   /* width: 15%; */
   /* height: 15%; */
   border-radius: 23%;
-  font-family:"Brush Script MT";
+  font-family: "Brush Script MT";
   font-size: xx-large;
   cursor: pointer;
   /* position: absolute; */
@@ -88,7 +89,7 @@ title holder
 
 .titleHolder:after {
   transform: translateX(-50%);
-  content: '';
+  content: "";
   background: #1890ff;
   position: absolute;
   bottom: 0;
@@ -106,6 +107,34 @@ title holder
 header
 ------ 
 */
+
+.contacts {
+  position: absolute; /* Positions it to the right of the parent container */
+  top: 50px; /* Adjusts vertical alignment */
+  right: 20px; /* Keeps the section close to the right edge */
+  text-align: right;
+  color: var(--color4); /* Use your global color variable */
+  font-size: 0.9rem; /* Reduces the font size for a compact look */
+  line-height: 1.4; /* Adjusts spacing between lines for readability */
+}
+
+.contacts div {
+  margin-bottom: 5px; /* Adds spacing between contact rows */
+}
+
+.contacts a {
+  text-decoration: none; /* Removes underline from links */
+  color: var(--color4); /* Matches link color with global variable */
+  font-weight: 500; /* Slightly bold for emphasis */
+  transition: color 0.3s ease; /* Smooth color transition on hover */
+}
+
+.contacts a:hover {
+  color: var(
+    --color3
+  ); /* Changes to another color (e.g., highlight color) on hover */
+}
+
 .ant-layout-header {
   position: fixed;
   left: 0;
@@ -122,7 +151,7 @@ header
 
 .header .logo {
   font-size: x-large;
-  font-family:"Brush Script MT";
+  font-family: "Brush Script MT";
   /* text-transform: uppercase; */
   font-weight: 800;
   margin: 20px;
@@ -158,7 +187,7 @@ header
 
 .header .ant-anchor-link:before,
 .header .ant-anchor-link:after {
-  content: '';
+  content: "";
   background: #1890ff;
   width: 1px;
   position: absolute;
@@ -199,7 +228,7 @@ header
 
 .header .ant-menu li.ant-menu-item:before,
 .header .ant-menu li.ant-menu-item:after {
-  content: '';
+  content: "";
   background: #1890ff;
   width: 1px;
   position: absolute;
@@ -329,7 +358,7 @@ how it works
 ------------
 */
 .worksBlock {
-  background: url('assets/images/bg-works.jpg') no-repeat;
+  background: url("assets/images/bg-works.jpg") no-repeat;
   background-position: 50% 0;
   background-size: cover;
   background-attachment: fixed;
@@ -338,7 +367,7 @@ how it works
 }
 
 .worksBlock:before {
-  content: '';
+  content: "";
   background: rgba(0, 0, 0, 0.5);
   position: absolute;
   top: 0;
@@ -383,6 +412,102 @@ faqs
 
 .faqBlock .fas {
   margin: 0 10px 0 0;
+}
+
+/*
+buisiness showcase
+*/
+/* Overall Container */
+.showcaseBlock {
+  background: linear-gradient(to bottom right, #ffffff, #f4f4f9);
+  color: #333333;
+  font-family: "Arial", sans-serif;
+  padding: 40px 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  max-width: 1200px;
+  margin: 20px auto;
+}
+
+/* Header Section */
+.showcaseHeader {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.showcaseHeader h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin-bottom: 10px;
+}
+
+.showcaseHeader p {
+  font-size: 1.2rem;
+  font-weight: 300;
+  color: #7f8c8d;
+}
+
+/* Services Section */
+.servicesSection {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+}
+
+.serviceCard {
+  background: #ffffff;
+  border: 1px solid #dcdcdc;
+  border-radius: 10px;
+  padding: 20px;
+  width: 300px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  text-align: center;
+}
+
+.serviceCard:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.serviceCard h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #2980b9;
+  margin-bottom: 10px;
+}
+
+.serviceCard p {
+  font-size: 1rem;
+  font-weight: 300;
+  color: #7f8c8d;
+  line-height: 1.6;
+}
+
+/* Footer Section */
+.showcaseFooter {
+  text-align: center;
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid #dcdcdc;
+  font-size: 1rem;
+  color: #7f8c8d;
+}
+
+.showcaseFooter p {
+  margin: 0;
+}
+
+.showcaseFooter p a {
+  color: #2980b9;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.showcaseFooter p a:hover {
+  text-decoration: underline;
 }
 
 /* 
@@ -508,7 +633,7 @@ responsive
   .mobileVisible {
     display: block;
   }
-  
+
   .mobileHidden {
     display: none;
   }

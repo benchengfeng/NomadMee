@@ -1,6 +1,7 @@
 import React from "react";
 
-import AppHero from "../components/home/hero";
+// import AppHero from "../components/home/hero";
+import BusinessShowcase from "../components/home/buisinessShowCase";
 // import AppAbout from '../components/home/about';
 // import AppFeature from '../components/home/feature';
 // import AppWorks from '../components/home/works';
@@ -11,7 +12,7 @@ import AppHero from "../components/home/hero";
 function AppHome() {
   return (
     <div className="main">
-      <AppHero/>
+      <BusinessShowcase/>
     </div>
   );
 }

@@ -6,7 +6,8 @@ import AppHeader from "./components/common/header";
 import AppFooter from "./components/common/footer";
 import { Layout } from "antd";
 import AppRouter from "./routes/appRouter";
-import AppHero from "./components/home/hero";
+// import AppHero from "./components/home/hero";
+import BusinessShowcase from "./components/home/buisinessShowCase";
 
 const { Header, Content, Footer } = Layout;
 
@@ -17,7 +18,7 @@ function App() {
         <AppHeader />
       </Header>
       <Content>
-        <AppHero/>
+        <BusinessShowcase/>
         {/* Include AppRouter here to render different views */}
         <AppRouter />
       </Content>
