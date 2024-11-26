@@ -1,6 +1,6 @@
 import React from 'react';
+import { Form, Input, Button } from 'antd';
 
-import { Form, Input, Button, Checkbox } from 'antd';
 const { TextArea } = Input;
 
 function AppContact() {
@@ -8,74 +8,77 @@ function AppContact() {
     <div id="contact" className="block contactBlock">
       <div className="container-fluid">
         <div className="titleHolder">
-          <h2>Get in Touch</h2>
+          <h2>Contact Us</h2>
+          <p>We’re here to assist you with sourcing and facilitating your business needs. Reach out to us anytime!</p>
         </div>
         <Form
-          name="normal_login"
-          className="login-form"
+          name="contact_form"
+          className="contact-form"
+          layout="vertical"
           initialValues={{ remember: true }}
         >
           <Form.Item
             name="fullname"
+            label="Full Name"
             rules={[
               { 
-                required: true,
+                required: true, 
                 message: 'Please enter your full name!' 
-              }]
-            }
-          >
-            <Input placeholder="Full Name" />
-          </Form.Item>
-          <Form.Item
-            name="email"
-            rules={[
-              {
-                type: 'email',
-                message: 'The input is not valid E-mail!',
-              },
-              {
-                required: true,
-                message: 'Please input your E-mail!',
               },
             ]}
           >
-            <Input placeholder="Email Address"/>
+            <Input placeholder="Enter your full name" />
+          </Form.Item>
+          <Form.Item
+            name="email"
+            label="Email Address"
+            rules={[
+              { 
+                type: 'email', 
+                message: 'The input is not valid E-mail!' 
+              },
+              { 
+                required: true, 
+                message: 'Please input your E-mail!' 
+              },
+            ]}
+          >
+            <Input placeholder="Enter your email address" />
           </Form.Item>
           <Form.Item
             name="telephone"
+            label="Telephone"
           >
-            <Input placeholder="Telephone" />
+            <Input placeholder="Enter your telephone number" />
           </Form.Item>
           <Form.Item
             name="subject"
+            label="Subject"
           >
-            <Input placeholder="Subject" />
+            <Input placeholder="Enter the subject" />
           </Form.Item>
           <Form.Item
             name="message"
+            label="Message"
+            rules={[
+              {
+                required: true,
+                message: 'Please enter your message!',
+              },
+            ]}
           >
-            <TextArea placeholder="Message" />
+            <TextArea rows={4} placeholder="Write your message here" />
           </Form.Item>
           <Form.Item>
-            <Form.Item 
-              name="remember" 
-              valuePropName="checked"
-              noStyle
-              rules={[
-                { validator:(_, value) => value ? Promise.resolve() : Promise.reject('Should accept agreement') },
-              ]}
-            >
-              <Checkbox>I agree with terms and conditions.</Checkbox>
-            </Form.Item>
           </Form.Item>
           <Form.Item>
-            <Button type="primary" htmlType="submit" className="login-form-button">
+            <Button type="primary" htmlType="submit" className="contact-form-button">
               Submit
             </Button>
           </Form.Item>
         </Form>
       </div>
-    </div>  
+    </div>
   );
 }
 

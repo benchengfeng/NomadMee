@@ -1,15 +1,21 @@
 {
   "files": {
-    "main.css": "/static/css/main.912b65a0.css",
-    "main.js": "/static/js/main.b7d48417.js",
+    "main.css": "/static/css/main.9e3e7409.css",
+    "main.js": "/static/js/main.751b7f61.js",
     "static/media/bg-works.jpg": "/static/media/bg-works.abd66d06d525eadfd24a.jpg",
+    "static/media/easy-customise.jpg": "/static/media/easy-customise.d4fe22138e1668906aab.jpg",
+    "static/media/great-support.jpg": "/static/media/great-support.13341f4e93333e45ebbe.jpg",
+    "static/media/advanced-option.jpg": "/static/media/advanced-option.84c7d0693123632c9035.jpg",
+    "static/media/modern-design.jpg": "/static/media/modern-design.e2114f5b8abbe8b1fa8b.jpg",
+    "static/media/clean-design.jpg": "/static/media/clean-design.728069dab437b67d9da8.jpg",
+    "static/media/unlimited-features.jpg": "/static/media/unlimited-features.a0b8acf77e6b57772078.jpg",
     "static/media/logonomadmee.png": "/static/media/logonomadmee.f06cd0a471f76384fe15.png",
     "index.html": "/index.html",
-    "main.912b65a0.css.map": "/static/css/main.912b65a0.css.map",
-    "main.b7d48417.js.map": "/static/js/main.b7d48417.js.map"
+    "main.9e3e7409.css.map": "/static/css/main.9e3e7409.css.map",
+    "main.751b7f61.js.map": "/static/js/main.751b7f61.js.map"
   },
   "entrypoints": [
-    "static/css/main.912b65a0.css",
-    "static/js/main.b7d48417.js"
+    "static/css/main.9e3e7409.css",
+    "static/js/main.751b7f61.js"
   ]
 }

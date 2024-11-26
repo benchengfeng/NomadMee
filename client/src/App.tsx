@@ -3,13 +3,13 @@ import React from "react";
 import "./App.css";
 import "antd/dist/antd.css";
 import AppHeader from "./components/common/header";
-import AppFooter from "./components/common/footer";
+// import AppFooter from "./components/common/footer";
 import { Layout } from "antd";
-// import AppRouter from "./routes/appRouter";
+import AppRouter from "./routes/appRouter";
 // import AppHero from "./components/home/hero";
-import BusinessShowcase from "./components/home/buisinessShowCase";
+// import BusinessShowcase from "./components/home/buisinessShowCase";
 
-const { Header, Content, Footer } = Layout;
+const { Header, Content } = Layout;
 
 function App() {
   return (
@@ -18,13 +18,13 @@ function App() {
         <AppHeader />
       </Header>
       <Content>
-        <BusinessShowcase/>
+        {/* <BusinessShowcase/> */}
         {/* Include AppRouter here to render different views */}
-        {/* <AppRouter /> */}
+        <AppRouter />
       </Content>
-      <Footer>
+      {/* <Footer>
         <AppFooter />
-      </Footer>
+      </Footer> */}
     </Layout>
   );
 }

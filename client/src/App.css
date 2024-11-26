@@ -2,6 +2,20 @@
 general 
 -------
 */
+
+:root {
+  --color1: #ff5533; /* Example Primary Color */
+  --color2: #ff9538; /* Example Secondary Color */
+  --color3: #ffd952; /* Example Highlight Color */
+  --color4: #ffffbd; /* Example Text Color */
+  --color5: #003e80; /* Example Background Color */
+  --color6: #80cc28; /* Example Success Color */
+  --color7: #f5f5f5; /* Example background Color */
+  --color8: #f8f8f8; /* Example background2 Color */
+
+
+}
+
 body {
   font-size: 16px;
   line-height: 1.6;
@@ -110,7 +124,7 @@ header
 
 .contacts {
   position: absolute; /* Positions it to the right of the parent container */
-  top: 50px; /* Adjusts vertical alignment */
+  top: 25px; /* Adjusts vertical alignment */
   right: 20px; /* Keeps the section close to the right edge */
   text-align: right;
   color: var(--color4); /* Use your global color variable */
@@ -140,6 +154,8 @@ header
   left: 0;
   right: 0;
   z-index: 999;
+  height: 64px; /* Ensure a defined height for the header */
+
 }
 
 .header {
@@ -147,6 +163,7 @@ header
   justify-content: space-between;
   align-items: center;
   padding: 15px 0;
+  height: 120px; /* Ensure a defined height for the header */
 }
 
 .header .logo {
@@ -353,6 +370,51 @@ about
   text-align: center;
 }
 
+.block.aboutBlock {
+  background: #f5f5f5;
+  padding: 50px 0;
+}
+
+.block.aboutBlock .titleHolder h2 {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.block.aboutBlock .titleHolder p {
+  font-size: 1rem;
+  color: #555;
+}
+
+.block.aboutBlock .content {
+  text-align: center;
+  padding: 20px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.block.aboutBlock .content .icon {
+  font-size: 2.5rem;
+  color: #1890ff;
+  margin-bottom: 20px;
+}
+
+.block.aboutBlock .content h3 {
+  font-size: 1.5rem;
+  color: #333;
+  margin-bottom: 10px;
+}
+
+.block.aboutBlock .content p {
+  font-size: 1rem;
+  color: #666;
+  line-height: 1.6;
+}
+
+
+
+
 /* 
 how it works
 ------------
@@ -426,7 +488,7 @@ buisiness showcase
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   max-width: 1200px;
-  margin: 20px auto;
+  margin: 40px auto;
 }
 
 /* Header Section */
@@ -554,6 +616,68 @@ contact
   min-height: 120px;
   height: 120px;
 }
+
+.contactBlock {
+  padding: 60px 20px;
+  background: var(--color8); /* Use your global secondary color */
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.titleHolder {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.titleHolder h2 {
+  font-size: 2.2rem;
+  font-weight: bold;
+  color: var(--color1);
+}
+
+.titleHolder p {
+  font-size: 1rem;
+  color: var(--color4);
+}
+
+.contact-form {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.contact-form .ant-form-item-label {
+  font-weight: bold;
+  color: var(--color1);
+}
+
+.contact-form .ant-input,
+.contact-form .ant-input-textarea {
+  border-radius: 8px;
+}
+
+.contact-form .contact-form-button {
+  background: var(--color1);
+  border: none;
+  color: #fff;
+  width: 100%;
+  font-size: 1rem;
+  font-weight: bold;
+  border-radius: 8px;
+  transition: background 0.3s;
+}
+
+.contact-form .contact-form-button:hover {
+  background: var(--color5); /* Hover effect color */
+}
+
+.contact-form .ant-checkbox-wrapper {
+  color: var(--color4);
+}
+
+.contact-form .ant-checkbox-wrapper:hover .ant-checkbox-inner {
+  border-color: var(--color1);
+}
+
 
 /* 
 footer
