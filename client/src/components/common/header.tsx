@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Anchor, Drawer } from "antd";
-import FetcherHook from "../../api/fetcher";
+// import FetcherHook from "../../api/fetcher";
 import { color1, color4 } from "../../global";
 import { Image } from "rebass";
 import logonomadmee from "../../assets/images/logonomadmee.png";
@@ -35,7 +35,7 @@ function AppHeader() {
           {/* <i className="fas fa-bolt"></i> */}
           {/* <div style={{color:${color4}}}>NomadMee</div> */}
           <Image src={logonomadmee} sx={{ width: "23%" }} alt="NomadMee Logo" />
-          <FetcherHook />
+          {/* <FetcherHook /> */}
           <div className="contacts">
             <div>
               WhatsApp:{" "}
