@@ -3,7 +3,6 @@ import React from "react";
 import "./App.css";
 import "antd/dist/antd.css";
 import AppHeader from "./components/common/header";
-// import AppFooter from "./components/common/footer";
 import { Layout } from "antd";
 import AppRouter from "./routes/appRouter";
 // import AppHero from "./components/home/hero";
@@ -18,13 +17,8 @@ function App() {
         <AppHeader />
       </Header>
       <Content>
-        {/* <BusinessShowcase/> */}
-        {/* Include AppRouter here to render different views */}
         <AppRouter />
       </Content>
-      {/* <Footer>
-        <AppFooter />
-      </Footer> */}
     </Layout>
   );
 }
