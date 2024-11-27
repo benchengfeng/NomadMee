@@ -25,47 +25,51 @@ function AppHeader() {
     <div className="container-fluid">
       <div
         className="header"
-        style={{ backgroundColor: color1, padding: "10px 20px" }}
+        style={{
+          backgroundColor: color1,
+          maxWidth: "100%",
+          overflow: "hidden", // Prevents scrolling horizontally
+          display: "flex", // Ensures side-by-side alignment
+          alignItems: "center", // Vertically centers the content
+        }}
       >
+        {/* Extreme Left Logo */}
+        <div style={{ flex: "0 0 auto" }}>
+          <Image
+            src={logonomadmee}
+            sx={{
+              maxWidth: "100%",
+              width: isMobile ? "8rem" : "13rem",
+            }}
+            alt="NomadMee Logo"
+          />
+        </div>
+
+        {/* Center Text */}
         <div
-          className="logo"
           style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            // padding: "0 20px", // Adds some padding to the sides
+            flex: "1 1 auto", // Takes up remaining space
+            textAlign: "center",
+            color: color4,
+            fontSize: isMobile ? "1rem" : "1.5rem",
+            fontWeight: "bold",
+            whiteSpace: "normal", // Allows wrapping of text
+            overflow: "hidden", // Prevents content from spilling outside the container
           }}
         >
-          {/* Extreme Left Logo */}
-          <div style={{ flex: "0 0 auto" }}>
-            <Image
-              src={logonomadmee}
-              sx={{ width: isMobile ? "80px" : "300px"}}
-              alt="NomadMee Logo"
-            />
-          </div>
+          Bridging Trade Across Continents
+        </div>
 
-          {/* Center Text */}
-          <div
-            style={{
-              flex: "2 0 auto", // Twice the space as the images
-              textAlign: "center",
-              color: color4,
-              fontSize: isMobile ? "1rem" : "2.5rem",
-              fontWeight: "bold",
+        {/* Extreme Right Image */}
+        <div style={{ flex: "0 0 auto" }}>
+          <Image
+            src={camelsCaravan}
+            sx={{
+              maxWidth: "100%",
+              width: isMobile ? "6rem" : "10rem",
             }}
-          >
-            Bridging Trade Across Continents
-          </div>
-
-          {/* Extreme Right Image */}
-          <div style={{ flex: "0 0 auto" }}>
-            <Image
-              src={camelsCaravan}
-              sx={{ width: isMobile ? "80px" : "200px" }}
-              alt="Camels Caravan"
-            />
-          </div>
+            alt="Camels Caravan"
+          />
         </div>
 
         <div className="mobileHidden" style={{ marginTop: "10px" }}>
