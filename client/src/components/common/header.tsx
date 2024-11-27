@@ -4,6 +4,8 @@ import { Anchor, Drawer } from "antd";
 import { color1, color4 } from "../../global";
 import { Image } from "rebass";
 import logonomadmee from "../../assets/images/logonomadmee.png";
+import camelsCaravan from "../../assets/images/camelscaravan.png";
+import useIsMobile from "../../hooks/useIsMobile";
 
 const { Link } = Anchor;
 
@@ -13,6 +15,7 @@ function AppHeader() {
   // const showDrawer = () => {
   //   setVisible(true);
   // };
+  const isMobile = useIsMobile();
 
   const onClose = () => {
     setVisible(false);
@@ -30,38 +33,41 @@ function AppHeader() {
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
+            // padding: "0 20px", // Adds some padding to the sides
           }}
         >
-          {/* <i className="fas fa-bolt"></i> */}
-          {/* <div style={{color:${color4}}}>NomadMee</div> */}
-          <Image src={logonomadmee} sx={{ width: "23%" }} alt="NomadMee Logo" />
-          {/* <FetcherHook /> */}
-          <div className="contacts">
-            <div>
-              WhatsApp:{" "}
-              <a
-                href="https://wa.me/21620086407"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                +21620086407
-              </a>
-            </div>
-            <div>
-              WeChat: <span>+8619876297359</span>
-            </div>
-            <div>
-              Email:{" "}
-              <a
-                href="mailto:amine_bh@outlook.com"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                amine_bh@outlook.com
-              </a>
-            </div>
+          {/* Extreme Left Logo */}
+          <div style={{ flex: "0 0 auto" }}>
+            <Image
+              src={logonomadmee}
+              sx={{ width: isMobile ? "80px" : "300px"}}
+              alt="NomadMee Logo"
+            />
+          </div>
+
+          {/* Center Text */}
+          <div
+            style={{
+              flex: "2 0 auto", // Twice the space as the images
+              textAlign: "center",
+              color: color4,
+              fontSize: isMobile ? "1rem" : "2.5rem",
+              fontWeight: "bold",
+            }}
+          >
+            Bridging Trade Across Continents
+          </div>
+
+          {/* Extreme Right Image */}
+          <div style={{ flex: "0 0 auto" }}>
+            <Image
+              src={camelsCaravan}
+              sx={{ width: isMobile ? "80px" : "200px" }}
+              alt="Camels Caravan"
+            />
           </div>
         </div>
+
         <div className="mobileHidden" style={{ marginTop: "10px" }}>
           <Anchor targetOffset={65}>
             {/* <Link href="/" title="Home" /> */}
@@ -92,30 +98,6 @@ function AppHeader() {
               {/* <Link href="pricing" title="Pricing" /> */}
               {/* <Link href="#contact" title="Contact" /> */}
             </Anchor>
-            <div
-              style={{ marginTop: "20px", textAlign: "center", color: color4 }}
-            >
-              <div>
-                WhatsApp:{" "}
-                <a
-                  href="https://wa.me/21620086407"
-                  style={{ color: color4 }}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  +21620086407
-                </a>
-              </div>
-              <div>
-                WeChat: <span style={{ color: color4 }}>+8619876297359</span>
-              </div>
-              <div>
-                Email:{" "}
-                <a href="mailto:amine_bh@outlook.com" style={{ color: color4 }}>
-                  amine_bh@outlook.com
-                </a>
-              </div>
-            </div>
           </Drawer>
         </div>
       </div>
