@@ -39,7 +39,7 @@ function AppHeader() {
             src={logonomadmee}
             sx={{
               maxWidth: "100%",
-              width: isMobile ? "8rem" : "13rem",
+              width: isMobile ? "6rem" : "7rem",
             }}
             alt="NomadMee Logo"
           />
@@ -66,7 +66,7 @@ function AppHeader() {
             src={camelsCaravan}
             sx={{
               maxWidth: "100%",
-              width: isMobile ? "6rem" : "10rem",
+              width: isMobile ? "10rem" : "11rem",
             }}
             alt="Camels Caravan"
           />
