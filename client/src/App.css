@@ -122,6 +122,42 @@ header
 ------ 
 */
 
+/* Main sticky menu styles */
+.stickyMenu {
+  position: sticky;
+  top: 0;
+  z-index: 999; /* Ensures it's above other content */
+  background-color: var(--color7); /* Light background */
+  border-bottom: 2px solid var(--color1);
+  padding: 10px 0;
+  box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
+.menuItems {
+  display: flex;
+  justify-content: center;
+  gap: 30px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.menuItems li {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.menuItems li a {
+  color: var(--color1);
+  text-decoration: none;
+  transition: color 0.3s;
+}
+
+.menuItems li a:hover {
+  color: var(--color4);
+}
+
+
 .contacts {
   position: absolute; /* Positions it to the right of the parent container */
   top: 25px; /* Adjusts vertical alignment */
@@ -163,7 +199,10 @@ header
   justify-content: space-between;
   align-items: center;
   padding: 15px 0;
-  height: 120px; /* Ensure a defined height for the header */
+  height: 100px; /* Ensure a defined height for the header */
+  background-color: var(--color1);
+  max-width: 100%;
+  overflow: hidden;
 }
 
 .header .logo {
@@ -579,6 +618,76 @@ buisiness showcase
 .showcaseFooter p a:hover {
   text-decoration: underline;
 }
+
+/*
+features
+*/
+
+.featureBlock {
+  background-color: var(--color7);
+  padding: 50px 0;
+  margin: 40px auto;
+}
+
+.featureBlock .container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.featureBlock .titleHolder {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.featureBlock .titleHolder h2 {
+  color: var(--color5);
+  font-size: 2.5rem;
+  margin: 0;
+}
+
+.featureBlock .titleHolder p {
+  color: var(--color2);
+  font-size: 1.2rem;
+  margin-top: 10px;
+}
+
+.featureCard {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.featureCard:hover {
+  transform: scale(1.03);
+}
+
+.featureCard img {
+  height: 200px;
+  object-fit: cover;
+}
+
+.featureCard .ant-card-meta-title {
+  font-weight: bold;
+  color: var(--color5);
+  text-align: center;
+  font-size: 1.2rem;
+}
+
+@media (max-width: 768px) {
+  .featureBlock .titleHolder h2 {
+    font-size: 2rem;
+  }
+
+  .featureBlock .titleHolder p {
+    font-size: 1rem;
+  }
+
+  .featureCard img {
+    height: 150px;
+  }
+}
+
 
 /* 
 pricing block
