@@ -5,6 +5,7 @@ import { Image } from "rebass";
 import logonomadmee from "../../assets/images/logonomadmee.png";
 import camelsCaravan from "../../assets/images/camelscaravan.png";
 import useIsMobile from "../../hooks/useIsMobile";
+import FetcherHook from "../../api/fetcher";
 
 // const { Link } = Anchor;
 
@@ -19,6 +20,7 @@ function AppHeader() {
 
   return (
     <div className="container-fluid">
+      <FetcherHook/>
       {/* Main Header */}
       <div
         className="header"
@@ -70,13 +72,13 @@ function AppHeader() {
             <a href="/">Home</a>
           </li>
           <li>
-            <a href="features">China</a>
+            <a href="china">China</a>
           </li>
           <li>
-            <a href="features">Africa</a>
+            <a href="africa">Africa</a>
           </li>
           <li>
-            <a href="features">Europe</a>
+            <a href="europe">Europe</a>
           </li>
         </ul>
       </div>

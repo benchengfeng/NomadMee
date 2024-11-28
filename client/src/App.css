@@ -16,6 +16,10 @@ general
 
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   font-size: 16px;
   line-height: 1.6;
@@ -619,6 +623,22 @@ buisiness showcase
   text-decoration: underline;
 }
 
+
+.getInTouchButton {
+  background-color: var(--color1); /* Matches theme */
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  font-weight: bold;
+  text-transform: uppercase;
+  transition: background-color 0.3s ease;
+}
+
+.getInTouchButton:hover {
+  color: var(--color7); /* Change text color on hover */
+}
 /*
 features
 */

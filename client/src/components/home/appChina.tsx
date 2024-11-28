@@ -11,7 +11,7 @@ import { Row, Col, Card } from "antd";
 
 const { Meta } = Card;
 
-function AppFeature() {
+function AppChina() {
   const features = [
     { title: "Modern Design", image: image1 },
     { title: "Clean and Elegant", image: image2 },
@@ -46,4 +46,4 @@ function AppFeature() {
   );
 }
 
-export default AppFeature;
+export default AppChina;
