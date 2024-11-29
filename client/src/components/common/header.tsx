@@ -20,8 +20,8 @@ function AppHeader() {
 
   return (
     <div className="container-fluid">
-      {/* Main Header */}
       <FetcherHook/>
+      {/* Main Header */}
       <div
         className="header"
       >
