@@ -1,5 +1,11 @@
 <?php
 
+// Allow CORS
+header("Access-Control-Allow-Origin: *"); // Allows all origins to make requests. Adjust this for security if needed.
+header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS"); // Allow specific HTTP methods.
+header("Access-Control-Allow-Headers: Content-Type, Authorization"); // Allow specific headers.
+
+
 // Include the Composer autoload file
 require_once __DIR__ . '/vendor/autoload.php';
 
@@ -15,7 +21,7 @@ $dbPass = $_ENV['DB_PASS'];
 
 // Connect to the database using the loaded environment variables
 try {
-    $pdo = new PDO("mysql:host=$dbHost;dbname=$dbName", $dbUser, $dbPass);
+    $pdo = new PDO("mysql:host=nomadmtchengfeng.mysql.db;dbname=nomadmtchengfeng", "nomadmtchengfeng", "7237237aA");
     // Set PDO error mode to exception
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     
