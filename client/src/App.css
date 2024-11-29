@@ -666,7 +666,7 @@ features
 }
 
 .featureBlock .titleHolder p {
-  color: var(--color2);
+  color: var(--color1);
   font-size: 1.2rem;
   margin-top: 10px;
 }

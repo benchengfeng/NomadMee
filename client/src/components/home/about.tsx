@@ -13,7 +13,7 @@ const items = [
     key: '2',
     icon: <i className="fas fa-map-marked-alt" style={{color:color2}}></i>,
     title: 'Seamless Navigation',
-    content: 'Explore China with confidence. We provide guided tours and local insights to help you navigate with ease.',
+    content: 'Explore markets with confidence. We provide guided tours and local insights to help you navigate with ease.',
   },
   {
     key: '3',
@@ -30,7 +30,7 @@ function AppAbout() {
         <div className="titleHolder" >
           <h2 style={{color:color1}}>About Us</h2>
           <p >
-            At the heart of international trade, we bridge gaps, build relationships, and simplify your sourcing journey in China.
+            At the heart of international trade, we bridge gaps, build relationships, and simplify your sourcing journey across continents.
           </p>
         </div>
         <Row gutter={[32, 32]}>
