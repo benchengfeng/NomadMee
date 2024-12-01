@@ -13,7 +13,7 @@ function AppHeader() {
   // const [visible, setVisible] = useState(false);
 
   const isMobile = useIsMobile();
-  const {data, loading, error} = useFetcher("/server.php")
+  const {data, loading, error} = useFetcher("/testenv.php")
 
   console.log("data", data,"loading", loading,"error", error)
 
