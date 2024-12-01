@@ -1,0 +1,25 @@
+# Ignore Composer dependencies
+/vendor/
+
+# Ignore environment file (for sensitive data like database credentials)
+.env
+
+# Ignore PHP cache and session files
+/.phpunit.result.cache
+/.idea/
+*.swp
+*.swo
+
+# Ignore system and OS files
+.DS_Store
+Thumbs.db
+
+# Ignore log files
+/logs/*
+/var/*
+
+# Ignore any backup or temporary files
+*.bak
+*.tmp
+*.swp
+*.swo
