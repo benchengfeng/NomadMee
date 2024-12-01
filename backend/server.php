@@ -21,7 +21,7 @@ $dbPass = $_ENV['DB_PASS'];
 
 // Connect to the database using the loaded environment variables
 try {
-    $pdo = new PDO("mysql:host=nomadmtchengfeng.mysql.db;dbname=nomadmtchengfeng", "nomadmtchengfeng", "7237237aA");
+    $pdo = new PDO("mysql:host=$dbHost;dbname=$dbName", $dbUser, $dbPass);
     // Set PDO error mode to exception
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     

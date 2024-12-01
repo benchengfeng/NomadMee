@@ -5,7 +5,7 @@ import { Image } from "rebass";
 import logonomadmee from "../../assets/images/logonomadmee.png";
 import camelsCaravan from "../../assets/images/camelscaravan.png";
 import useIsMobile from "../../hooks/useIsMobile";
-// import FetcherHook from "../../api/fetcher";
+import useFetcher from "../../api/fetcher";
 
 // const { Link } = Anchor;
 
@@ -13,6 +13,9 @@ function AppHeader() {
   // const [visible, setVisible] = useState(false);
 
   const isMobile = useIsMobile();
+  const {data, loading, error} = useFetcher("/server.php")
+
+  console.log("data", data,"loading", loading,"error", error)
 
   // const onClose = () => {
   //   setVisible(false);
@@ -20,7 +23,6 @@ function AppHeader() {
 
   return (
     <div className="container-fluid">
-      {/* <FetcherHook/> */}
       {/* Main Header */}
       <div
         className="header"
