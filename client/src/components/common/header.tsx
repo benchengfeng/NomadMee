@@ -13,9 +13,11 @@ function AppHeader() {
   // const [visible, setVisible] = useState(false);
 
   const isMobile = useIsMobile();
-  const {data, loading, error} = useFetcher("/testenv.php")
+
+  const {data, loading, error} = useFetcher("/server.php")
 
   console.log("data", data,"loading", loading,"error", error)
+
 
   // const onClose = () => {
   //   setVisible(false);
