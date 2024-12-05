@@ -10,11 +10,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                $data['message'];
     $headers = "From: " . $data['email'] . "\r\n";
     $headers .= "X-Mailer: PHP/" . phpversion();
-
-    // Log the headers for debugging
-    error_log("Headers: " . $headers);
-
-    if (mail($to, $subject, $message, $headers)) {
+    
+    // Use -f flag to set the return path
+    if (mail($to, $subject, $message, $headers, "-f" . $data['email'])) {
         echo json_encode(['success' => true]);
     } else {
         echo json_encode(['success' => false, 'error' => 'Failed to send email']);
@@ -23,3 +21,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     echo json_encode(['success' => false, 'error' => 'Invalid request method']);
 }
 ?>
+    
