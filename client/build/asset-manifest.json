@@ -1,31 +1,37 @@
 {
   "files": {
     "main.css": "/static/css/main.55bd6a65.css",
-    "main.js": "/static/js/main.e86bcc08.js",
+    "main.js": "/static/js/main.18145cea.js",
     "static/media/hotel.jpg": "/static/media/hotel.08d45a6577b97e5abc7f.jpg",
     "static/media/motoSpareParts.jpeg": "/static/media/motoSpareParts.52b837d042f148f67a81.jpeg",
     "static/media/loadedPort.jpg": "/static/media/loadedPort.c898727572c4029d865c.jpg",
     "static/media/usbLedLights.jpeg": "/static/media/usbLedLights.dcc941a0d8b1b1a5d970.jpeg",
     "static/media/fashionWoman.jpeg": "/static/media/fashionWoman.56b1b2ca4450a4ccec3c.jpeg",
+    "static/media/arachide.jpg": "/static/media/arachide.d69c97ac2b0143a8ef8b.jpg",
     "static/media/bg-works.jpg": "/static/media/bg-works.abd66d06d525eadfd24a.jpg",
+    "static/media/karite.jpg": "/static/media/karite.c1924568c314ff283ebb.jpg",
     "static/media/easy-customise.jpg": "/static/media/easy-customise.d4fe22138e1668906aab.jpg",
     "static/media/engineOilWholesale.jpeg": "/static/media/engineOilWholesale.12f7e51a9b5c39632683.jpeg",
+    "static/media/artistana.jpg": "/static/media/artistana.25adf9e35eacb9a176aa.jpg",
     "static/media/e-bike.jpeg": "/static/media/e-bike.0f422ce9f8e9238e52c5.jpeg",
     "static/media/great-support.jpg": "/static/media/great-support.13341f4e93333e45ebbe.jpg",
     "static/media/businessNegotiation.png": "/static/media/businessNegotiation.c7a64f8658af297e6ca4.png",
     "static/media/motoRainCoat.jpeg": "/static/media/motoRainCoat.3b8b555a12a13dccf6a1.jpeg",
+    "static/media/essentialOils.jpg": "/static/media/essentialOils.26f330275b507220c82d.jpg",
     "static/media/advanced-option.jpg": "/static/media/advanced-option.84c7d0693123632c9035.jpg",
     "static/media/modern-design.jpg": "/static/media/modern-design.e2114f5b8abbe8b1fa8b.jpg",
+    "static/media/djembe.jpg": "/static/media/djembe.7d704971f798641711cc.jpg",
     "static/media/clean-design.jpg": "/static/media/clean-design.728069dab437b67d9da8.jpg",
     "static/media/unlimited-features.jpg": "/static/media/unlimited-features.a0b8acf77e6b57772078.jpg",
+    "static/media/acajou.jpg": "/static/media/acajou.43c8c9f165c32a06feaa.jpg",
     "static/media/camelscaravan.png": "/static/media/camelscaravan.aeda5112273c7c07f7cd.png",
     "static/media/logonomadmee.png": "/static/media/logonomadmee.590c40e5fb842607b08d.png",
     "index.html": "/index.html",
     "main.55bd6a65.css.map": "/static/css/main.55bd6a65.css.map",
-    "main.e86bcc08.js.map": "/static/js/main.e86bcc08.js.map"
+    "main.18145cea.js.map": "/static/js/main.18145cea.js.map"
   },
   "entrypoints": [
     "static/css/main.55bd6a65.css",
-    "static/js/main.e86bcc08.js"
+    "static/js/main.18145cea.js"
   ]
 }
