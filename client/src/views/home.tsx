@@ -9,11 +9,13 @@ import AppAbout from '../components/home/about';
 // import AppPricing from '../components/home/pricing';
 import AppContact from '../components/home/contact';
 import AppFooter from "../components/common/footer";
+import HomeDeals from "../components/home/homeDeals";
 
 function AppHome() {
   return (
     <div className="main">
       <BusinessShowcase/>
+      <HomeDeals/>
       <AppAbout/>
       <AppContact/>
       <AppFooter/>

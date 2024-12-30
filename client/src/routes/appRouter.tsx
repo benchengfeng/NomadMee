@@ -1,7 +1,7 @@
 // AppRouter.js
 import React from "react";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import AppChina from "../components/home/appChina";
+import AppHotDeals from "../components/home/appHotDeals";
 import AppHome from "../views/home";
 import AppAfrica from "../components/home/appAfrica";
 import AppEurope from "../components/home/appEurope";
@@ -13,7 +13,7 @@ const AppRouter = () => {
     <Router>
       <Routes>
         <Route path="/" element={<AppHome />} />
-        <Route path="/china" element={<AppChina />} />
+        <Route path="/china" element={<AppHotDeals />} />
         <Route path="/africa" element={<AppAfrica />} />
         <Route path="/europe" element={<AppEurope />} />
 

@@ -694,6 +694,41 @@ features
   font-size: 1.2rem;
 }
 
+.videoSection {
+  margin-top: 40px;
+  text-align: center;
+}
+
+.videoSection {
+  margin-top: 40px;
+  text-align: center;
+}
+
+.videoTitle {
+  font-size: 24px;
+  margin-bottom: 16px;
+  color: #333;
+}
+
+.videoContainer {
+  position: relative;
+  padding-top: 56.25%; /* Aspect ratio 16:9 */
+  width: 60%; /* Set a fixed width */
+  margin: 0 auto; /* Center the container horizontally */
+}
+
+.videoFrame {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  border: none;
+}
+
+
+
 @media (max-width: 768px) {
   .featureBlock .titleHolder h2 {
     font-size: 2rem;

@@ -5,8 +5,6 @@ import { Image } from "rebass";
 import logonomadmee from "../../assets/images/logonomadmee.png";
 import camelsCaravan from "../../assets/images/camelscaravan.png";
 import useIsMobile from "../../hooks/useIsMobile";
-import useFetcher from "../../api/fetcher";
-
 // const { Link } = Anchor;
 
 function AppHeader() {
@@ -14,9 +12,6 @@ function AppHeader() {
 
   const isMobile = useIsMobile();
 
-  const {data, loading, error} = useFetcher("/server.php")
-
-  console.log("data", data,"loading", loading,"error", error)
 
 
   // const onClose = () => {
@@ -76,14 +71,14 @@ function AppHeader() {
             <a href="/">Home</a>
           </li>
           <li>
-            <a href="china">China</a>
+            <a href="china">Hot Deals</a>
           </li>
-          <li>
+          {/* <li>
             <a href="africa">Africa</a>
           </li>
           <li>
             <a href="europe">Europe</a>
-          </li>
+          </li> */}
         </ul>
       </div>
     </div>
