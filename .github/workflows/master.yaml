@@ -7,36 +7,23 @@ on:
 name: 🚀 Deploy website on push
 jobs:
   web-deploy:
-    name: 🎉 Deploy
+    name: 🎉 Deploy to Alibaba Cloud ECS
     runs-on: ubuntu-latest
     steps:
     - name: 🚚 Get latest code
       uses: actions/checkout@v3
-    
-    - name: 📂 Sync client files
-      # env:
-      #     OVH_SSH_HOST: ${{ secrets.OVH_SSH_HOST }}
-      #     OVH_SSH_PORT: ${{ secrets.OVH_SSH_PORT }}
-      #     OVH_SSH_USERNAME: ${{ secrets.OVH_SSH_USERNAME }}
-      #     OVH_SSH_PASSWORD: ${{ secrets.OVH_SSH_PASSWORD }}
-      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
-      with:
-        # server: ftp.cluster051.hosting.ovh.net
-        username: nomadmt
-        password: ${{ secrets.OVH_SSH_PASSWORD }}
-        local-dir: client/build/
-        server-dir: /var/www/NomadMe/client/build
 
-    - name: 📂 Sync backend files
-      # env:
-      #     OVH_SSH_HOST: ${{ secrets.OVH_SSH_HOST }}
-      #     OVH_SSH_PORT: ${{ secrets.OVH_SSH_PORT }}
-      #     OVH_SSH_USERNAME: ${{ secrets.OVH_SSH_USERNAME }}
-      #     OVH_SSH_PASSWORD: ${{ secrets.OVH_SSH_PASSWORD }}
-      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+    - name: 🔑 Set up SSH
+      uses: webfactory/ssh-agent@v0.5.3
       with:
-        # server: ftp.cluster051.hosting.ovh.net
-        username: nomadmt
-        password: ${{ secrets.OVH_SSH_PASSWORD }}
-        local-dir: backend/
-        server-dir: /www/NomadMe/backend/
+        ssh-private-key: ${{ secrets.ECS_SSH_PRIVATE_KEY }}
+
+    - name: 📂 Deploy client files to ECS
+      run: |
+        ssh -o StrictHostKeyChecking=no ${{ secrets.ECS_USERNAME }}@${{ secrets.ECS_IP }} "mkdir -p /var/www/NomadMe/client/build"
+        scp -r client/build/* ${{ secrets.ECS_USERNAME }}@${{ secrets.ECS_IP }}:/var/www/NomadMe/client/build
+
+    - name: 📂 Deploy backend files to ECS
+      run: |
+        ssh -o StrictHostKeyChecking=no ${{ secrets.ECS_USERNAME }}@${{ secrets.ECS_IP }} "mkdir -p /www/NomadMe/backend"
+        scp -r backend/* ${{ secrets.ECS_USERNAME }}@${{ secrets.ECS_IP }}:/www/NomadMe/backend

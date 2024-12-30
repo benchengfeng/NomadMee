@@ -1,29 +1,22 @@
-import React from "react";
-// import { Anchor } from "antd";
-import { color4 } from "../../global";
+import React, { useState } from "react";
+import { color1, color4 } from "../../global";
 import { Image } from "rebass";
 import logonomadmee from "../../assets/images/logonomadmee.png";
 import camelsCaravan from "../../assets/images/camelscaravan.png";
 import useIsMobile from "../../hooks/useIsMobile";
-// const { Link } = Anchor;
 
 function AppHeader() {
-  // const [visible, setVisible] = useState(false);
-
   const isMobile = useIsMobile();
+  const [language, setLanguage] = useState("ENG");
 
-
-
-  // const onClose = () => {
-  //   setVisible(false);
-  // };
+  const toggleLanguage = () => {
+    setLanguage((prev) => (prev === "ENG" ? "FR" : "ENG"));
+  };
 
   return (
     <div className="container-fluid">
       {/* Main Header */}
-      <div
-        className="header"
-      >
+      <div className="header">
         {/* Extreme Left Logo */}
         <div style={{ flex: "0 0 auto" }}>
           <Image
@@ -51,6 +44,34 @@ function AppHeader() {
           Bridging Trade Across Continents
         </div>
 
+        {/* Language Switcher */}
+        <div
+          style={{
+            flex: "0 0 auto",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "flex-end",
+            marginRight: "1rem",
+            cursor: "pointer",
+            color: color1,
+          }}
+          onClick={toggleLanguage}
+        >
+          <span
+            style={{
+              fontSize: isMobile ? "0.9rem" : "1rem",
+              fontWeight: "bold",
+              padding: "0.5rem",
+              border: "1px solid",
+              borderRadius: "4px",
+              backgroundColor: "#f0f0f0",
+              boxShadow: "0px 2px 5px rgba(0,0,0,0.2)",
+            }}
+          >
+            {language}
+          </span>
+        </div>
+
         {/* Extreme Right Image */}
         <div style={{ flex: "0 0 auto" }}>
           <Image
@@ -73,12 +94,6 @@ function AppHeader() {
           <li>
             <a href="hotDeals">Hot Deals</a>
           </li>
-          {/* <li>
-            <a href="africa">Africa</a>
-          </li>
-          <li>
-            <a href="europe">Europe</a>
-          </li> */}
         </ul>
       </div>
     </div>
