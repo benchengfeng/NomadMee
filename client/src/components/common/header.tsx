@@ -9,8 +9,8 @@ function AppHeader() {
   const isMobile = useIsMobile();
   const [language, setLanguage] = useState("ENG");
 
-  const toggleLanguage = () => {
-    setLanguage((prev) => (prev === "ENG" ? "FR" : "ENG"));
+  const handleLanguageChange = (event: any) => {
+    setLanguage(event.target.value);
   };
 
   return (
@@ -47,6 +47,9 @@ function AppHeader() {
         {/* Language Switcher */}
         <div
           style={{
+            position: isMobile ? "absolute" : "relative",
+            right: "0",
+            bottom: "0",
             flex: "0 0 auto",
             display: "flex",
             alignItems: "center",
@@ -55,9 +58,10 @@ function AppHeader() {
             cursor: "pointer",
             color: color1,
           }}
-          onClick={toggleLanguage}
         >
-          <span
+          <select
+            value={language}
+            onChange={handleLanguageChange}
             style={{
               fontSize: isMobile ? "0.9rem" : "1rem",
               fontWeight: "bold",
@@ -66,10 +70,12 @@ function AppHeader() {
               borderRadius: "4px",
               backgroundColor: "#f0f0f0",
               boxShadow: "0px 2px 5px rgba(0,0,0,0.2)",
+              cursor: "pointer",
             }}
           >
-            {language}
-          </span>
+            <option value="ENG">🇬🇧 English</option>
+            <option value="FR">🇫🇷 Français</option>
+          </select>
         </div>
 
         {/* Extreme Right Image */}
