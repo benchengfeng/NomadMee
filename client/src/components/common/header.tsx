@@ -71,7 +71,7 @@ function AppHeader() {
             <a href="/">Home</a>
           </li>
           <li>
-            <a href="china">Hot Deals</a>
+            <a href="hotDeals">Hot Deals</a>
           </li>
           {/* <li>
             <a href="africa">Africa</a>

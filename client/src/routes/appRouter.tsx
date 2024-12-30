@@ -13,7 +13,7 @@ const AppRouter = () => {
     <Router>
       <Routes>
         <Route path="/" element={<AppHome />} />
-        <Route path="/china" element={<AppHotDeals />} />
+        <Route path="/hotDeals" element={<AppHotDeals />} />
         <Route path="/africa" element={<AppAfrica />} />
         <Route path="/europe" element={<AppEurope />} />
 
