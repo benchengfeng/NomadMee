@@ -21,7 +21,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "rimraf ./build && tsc && react-scripts build --openssl-legacy-provider && mkdir -p ./build",
+    "build": "rimraf ./build && tsc && react-scripts build --openssl-legacy-provider && mkdir -p ./build && cp ./.htaccess ./build",
     "build-prod": "react-scripts build && rsync -av --delete ./build/* /www/ && rsync -av --delete ./public /www/",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
