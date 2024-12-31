@@ -14,6 +14,13 @@ function BusinessShowcase() {
     }
   };
 
+  fetch("http://localhost:8000/api/status", {  // Updated to your backend endpoint
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+
   return (
     <div id="showcase" className="showcaseBlock">
       <header className="showcaseHeader">

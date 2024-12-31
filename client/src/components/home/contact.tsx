@@ -8,16 +8,32 @@ function AppContact() {
   const { t } = useTranslation(); // Initialize t for translations
 
   const onFinish = (values: any) => {
-    fetch("sendEmail.php", {
+    // Format the form data into a nicely structured text body
+    const emailBody = `
+      **Name:** ${values.fullname}
+      **Email:** ${values.email}
+      **Phone:** ${values.telephone || 'Not provided'}
+      **Subject:** ${values.subject}
+      **Message:**
+      ${values.message}
+    `;
+
+    // Now, send the formatted email body to the backend
+    fetch("http://localhost:8000/api/sendEmail", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(values),
+      body: JSON.stringify({
+        email: values.email, // Sender's email
+        subject: values.subject, // Subject
+        message: emailBody, // Formatted message body
+        html: `<p>${values.message}</p>`, // HTML version (optional)
+      }),
     })
       .then((response) => response.json())
       .then((data) => {
-        if (data.success) {
+        if (data.message === 'Email sent successfully') {
           notification.success({ message: t("contact.successMessage") });
         } else {
           notification.error({

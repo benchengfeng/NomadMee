@@ -5,7 +5,7 @@ const router = Router();
 
 // POST route to send an email
 router.post('/', async (req: Request, res: Response) => {
-  const { to, subject, text, html } = req.body;
+  const { subject, message } = req.body;
 
   // Set up the SMTP transporter (using Gmail for this example)
   const transporter = nodemailer.createTransport({
@@ -18,11 +18,11 @@ router.post('/', async (req: Request, res: Response) => {
 
   // Email options
   const mailOptions = {
-    from: process.env.EMAIL_USER, // Sender email
-    to, // Receiver email
+    from: process.env.EMAIL_USER , // Sender email
+    to: process.env.EMAIL_USER, // Receiver email
     subject, // Subject of the email
-    text, // Plain text body
-    html, // HTML body (optional)
+    text: message, // Plain text body
+    html: message, // HTML body (optional)
   };
 
   try {
