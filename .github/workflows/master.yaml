@@ -25,5 +25,5 @@ jobs:
 
     - name: 📂 Deploy backend files to ECS
       run: |
-        ssh -o StrictHostKeyChecking=no ${{ secrets.ECS_USERNAME }}@${{ secrets.ECS_IP }} "mkdir -p /www/NomadMee/backend"
-        scp -r backend/* ${{ secrets.ECS_USERNAME }}@${{ secrets.ECS_IP }}:/www/NomadMee/backend
+        ssh -o StrictHostKeyChecking=no ${{ secrets.ECS_USERNAME }}@${{ secrets.ECS_IP }} "mkdir -p /var/www/NomadMee/backend/dist"
+        scp -r backend/* ${{ secrets.ECS_USERNAME }}@${{ secrets.ECS_IP }}:/var/www/NomadMee/backend
