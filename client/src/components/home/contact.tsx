@@ -1,35 +1,36 @@
-import React from 'react';
-import { Form, Input, Button, notification } from 'antd';
+import React from "react";
+import { Form, Input, Button, notification } from "antd";
+import { useTranslation } from "react-i18next";
 
 const { TextArea } = Input;
 
-// interface FormValues extends Store {
-//   fullname: string;
-//   email: string;
-//   telephone?: string; // Optional field
-//   subject?: string; // Optional field
-//   message: string;
-// }
-
 function AppContact() {
+  const { t } = useTranslation(); // Initialize t for translations
+
   const onFinish = (values: any) => {
-    fetch('sendEmail.php', {
-      method: 'POST',
+    fetch("sendEmail.php", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(values),
     })
       .then((response) => response.json())
       .then((data) => {
         if (data.success) {
-          notification.success({ message: 'Email sent successfully!' });
+          notification.success({ message: t("contact.successMessage") });
         } else {
-          notification.error({ message: 'Failed to send email.', description: data.error });
+          notification.error({
+            message: t("contact.failureMessage"),
+            description: data.error,
+          });
         }
       })
       .catch((error) => {
-        notification.error({ message: 'Error sending email', description: error.toString() });
+        notification.error({
+          message: t("contact.errorMessage"),
+          description: error.toString(),
+        });
       });
   };
 
@@ -37,8 +38,8 @@ function AppContact() {
     <div id="contact" className="block contactBlock">
       <div className="container-fluid">
         <div className="titleHolder">
-          <h2>Contact Us</h2>
-          <p>We’re here to assist you with sourcing and facilitating your business needs. Reach out to us anytime!</p>
+          <h2>{t("contact.title")}</h2>
+          <p>{t("contact.description")}</p>
         </div>
         <Form
           name="contact_form"
@@ -49,37 +50,48 @@ function AppContact() {
         >
           <Form.Item
             name="fullname"
-            label="Full Name"
-            rules={[{ required: true, message: 'Please enter your full name!' }]}
+            label={t("contact.form.fullName.label")}
+            rules={[
+              { required: true, message: t("contact.form.fullName.error") },
+            ]}
           >
-            <Input placeholder="Enter your full name" />
+            <Input placeholder={t("contact.form.fullName.placeholder")} />
           </Form.Item>
           <Form.Item
             name="email"
-            label="Email Address"
+            label={t("contact.form.email.label")}
             rules={[
-              { type: 'email', message: 'The input is not valid E-mail!' },
-              { required: true, message: 'Please input your E-mail!' },
+              { type: "email", message: t("contact.form.email.invalid") },
+              { required: true, message: t("contact.form.email.error") },
             ]}
           >
-            <Input placeholder="Enter your email address" />
+            <Input placeholder={t("contact.form.email.placeholder")} />
           </Form.Item>
-          <Form.Item name="telephone" label="Telephone">
-            <Input placeholder="Enter your telephone number" />
+          <Form.Item
+            name="telephone"
+            label={t("contact.form.telephone.label")}
+          >
+            <Input placeholder={t("contact.form.telephone.placeholder")} />
           </Form.Item>
-          <Form.Item name="subject" label="Subject">
-            <Input placeholder="Enter the subject" />
+          <Form.Item name="subject" label={t("contact.form.subject.label")}>
+            <Input placeholder={t("contact.form.subject.placeholder")} />
           </Form.Item>
           <Form.Item
             name="message"
-            label="Message"
-            rules={[{ required: true, message: 'Please enter your message!' }]}
+            label={t("contact.form.message.label")}
+            rules={[
+              { required: true, message: t("contact.form.message.error") },
+            ]}
           >
-            <TextArea rows={4} placeholder="Write your message here" />
+            <TextArea rows={4} placeholder={t("contact.form.message.placeholder")} />
           </Form.Item>
           <Form.Item>
-            <Button type="primary" htmlType="submit" className="contact-form-button">
-              Submit
+            <Button
+              type="primary"
+              htmlType="submit"
+              className="contact-form-button"
+            >
+              {t("contact.form.submit")}
             </Button>
           </Form.Item>
         </Form>

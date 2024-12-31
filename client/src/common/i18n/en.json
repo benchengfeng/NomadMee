@@ -1,0 +1,111 @@
+{
+  "welcome": "Welcome",
+  "language": "Language",
+  "headerTitle": "Bridging Trade Across Continents",
+  "home": "Home",
+  "hotDealsHeader": "Hot Deals",
+  
+    "showcase": {
+      "headerTitle": "Streamlining Global Sourcing and Trade Across Continents",
+      "headerSubtitle": "Partnering with you to simplify sourcing, bridge opportunities, and unlock trade potential in China, Africa, and Europe.",
+      "clientSourcing": {
+        "title": "Client Sourcing",
+        "description": "Helping you find and connect with the right partners for your business needs."
+      },
+      "purchaseAssistance": {
+        "title": "Purchase Assistance",
+        "description": "Providing expert support to ensure smooth transactions and top-quality purchases."
+      },
+      "facilitationServices": {
+        "title": "Facilitation Services",
+        "description": "Simplifying your journey with logistics, guidance, and local expertise."
+      },
+      "getInTouch": "Get in touch today to start your journey with us!"
+    },
+
+  "header": {
+    "title": "Explore, Connect, and Trade with Confidence",
+    "subtitle": "We Handle the Details, You Focus on Growth"
+  },
+  "deals": {
+    "businessNegotiations": "Business Negotiations",
+    "hotelAndAirport": "Hotel & Airport",
+    "guidedBusinessTour": "Guided Business Tour"
+  },
+
+  "about": {
+    "title": "About Us",
+    "description": "At the heart of international trade, we bridge gaps, build relationships, and simplify your sourcing journey across continents.",
+    "items": {
+      "personalizedSourcing": {
+        "title": "Personalized Sourcing",
+        "content": "We connect you with the right suppliers and ensure you get the best deals tailored to your specific needs."
+      },
+      "seamlessNavigation": {
+        "title": "Seamless Navigation",
+        "content": "Explore markets with confidence. We provide guided tours and local insights to help you navigate with ease."
+      },
+      "efficientFacilitation": {
+        "title": "Efficient Facilitation",
+        "content": "Our end-to-end support simplifies every step of the process, from negotiation to delivery, saving you time and effort."
+      }
+    }
+  },
+
+  "contact": {
+    "title": "Contact Us",
+    "description": "We’re here to assist you with sourcing and facilitating your business needs. Reach out to us anytime!",
+    "successMessage": "Email sent successfully!",
+    "failureMessage": "Failed to send email.",
+    "errorMessage": "Error sending email",
+    "form": {
+      "fullName": {
+        "label": "Full Name",
+        "placeholder": "Enter your full name",
+        "error": "Please enter your full name!"
+      },
+      "email": {
+        "label": "Email Address",
+        "placeholder": "Enter your email address",
+        "invalid": "The input is not a valid E-mail!",
+        "error": "Please input your E-mail!"
+      },
+      "telephone": {
+        "label": "Telephone",
+        "placeholder": "Enter your telephone number"
+      },
+      "subject": {
+        "label": "Subject",
+        "placeholder": "Enter the subject"
+      },
+      "message": {
+        "label": "Message",
+        "placeholder": "Write your message here",
+        "error": "Please enter your message!"
+      },
+      "submit": "Submit"
+    }
+  },
+
+  "footer": {
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
+    "copyright": "Copyright © {{year}} {{company}}",
+    "backToTop": "Back to top"
+  },
+
+  "hotDeals": {
+    "buyOneGetOne": "Buy One get One for FREE!",
+    "exclusiveOpportunities": "Exclusive Opportunities",
+    "truck": "Trucks",
+    "excavator": "Excavators",
+    "mixerTruck": "Mixer Trucks",
+    "manufacturingEquipment": "Manufacturing Equipment",
+    "printers": "Printers",
+    "motorcycleParts": "Motorcycle Spare Parts",
+    "discoverMore": "Discover More in Our Video",
+    "exclusiveOpportunitiesVideo": "Exclusive Opportunities Video",
+    "hotPicks": "Hot Picks",
+    "advantages": "Discover the advantages that make our platform stand out."
+  }
+}

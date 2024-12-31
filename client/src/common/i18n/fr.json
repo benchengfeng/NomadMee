@@ -1,0 +1,96 @@
+{
+  "welcome": "Bienvenue",
+  "language": "Langue",
+  "headerTitle": "Relier le commerce à travers les continents",
+  "home": "Accueil",
+  "hotDealsHeader": "Bonnes Affaires",
+
+  "showcase": {
+    "headerTitle": "Rationaliser l'approvisionnement et le commerce mondiaux à travers les continents",
+    "headerSubtitle": "Nous nous associons à vous pour simplifier l'approvisionnement, créer des opportunités et libérer le potentiel commercial en Chine, en Afrique et en Europe.",
+    "clientSourcing": {
+      "title": "Approvisionnement des clients",
+      "description": "Nous vous aidons à trouver et à vous connecter avec les bons partenaires pour vos besoins commerciaux."
+    },
+    "purchaseAssistance": {
+      "title": "Assistance à l'achat",
+      "description": "Offrir un support expert pour garantir des transactions fluides et des achats de qualité supérieure."
+    },
+    "facilitationServices": {
+      "title": "Services de facilitation",
+      "description": "Simplifier votre voyage avec la logistique, les conseils et l'expertise locale."
+    },
+    "getInTouch": "Contactez-nous dès aujourd'hui pour commencer votre voyage avec nous !"
+  },
+
+  "header": {
+    "title": "Explorez, Connectez-vous et Commercez avec Confiance",
+    "subtitle": "Nous nous occupons des détails, vous concentrez sur la croissance"
+  },
+  "deals": {
+    "businessNegotiations": "Négociations commerciales",
+    "hotelAndAirport": "Hôtel & Aéroport",
+    "guidedBusinessTour": "Visite guidée d'affaires"
+  },
+
+  "about": {
+    "title": "À propos de nous",
+    "description": "Au cœur du commerce international, nous comblons les lacunes, construisons des relations et simplifions votre parcours d'approvisionnement à travers les continents.",
+    "items": {
+      "personalizedSourcing": {
+        "title": "Approvisionnement personnalisé",
+        "content": "Nous vous connectons avec les bons fournisseurs et garantissons les meilleures offres adaptées à vos besoins spécifiques."
+      },
+      "seamlessNavigation": {
+        "title": "Navigation sans effort",
+        "content": "Explorez les marchés en toute confiance. Nous fournissons des visites guidées et des informations locales pour vous aider à naviguer facilement."
+      },
+      "efficientFacilitation": {
+        "title": "Facilitation efficace",
+        "content": "Notre soutien de bout en bout simplifie chaque étape du processus, de la négociation à la livraison, vous faisant gagner du temps et des efforts."
+      }
+    }
+  },
+
+    "contact": {
+      "title": "Nous Contacter",
+      "description": "Nous sommes là pour vous aider avec l'approvisionnement et la facilitation de vos besoins commerciaux. Contactez-nous à tout moment !",
+      "successMessage": "E-mail envoyé avec succès !",
+      "failureMessage": "Échec de l'envoi de l'e-mail.",
+      "errorMessage": "Erreur lors de l'envoi de l'e-mail",
+      "form": {
+        "fullName": {
+          "label": "Nom Complet",
+          "placeholder": "Entrez votre nom complet",
+          "error": "Veuillez entrer votre nom complet !"
+        },
+        "email": {
+          "label": "Adresse e-mail",
+          "placeholder": "Entrez votre adresse e-mail",
+          "invalid": "L'entrée n'est pas un e-mail valide !",
+          "error": "Veuillez entrer votre e-mail !"
+        },
+        "telephone": {
+          "label": "Téléphone",
+          "placeholder": "Entrez votre numéro de téléphone"
+        },
+        "subject": {
+          "label": "Sujet",
+          "placeholder": "Entrez le sujet"
+        },
+        "message": {
+          "label": "Message",
+          "placeholder": "Écrivez votre message ici",
+          "error": "Veuillez entrer votre message !"
+        },
+        "submit": "Soumettre"
+      }
+    },
+
+    "footer": {
+      "privacyPolicy": "Politique de confidentialité",
+      "termsOfService": "Conditions d'utilisation",
+      "copyright": "Copyright © {{year}} {{company}}",
+      "backToTop": "Retour en haut"
+    }  
+}

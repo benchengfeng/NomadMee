@@ -1,4 +1,5 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 
 import image1 from "../../assets/images/china/business/businessNegotiation.png";
 import image2 from "../../assets/images/china/business/hotel.jpg";
@@ -15,28 +16,30 @@ import { Row, Col, Card } from "antd";
 const { Meta } = Card;
 
 function HomeDeals() {
+  const { t } = useTranslation(); // Initialize t for translations
+
   const deals = [
-    { title: "Business Negotiations", image: image1 },
-    { title: "Hotel & Airport", image: image2 },
-    { title: "Guided Business Tour", image: image3 },
+    { title: t("deals.businessNegotiations"), image: image1 },
+    { title: t("deals.hotelAndAirport"), image: image2 },
+    { title: t("deals.guidedBusinessTour"), image: image3 },
   ];
   // const hotPicks = [
-  //   { title: "E-Bikes", image: image4 },
-  //   { title: "Led Lights", image: image5 },
-  //   { title: "Fashion for Women", image: image6 },
+  //   { title: t("hotPicks.eBikes"), image: image4 },
+  //   { title: t("hotPicks.ledLights"), image: image5 },
+  //   { title: t("hotPicks.fashionForWomen"), image: image6 },
   // ];
   // const exclusiveOpps = [
-  //   { title: "Motorcycle Rain Coats", image: image7 },
-  //   { title: "Wholesale Engine Oil", image: image8 },
-  //   { title: "Motorcycle Spare Parts", image: image9 },
+  //   { title: t("exclusiveOpps.motorcycleRainCoats"), image: image7 },
+  //   { title: t("exclusiveOpps.wholesaleEngineOil"), image: image8 },
+  //   { title: t("exclusiveOpps.motorcycleSpareParts"), image: image9 },
   // ];
 
   return (
     <div id="feature" className="featureBlock">
       <div className="container">
         <div className="titleHolder">
-          <h2>Explore, Connect, and Trade with Confidence</h2>
-          <p>We Handle the Details, You Focus on Growth</p>
+          <h2>{t("header.title")}</h2>
+          <p>{t("header.subtitle")}</p>
         </div>
         <Row gutter={[24, 24]}>
           {deals.map((deal, index) => (
@@ -52,8 +55,8 @@ function HomeDeals() {
           ))}
         </Row>
         {/* <div className="titleHolder">
-          <h2>Hot Picks for Traders</h2>
-          <p>Unveiling Exclusive Deals for Savvy Traders</p>
+          <h2>{t("hotPicks.title")}</h2>
+          <p>{t("hotPicks.subtitle")}</p>
         </div>
         <Row gutter={[24, 24]}>
           {hotPicks.map((hotPick, index) => (
@@ -71,8 +74,8 @@ function HomeDeals() {
           ))}
         </Row>
         <div className="titleHolder">
-          <h2>Exclusive Opportunities</h2>
-          <p>Discover the advantages that make our platform stand out.</p>
+          <h2>{t("exclusiveOpps.title")}</h2>
+          <p>{t("exclusiveOpps.subtitle")}</p>
         </div>
         <Row gutter={[24, 24]}>
           {exclusiveOpps.map((exclusiveOpp, index) => (

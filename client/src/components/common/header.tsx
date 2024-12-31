@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { color1, color4 } from "../../global";
 import { Image } from "rebass";
 import logonomadmee from "../../assets/images/logonomadmee.png";
@@ -6,11 +7,14 @@ import camelsCaravan from "../../assets/images/camelscaravan.png";
 import useIsMobile from "../../hooks/useIsMobile";
 
 function AppHeader() {
+  const { t, i18n } = useTranslation();
   const isMobile = useIsMobile();
   const [language, setLanguage] = useState("ENG");
 
-  const handleLanguageChange = (event: any) => {
-    setLanguage(event.target.value);
+  const handleLanguageChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedLanguage = event.target.value;
+    setLanguage(selectedLanguage);
+    i18n.changeLanguage(selectedLanguage === "ENG" ? "en" : "fr"); // Map language codes
   };
 
   return (
@@ -41,15 +45,15 @@ function AppHeader() {
             overflow: "hidden",
           }}
         >
-          Bridging Trade Across Continents
+          {t('headerTitle')}
         </div>
 
         {/* Language Switcher */}
         <div
           style={{
-            position: isMobile ? "absolute" : "relative",
-            right: "0",
-            bottom: "0",
+            position: "absolute",
+            right: isMobile ? "10px" : "100px",
+            top: "0",
             flex: "0 0 auto",
             display: "flex",
             alignItems: "center",
@@ -73,8 +77,8 @@ function AppHeader() {
               cursor: "pointer",
             }}
           >
-            <option value="ENG">🇬🇧 English</option>
-            <option value="FR">🇫🇷 Français</option>
+            <option value="ENG">🇬🇧 EN</option>
+            <option value="FR">🇫🇷 FR</option>
           </select>
         </div>
 
@@ -95,10 +99,10 @@ function AppHeader() {
       <div className="stickyMenu">
         <ul className="menuItems">
           <li>
-            <a href="/">Home</a>
+            <a href="/">{t('home')}</a>
           </li>
           <li>
-            <a href="hotDeals">Hot Deals</a>
+            <a href="hotDeals">{t('hotDealsHeader')}</a>
           </li>
         </ul>
       </div>

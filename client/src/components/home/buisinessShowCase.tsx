@@ -1,8 +1,10 @@
 import React from "react";
+import { useTranslation } from "react-i18next";
 import { color1, color2, color3 } from "../../global";
 import useIsMobile from "../../hooks/useIsMobile";
 
 function BusinessShowcase() {
+  const { t } = useTranslation(); // Initialize t for translations
   const isMobile = useIsMobile();
 
   const scrollToContact = () => {
@@ -11,15 +13,15 @@ function BusinessShowcase() {
       contactSection.scrollIntoView({ behavior: "smooth" });
     }
   };
+
   return (
     <div id="showcase" className="showcaseBlock">
       <header className="showcaseHeader">
         <h1 style={{ fontSize: isMobile ? "24px" : "36px", color: color2 }}>
-          Streamlining Global Sourcing and Trade Across Continents
+          {t("showcase.headerTitle")}
         </h1>
         <p style={{ fontSize: isMobile ? "14px" : "18px" }}>
-          Partnering with you to simplify sourcing, bridge opportunities, and
-          unlock trade potential in China, Africa, and Europe.
+          {t("showcase.headerSubtitle")}
         </p>
       </header>
 
@@ -36,38 +38,29 @@ function BusinessShowcase() {
             className="serviceCard"
             style={{ width: isMobile ? "80%" : "30%" }}
           >
-            <h3 style={{ color: color1 }}>Client Sourcing</h3>
-            <p>
-              Helping you find and connect with the right partners for your
-              business needs.
-            </p>
+            <h3 style={{ color: color1 }}>{t("showcase.clientSourcing.title")}</h3>
+            <p>{t("showcase.clientSourcing.description")}</p>
           </div>
           <div
             className="serviceCard"
             style={{ width: isMobile ? "80%" : "30%" }}
           >
-            <h3 style={{ color: color2 }}>Purchase Assistance</h3>
-            <p>
-              Providing expert support to ensure smooth transactions and
-              top-quality purchases.
-            </p>
+            <h3 style={{ color: color2 }}>{t("showcase.purchaseAssistance.title")}</h3>
+            <p>{t("showcase.purchaseAssistance.description")}</p>
           </div>
           <div
             className="serviceCard"
             style={{ width: isMobile ? "80%" : "30%" }}
           >
-            <h3 style={{ color: color3 }}>Facilitation Services</h3>
-            <p>
-              Simplifying your journey with logistics, guidance, and local
-              expertise.
-            </p>
+            <h3 style={{ color: color3 }}>{t("showcase.facilitationServices.title")}</h3>
+            <p>{t("showcase.facilitationServices.description")}</p>
           </div>
         </div>
       </section>
 
       <footer className="showcaseFooter">
         <button onClick={scrollToContact} className="getInTouchButton">
-          Get in touch today to start your journey with us!
+          {t("showcase.getInTouch")}
         </button>
       </footer>
     </div>
