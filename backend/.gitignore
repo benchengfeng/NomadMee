@@ -1,6 +1,7 @@
 # Ignore Composer dependencies
 /vendor/
 
+node_modules
 # Ignore environment file (for sensitive data like database credentials)
 .env
 
