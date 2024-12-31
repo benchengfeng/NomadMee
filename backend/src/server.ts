@@ -12,6 +12,11 @@ const app = express();
 
 // Middleware
 app.use(cors());
+app.use(cors({
+  origin: ['http://nomadmee.com'], // Replace with your frontend's domain
+  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Add allowed HTTP methods
+  credentials: true, // If you're using cookies
+}));
 app.use(bodyParser.json());
 
 // Routes

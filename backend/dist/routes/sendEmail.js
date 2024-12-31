@@ -22,14 +22,14 @@ router.post('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const transporter = nodemailer_1.default.createTransport({
         service: 'gmail',
         auth: {
-            user: "aminebizerta@gmail.com", // Your email address
-            pass: "iflm cwag hpkf giag", // Your email password or app-specific password
+            user: process.env.EMAIL_USER, // Your email address
+            pass: process.env.EMAIL_PASS, // Your email password or app-specific password
         },
     });
     // Email options
     const mailOptions = {
-        from: "aminebizerta@gmail.com", // Sender email
-        to: "aminebizerta@gmail.com", // Receiver email
+        from: process.env.EMAIL_USER, // Sender email
+        to: process.env.EMAIL_USER, // Receiver email
         subject, // Subject of the email
         text: message, // Plain text body
         html: message, // HTML body (optional)
