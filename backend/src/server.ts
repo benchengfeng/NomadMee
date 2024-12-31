@@ -17,6 +17,8 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE'], // Add allowed HTTP methods
   credentials: true, // If you're using cookies
 }));
+app.options('*', cors({ origin: 'http://nomadmeshop.com', credentials: true }));
+
 app.use(bodyParser.json());
 
 // Routes

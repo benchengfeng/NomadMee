@@ -18,6 +18,7 @@ app.use((0, cors_1.default)({
     methods: ['GET', 'POST', 'PUT', 'DELETE'], // Add allowed HTTP methods
     credentials: true, // If you're using cookies
 }));
+app.options('*', (0, cors_1.default)({ origin: 'http://nomadmeshop.com', credentials: true }));
 app.use(body_parser_1.default.json());
 // Routes
 app.use('/api/sendEmail', sendEmail_1.default); // Set up the route for sending emails
