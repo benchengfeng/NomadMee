@@ -14,9 +14,8 @@ const app = (0, express_1.default)();
 // Middleware
 app.use((0, cors_1.default)());
 app.use((0, cors_1.default)({
-    origin: ['http://nomadmee.com'], // Replace with your frontend's domain
+    origin: ['http://nomadmeshop.com'], // Replace with your frontend's domain
     methods: ['GET', 'POST', 'PUT', 'DELETE'], // Add allowed HTTP methods
-    credentials: true, // If you're using cookies
 }));
 app.options('*', (0, cors_1.default)({ origin: 'http://nomadmeshop.com', credentials: true }));
 app.use(body_parser_1.default.json());
