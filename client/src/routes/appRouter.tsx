@@ -5,6 +5,8 @@ import AppHotDeals from "../components/home/appHotDeals";
 import AppHome from "../views/home";
 import AppAfrica from "../components/home/appAfrica";
 import AppEurope from "../components/home/appEurope";
+import PrivacyPolicy from "../components/common/privacy-policy";
+import TermsOfService from "../components/common/terms-service";
 // import FetcherHook from '../api/fetcher';
 
 const AppRouter = () => {
@@ -16,6 +18,8 @@ const AppRouter = () => {
         <Route path="/hotDeals" element={<AppHotDeals />} />
         <Route path="/africa" element={<AppAfrica />} />
         <Route path="/europe" element={<AppEurope />} />
+        <Route path="/terms-of-service" element={<TermsOfService/>} />
+        <Route path="/privacy-policy" element={<PrivacyPolicy />} />
 
       </Routes>
     </Router>

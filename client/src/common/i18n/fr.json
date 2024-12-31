@@ -92,5 +92,114 @@
       "termsOfService": "Conditions d'utilisation",
       "copyright": "Copyright © {{year}} {{company}}",
       "backToTop": "Retour en haut"
-    }  
+    },
+
+      "privacyPolicy": {
+        "title": "Politique de confidentialité",
+        "introduction": "Chez NomadMee, votre confidentialité est d'une importance capitale pour nous. Ce document de Politique de confidentialité décrit les types d'informations personnelles qui sont reçues et collectées par NomadMee et comment nous les utilisons.",
+        "section1": {
+          "title": "1. Informations que nous collectons",
+          "description": "Nous collectons différents types d'informations afin de fournir et améliorer nos services :",
+          "item1": {
+            "title": "Informations personnelles",
+            "description": "Cela peut inclure votre nom, votre adresse e-mail, votre numéro de téléphone, etc., que vous fournissez volontairement lors de votre inscription sur notre plateforme ou lorsque vous nous contactez."
+          },
+          "item2": {
+            "title": "Données d'utilisation",
+            "description": "Cela peut inclure des informations telles que votre adresse IP, le type de votre navigateur et votre système d'exploitation, collectées automatiquement lorsque vous accédez à notre plateforme."
+          },
+          "item3": {
+            "title": "Cookies",
+            "description": "Nous utilisons des cookies pour personnaliser votre expérience, suivre les habitudes d'utilisation et améliorer les fonctionnalités de notre site web."
+          }
+        },
+        "section2": {
+          "title": "2. Comment nous utilisons vos informations",
+          "description": "Les informations que nous collectons sont utilisées à diverses fins :",
+          "item1": "Pour fournir et maintenir nos services",
+          "item2": "Pour vous informer des modifications apportées à nos services",
+          "item3": "Pour améliorer notre site web et nos services en fonction des retours des utilisateurs",
+          "item4": "Pour fournir un support client et des communications"
+        },
+        "section3": {
+          "title": "3. Partage et divulgation des données",
+          "description": "Nous ne vendons ni ne partageons vos informations personnelles avec des tiers, sauf dans les circonstances suivantes :",
+          "item1": {
+            "title": "Avec des prestataires de services",
+            "description": "Nous pouvons partager vos données avec des prestataires de services tiers de confiance qui nous aident à exploiter notre plateforme."
+          },
+          "item2": {
+            "title": "Pour des raisons légales",
+            "description": "Si la loi l'exige, nous pouvons divulguer vos informations pour nous conformer aux obligations légales ou pour protéger nos droits."
+          },
+          "item3": {
+            "title": "Transferts d'entreprises",
+            "description": "Si nous procédons à une fusion d'entreprise, à une acquisition ou à une vente d'actifs, vos informations peuvent être transférées dans le cadre de ce processus."
+          }
+        },
+        "section4": {
+          "title": "4. Vos droits en matière de protection des données",
+          "description": "En fonction de votre emplacement, vous pouvez disposer de certains droits en matière de protection des données en vertu des lois applicables."
+        },
+        "section5": {
+          "title": "5. Sécurité des données",
+          "description": "Nous prenons la sécurité de vos données personnelles très au sérieux. Nous mettons en œuvre des mesures de sécurité conformes aux normes industrielles pour protéger vos informations contre tout accès, divulgation, altération ou destruction non autorisés."
+        },
+        "section6": {
+          "title": "6. Modifications de cette Politique de confidentialité",
+          "description": "Nous pouvons mettre à jour notre Politique de confidentialité de temps à autre. Toutes les modifications seront publiées sur cette page, et nous vous informerons de tout changement important."
+        },
+        "section7": {
+          "title": "7. Contactez-nous",
+          "description": "Si vous avez des questions ou des préoccupations concernant cette Politique de confidentialité ou nos pratiques, n'hésitez pas à nous contacter."
+        },
+        "contact": {
+          "title": "Contactez-nous",
+          "email": "Email"
+        }
+      },
+
+        "termsOfService": {
+          "title": "Conditions d'utilisation",
+          "introduction": "Bienvenue sur NomadMee. Ces conditions d'utilisation définissent les règles et réglementations relatives à l'utilisation de notre plateforme.",
+          "section1": {
+            "title": "1. Responsabilités des utilisateurs",
+            "description": "En tant qu'utilisateur, vous êtes responsable de vous assurer que vos activités respectent les points suivants :",
+            "item1": "Fournir des informations exactes et à jour.",
+            "item2": "Utiliser la plateforme de manière légale.",
+            "item3": "Respecter les droits et la vie privée des autres utilisateurs."
+          },
+          "section2": {
+            "title": "2. Création de compte et sécurité",
+            "description": "Pour accéder à certaines fonctionnalités, vous devez créer un compte et en assurer la sécurité.",
+            "item1": "Choisir un mot de passe fort et le garder confidentiel.",
+            "item2": "Nous informer immédiatement en cas d'accès non autorisé.",
+            "item3": "Vous êtes responsable de toute activité sur votre compte."
+          },
+          "section3": {
+            "title": "3. Utilisation de la plateforme",
+            "description": "En utilisant notre plateforme, vous acceptez les termes suivants :",
+            "item1": "Vous ne vous livrerez pas à des activités illégales ou nuisibles.",
+            "item2": "Vous respecterez les droits de propriété intellectuelle.",
+            "item3": "Vous ne ferez pas un usage abusif de la plateforme pour des spams ou des fraudes."
+          },
+          "section4": {
+            "title": "4. Conditions de paiement",
+            "description": "Certaines fonctionnalités ou services peuvent nécessiter un paiement, sous réserve des conditions suivantes :"
+          },
+          "section5": {
+            "title": "5. Confidentialité et protection des données",
+            "description": "Nous nous engageons à protéger votre vie privée et vos données personnelles. Veuillez consulter notre Politique de confidentialité pour plus de détails."
+          },
+          "section6": {
+            "title": "6. Résiliation",
+            "description": "Nous nous réservons le droit de suspendre ou de résilier votre compte en cas de violation de ces conditions."
+          },
+          "section7": {
+            "title": "7. Contactez-nous",
+            "description": "Si vous avez des questions ou des préoccupations concernant nos conditions, veuillez nous contacter à :",
+            "contact": "Si vous avez des questions ou des préoccupations, veuillez nous contacter."
+          }
+        }      
+    
 }

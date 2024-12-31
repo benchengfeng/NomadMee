@@ -850,6 +850,126 @@ contact
   border-color: var(--color1);
 }
 
+/* privacy policy */
+
+
+.privacy-policy-container {
+  padding: 10rem;
+}
+
+.privacy-policy-header {
+  margin-bottom: 2rem;
+}
+
+.privacy-policy-section {
+  margin-bottom: 2rem;
+}
+
+.privacy-policy-section h2 {
+  font-size: 1.5rem;
+  margin-top: 1rem;
+}
+
+.privacy-policy-section p {
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.privacy-policy-section ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+}
+
+.privacy-policy-contact a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.privacy-policy-contact a:hover {
+  text-decoration: underline;
+}
+
+
+/* terms of service */
+
+/* Container for the entire Terms of Service page */
+.terms-container {
+  padding: 10rem;
+  max-width: 1000 px;
+  margin: 0 auto;
+  font-family: Arial, sans-serif;
+  line-height: 1.6;
+}
+
+/* Main title */
+.terms-title {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+  text-align: center;
+  color: #333;
+}
+
+/* Introduction paragraph */
+.terms-introduction {
+  font-size: 1.1rem;
+  margin-bottom: 2rem;
+  text-align: justify;
+  color: #555;
+}
+
+/* Section titles */
+.terms-subtitle {
+  font-size: 1.5rem;
+  margin-top: 2rem;
+  color: #4CAF50; /* Green color */
+}
+
+/* Section content */
+.terms-section p {
+  font-size: 1rem;
+  color: #666;
+  margin-bottom: 1rem;
+}
+
+/* List inside sections */
+.terms-list {
+  margin-left: 1.5rem;
+}
+
+.terms-list li {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  color: #666;
+}
+
+/* Footer section */
+.terms-footer {
+  text-align: center;
+  margin-top: 3rem;
+  font-size: 1rem;
+  color: #333;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .terms-container {
+    padding: 1rem;
+  }
+
+  .terms-title {
+    font-size: 1.5rem;
+  }
+
+  .terms-subtitle {
+    font-size: 1.2rem;
+  }
+
+  .terms-introduction,
+  .terms-section p {
+    font-size: 1rem;
+  }
+}
 
 /* 
 footer
