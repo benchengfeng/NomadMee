@@ -19,7 +19,7 @@ function AppContact() {
     `;
 
     // Now, send the formatted email body to the backend
-    fetch("http://localhost:8000/api/sendEmail", {
+    fetch("http://nomdameshop.com/api/sendEmail", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
