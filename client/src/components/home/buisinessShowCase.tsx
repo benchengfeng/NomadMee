@@ -14,13 +14,13 @@ function BusinessShowcase() {
     }
   };
 
-  fetch("http://nomdameshop.com/api/status", {  // Updated to your backend endpoint
-    method: "GET",
+  fetch('http://nomadmeshop.com/api/status', {
+    method: 'GET',
     headers: {
-      "Content-Type": "application/json",
+      'Content-Type': 'application/json',
     },
-  })
-
+    credentials: 'include', // Include credentials if needed
+  });
   return (
     <div id="showcase" className="showcaseBlock">
       <header className="showcaseHeader">

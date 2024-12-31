@@ -1,29 +1,36 @@
-import express, { Request, Response } from 'express';
+import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
-import sendEmailRoutes from './routes/sendEmail'; // Import the email sending route
-import statusRoutes from './routes/status'; // Import the new route
-
+import sendEmailRoutes from './routes/sendEmail';
+import statusRoutes from './routes/status';
 
 dotenv.config();
 
 const app = express();
 
-// Middleware
-app.use(cors());
+// Middleware for CORS
 app.use(cors({
-  origin: ['http://nomadmeshop.com'], // Replace with your frontend's domain
-  methods: ['GET', 'POST', 'PUT', 'DELETE'], // Add allowed HTTP methods
+  origin: 'http://nomadmeshop.com', // Allow your frontend's domain
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allowed HTTP methods
+  allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
+  credentials: true, // Allow cookies or auth headers
 }));
-app.options('*', cors({ origin: 'http://nomadmeshop.com', credentials: true }));
 
+// Middleware for parsing requests
 app.use(bodyParser.json());
 
-// Routes
-app.use('/api/sendEmail', sendEmailRoutes); // Set up the route for sending emails
-app.use('/api/status', statusRoutes); // Set up the status route
+// Handle preflight requests (OPTIONS)
+app.options('*', (req, res) => {
+  res.header('Access-Control-Allow-Origin', 'http://nomadmeshop.com');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.sendStatus(200); // Respond with OK
+});
 
+// Routes
+app.use('/api/sendEmail', sendEmailRoutes);
+app.use('/api/status', statusRoutes);
 
 // Server Listening
 const port = process.env.PORT || 8000;
