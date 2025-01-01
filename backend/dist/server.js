@@ -14,7 +14,7 @@ const app = (0, express_1.default)();
 // Middleware for CORS
 app.use((0, cors_1.default)({
     origin: 'http://nomadmeshop.com', // Allow your frontend's domain
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allowed HTTP methods
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allowed HTTP method
     allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
     credentials: true, // Allow cookies or auth headers
 }));

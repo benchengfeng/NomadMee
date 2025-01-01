@@ -20,10 +20,10 @@ jobs:
 
     - name: 📂 Deploy client files to ECS
       run: |
-        ssh -o StrictHostKeyChecking=no ${{ secrets.ECS_USERNAME }}@${{ secrets.ECS_IP }} "mkdir -p /var/www/NomadMee/client/build"
-        scp -r client/build* ${{ secrets.ECS_USERNAME }}@${{ secrets.ECS_IP }}:/var/www/NomadMee/client/build
+        ssh -o StrictHostKeyChecking=no ${{ secrets.ECS_USERNAME }}@${{ secrets.ECS_IP }} "mkdir -p /var/www/NomadMee/client"
+        scp -r client/build* ${{ secrets.ECS_USERNAME }}@${{ secrets.ECS_IP }}:/var/www/NomadMee/client
 
     - name: 📂 Deploy backend files to ECS
       run: |
-        ssh -o StrictHostKeyChecking=no ${{ secrets.ECS_USERNAME }}@${{ secrets.ECS_IP }} "mkdir -p /var/www/NomadMee/backend/dist"
-        scp -r backend/dist* ${{ secrets.ECS_USERNAME }}@${{ secrets.ECS_IP }}:/var/www/NomadMee/backend/dist
+        ssh -o StrictHostKeyChecking=no ${{ secrets.ECS_USERNAME }}@${{ secrets.ECS_IP }} "mkdir -p /var/www/NomadMee/backend"
+        scp -r backend/dist* ${{ secrets.ECS_USERNAME }}@${{ secrets.ECS_IP }}:/var/www/NomadMee/backend

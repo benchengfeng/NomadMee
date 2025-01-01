@@ -12,7 +12,7 @@ const app = express();
 // Middleware for CORS
 app.use(cors({
   origin: 'http://nomadmeshop.com', // Allow your frontend's domain
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allowed HTTP methods
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allowed HTTP method
   allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
   credentials: true, // Allow cookies or auth headers
 }));

@@ -19,7 +19,7 @@ function BusinessShowcase() {
     headers: {
       'Content-Type': 'application/json',
     },
-    credentials: 'include', // Include credentials if needed
+    credentials: 'include', // Include credentials if need
   });
   return (
     <div id="showcase" className="showcaseBlock">
