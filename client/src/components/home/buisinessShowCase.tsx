@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { color1, color2, color3 } from "../../global";
 import useIsMobile from "../../hooks/useIsMobile";
@@ -14,18 +14,38 @@ function BusinessShowcase() {
     }
   };
 
-  // try{
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const apiUrl = process.env['REACT_APP_API_URL']; // Use bracket notation
+        if (!apiUrl) {
+          console.error("API URL is not defined in the environment variables.");
+          return;
+        }
 
-  //   fetch('http://localhost:8000/api/status', {
-  //     method: 'GET',
-  //     headers: {
-  //       'Content-Type': 'application/json',
-  //     },
-  //     credentials: 'include', // Include credentials if need
-  //   });
-  // } catch(err){
-  //   console.log("error fetch")
-  // }
+        const response = await fetch(`${apiUrl}/api/status`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include', // Include credentials if needed
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch API');
+        }
+
+        const data = await response.json();
+        console.log("API response data:", data); // Handle data as needed
+
+      } catch (err) {
+        console.error("Error fetching API:", err); // Error handling
+      }
+    };
+
+    fetchData(); // Call the async function
+  }, []); // Empty dependency array ensures this runs once when component mounts
+
   return (
     <div id="showcase" className="showcaseBlock">
       <header className="showcaseHeader">

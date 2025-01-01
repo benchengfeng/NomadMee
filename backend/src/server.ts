@@ -9,20 +9,23 @@ dotenv.config();
 
 const app = express();
 
-// Middleware for CORS
-app.use(cors({
-  origin: 'http://nomadmeshop.com', // Allow your frontend's domain
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allowed HTTP method
+// Middleware for CORS to allow all origins
+const corsOptions = {
+  origin: true, // Allow all origins
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allowed HTTP methods
   allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
   credentials: true, // Allow cookies or auth headers
-}));
+};
+
+// Use CORS middleware
+app.use(cors(corsOptions));
 
 // Middleware for parsing requests
 app.use(bodyParser.json());
 
 // Handle preflight requests (OPTIONS)
 app.options('*', (req, res) => {
-  res.header('Access-Control-Allow-Origin', 'http://nomadmeshop.com');
+  res.header('Access-Control-Allow-Origin', '*'); // Allow all origins in preflight response
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.sendStatus(200); // Respond with OK

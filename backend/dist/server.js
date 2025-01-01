@@ -11,18 +11,20 @@ const sendEmail_1 = __importDefault(require("./routes/sendEmail"));
 const status_1 = __importDefault(require("./routes/status"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
-// Middleware for CORS
-app.use((0, cors_1.default)({
-    origin: 'http://nomadmeshop.com', // Allow your frontend's domain
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allowed HTTP method
+// Middleware for CORS to allow all origins
+const corsOptions = {
+    origin: true, // Allow all origins
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allowed HTTP methods
     allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
     credentials: true, // Allow cookies or auth headers
-}));
+};
+// Use CORS middleware
+app.use((0, cors_1.default)(corsOptions));
 // Middleware for parsing requests
 app.use(body_parser_1.default.json());
 // Handle preflight requests (OPTIONS)
 app.options('*', (req, res) => {
-    res.header('Access-Control-Allow-Origin', 'http://nomadmeshop.com');
+    res.header('Access-Control-Allow-Origin', '*'); // Allow all origins in preflight response
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
     res.sendStatus(200); // Respond with OK
