@@ -4,16 +4,18 @@ general
 */
 
 :root {
-  --color1: #FF6F61; /* Primary Color (coral red)  */
-  --color2: #FFA657; /* Secondary Color (golden Orange)  */
-  --color3: #FFC857; /* Highlight Color (gold yellow)  */
-  --color4: #F9F9E6; /* Text Color (off white)  */
-  --color5: #4A90E2	; /* Background Color (medium Blue)  */
-  --color6: #58B368; /* Success Color (earthly Green)  */
-  --color7: #EAEAEA; /* Background Color (clean Light Grey)  */
-  --color8: #F7F7F7; /* Background 2 Color (darker Lighter Grey)  */
-
-
+  --colorW: #fff; /* primary white */
+  --colorB: #111; /* primary black */
+  --color0: #333; /* primary text color */
+  --color00: #555; /* primary tag line text color */
+  --color1: #ff6f61; /* Primary Color (coral red)  */
+  --color2: #ffa657; /* Secondary Color (golden Orange)  */
+  --color3: #ffc857; /* Highlight Color (gold yellow)  */
+  --color4: #f9f9e6; /* Text Color (off white)  */
+  --color5: #4a90e2; /* Background Color (medium Blue)  */
+  --color6: #58b368; /* Success Color (earthly Green)  */
+  --color7: #eaeaea; /* Background Color (clean Light Grey)  */
+  --color8: #f7f7f7; /* Background 2 Color (darker Lighter Grey)  */
 }
 
 html {
@@ -23,7 +25,7 @@ html {
 body {
   font-size: 16px;
   line-height: 1.6;
-  color: #333;
+  color: var(--color0);
   overflow-x: hidden;
 }
 
@@ -61,7 +63,7 @@ body {
   text-align: center;
 }
 .mainLayout .ant-layout-header {
-  background: #f8f8f8; /* Light background color */
+  background: var(--color7); /* Light background color */
   min-height: 100px; /* Adjust height to fit your needs */
   width: 100%; /* Stretch to full width */
   padding: 0; /* Padding for internal spacing */
@@ -72,7 +74,7 @@ body {
 .myButton {
   margin: 50px;
   padding: 0;
-  background: #f8f8f8;
+  background: var(--color7);
   /* width: 15%; */
   /* height: 15%; */
   border-radius: 23%;
@@ -91,7 +93,7 @@ p {
 }
 
 .bgGray {
-  background: #fafafa;
+  background: var(--color8);
 }
 
 /* 
@@ -131,7 +133,7 @@ header
   position: sticky;
   top: 0;
   z-index: 999; /* Ensures it's above other content */
-  background-color: var(--color7); /* Light background */
+  background-color: var(--color8); /* Light background */
   border-bottom: 2px solid var(--color1);
   padding: 10px 0;
   box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1); /* Subtle shadow */
@@ -160,7 +162,6 @@ header
 .menuItems li a:hover {
   color: var(--color4);
 }
-
 
 .contacts {
   position: absolute; /* Positions it to the right of the parent container */
@@ -195,7 +196,6 @@ header
   right: 0;
   z-index: 999;
   height: 64px; /* Ensure a defined height for the header */
-
 }
 
 .header {
@@ -218,13 +218,13 @@ header
 }
 
 .header .logo .fas {
-  color: #1890ff;
+  color: var(--color0);
   margin: 0 5px 0 0;
   font-size: 28px;
 }
 
 .header .logo a {
-  color: #333;
+  color: var(--color0);
 }
 
 .header .ant-anchor-wrapper {
@@ -248,7 +248,7 @@ header
 .header .ant-anchor-link:before,
 .header .ant-anchor-link:after {
   content: "";
-  background: #1890ff;
+  background: var(--color5);
   width: 1px;
   position: absolute;
   top: 2px;
@@ -283,13 +283,13 @@ header
 
 .header .ant-menu li.ant-menu-item {
   position: relative;
-  color: #333;
+  color: var(--color5);
 }
 
 .header .ant-menu li.ant-menu-item:before,
 .header .ant-menu li.ant-menu-item:after {
   content: "";
-  background: #1890ff;
+  background: var(--color6);
   width: 1px;
   position: absolute;
   top: 2px;
@@ -311,7 +311,7 @@ header
 
 .header .ant-menu li.ant-menu-item-selected,
 .header .ant-menu li.ant-menu-item:hover {
-  color: #1890ff;
+  color: var(--color5);
   background: none;
 }
 
@@ -334,7 +334,6 @@ hero
 .heroBlock {
   background-position: 50% 100%;
   background-size: cover;
-  /* background: #ebebeb; */
   display: "flex";
   justify-content: "center";
   align-items: "center";
@@ -351,11 +350,11 @@ hero
 }
 
 .heroBlock .slick-dots li button {
-  background: #000 !important;
+  background: var(--color0) !important;
 }
 
 .heroBlock .slick-dots li.slick-active button {
-  background: #1890ff !important;
+  background: var(--color5) !important;
 }
 
 .heroBlock .content {
@@ -391,7 +390,7 @@ block
 */
 .block {
   padding: 60px 0;
-  border-bottom: 1px solid #d9d9d9;
+  border-bottom: 1px solid var(--color7);;
 }
 
 /* 
@@ -405,7 +404,7 @@ about
 
 .aboutBlock .icon {
   font-size: 40px;
-  color: #1890ff;
+  color: var(--color5);
   margin: 0 0 10px;
 }
 
@@ -414,49 +413,46 @@ about
 }
 
 .block.aboutBlock {
-  background: #f5f5f5;
+  background: var(--color8);
   padding: 50px 0;
 }
 
 .block.aboutBlock .titleHolder h2 {
   font-size: 2rem;
   font-weight: bold;
-  color: #333;
+  color: var(--color0);
 }
 
 .block.aboutBlock .titleHolder p {
   font-size: 1rem;
-  color: #555;
+  color: var(--color00);
 }
 
 .block.aboutBlock .content {
   text-align: center;
   padding: 20px;
-  background: #fff;
+  background: var(--colorW);;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .block.aboutBlock .content .icon {
   font-size: 2.5rem;
-  color: #1890ff;
+  color: var(--color5);
   margin-bottom: 20px;
 }
 
 .block.aboutBlock .content h3 {
   font-size: 1.5rem;
-  color: #333;
+  color: var(--color0);
   margin-bottom: 10px;
 }
 
 .block.aboutBlock .content p {
   font-size: 1rem;
-  color: #666;
+  color: var(--color00);
   line-height: 1.6;
 }
-
-
-
 
 /* 
 how it works
@@ -467,7 +463,7 @@ how it works
   background-position: 50% 0;
   background-size: cover;
   background-attachment: fixed;
-  color: #fff;
+  color: var(--colorW);
   position: relative;
 }
 
@@ -482,7 +478,7 @@ how it works
 }
 
 .worksBlock h2 {
-  color: #fff;
+  color: var(--colorW);
 }
 
 .worksBlock .contentHolder {
@@ -493,8 +489,8 @@ how it works
   font-size: 40px;
   line-height: 1;
   background: none;
-  border: 1px solid #fff;
-  color: #fff;
+  border: 1px solid var(--colorW);
+  color: var(--colorW);
   padding: 30px;
   border-radius: 50%;
   width: 110px;
@@ -524,7 +520,7 @@ buisiness showcase
 */
 /* Overall Container */
 .showcaseBlock {
-  background: linear-gradient(to bottom right, #ffffff, #f4f4f9);
+  background: linear-gradient(to bottom right, var(--colorW), var(--color8));
   color: var(--color5);
   font-family: "Arial", sans-serif;
   padding: 40px 20px;
@@ -546,14 +542,14 @@ buisiness showcase
 .showcaseHeader h1 {
   font-size: 2.5rem;
   font-weight: 700;
-  color: #2c3e50;
+  color: var(--color0);
   margin-bottom: 10px;
 }
 
 .showcaseHeader p {
   font-size: 1.2rem;
   font-weight: 300;
-  color: #7f8c8d;
+  color: var(--color00);
 }
 
 /* Services Section */
@@ -566,7 +562,7 @@ buisiness showcase
   text-align: center;
 }
 .serviceCard {
-  background: #ffffff;
+  background: var(--colorW);
   border: 1px solid var(--color8);
   border-radius: 10px;
   align-self: center;
@@ -586,14 +582,14 @@ buisiness showcase
 .serviceCard h3 {
   font-size: 1.5rem;
   font-weight: 600;
-  color: #2980b9;
+  color: var(--color5);
   margin-bottom: 10px;
 }
 
 .serviceCard p {
   font-size: 1rem;
   font-weight: 300;
-  color: #7f8c8d;
+  color: var(--color00);
   line-height: 1.6;
 }
 
@@ -604,7 +600,7 @@ buisiness showcase
   color: var(--color4);
   margin-top: 40px;
   padding-top: 20px;
-  border-top: 1px solid #dcdcdc;
+  border-top: 1px solid var(--color8);
   font-size: 1rem;
   padding: 10px;
 }
@@ -614,7 +610,7 @@ buisiness showcase
 }
 
 .showcaseFooter p a {
-  color: #2980b9;
+  color: var(--color5);
   text-decoration: none;
   font-weight: 600;
 }
@@ -623,10 +619,9 @@ buisiness showcase
   text-decoration: underline;
 }
 
-
 .getInTouchButton {
   background-color: var(--color1); /* Matches theme */
-  color: #fff;
+  color: var(--colorW);
   border: none;
   border-radius: 8px;
   font-size: 1rem;
@@ -637,7 +632,7 @@ buisiness showcase
 }
 
 .getInTouchButton:hover {
-  color: var(--color7); /* Change text color on hover */
+  color: var(--color8); /* Change text color on hover */
 }
 /*
 features
@@ -707,7 +702,7 @@ features
 .videoTitle {
   font-size: 24px;
   margin-bottom: 16px;
-  color: #333;
+  color: var(--color0);
 }
 
 .videoContainer {
@@ -727,8 +722,6 @@ features
   border: none;
 }
 
-
-
 @media (max-width: 768px) {
   .featureBlock .titleHolder h2 {
     font-size: 2rem;
@@ -743,7 +736,6 @@ features
   }
 }
 
-
 /* 
 pricing block
 -------------
@@ -753,7 +745,7 @@ pricing block
 }
 
 .pricingBlock .ant-row > div:nth-child(2) .ant-list-item {
-  box-shadow: 0 0 12px 2px #f3f3f3;
+  box-shadow: 0 0 12px 2px var(--colorW);
   transform: scale(1.1);
   position: relative;
   z-index: 1;
@@ -830,7 +822,7 @@ contact
 .contact-form .contact-form-button {
   background: var(--color1);
   border: none;
-  color: #fff;
+  color: var(--colorW);
   width: 100%;
   font-size: 1rem;
   font-weight: bold;
@@ -849,7 +841,6 @@ contact
 .contact-form .ant-checkbox-wrapper:hover .ant-checkbox-inner {
   border-color: var(--color1);
 }
-
 
 .contact-icons {
   display: flex;
@@ -878,7 +869,7 @@ contact
 .contact-icon-item span {
   margin-top: 10px;
   font-size: 1.2rem;
-  color: #333;
+  color: var(--color0);
 }
 
 .contact-icon-item a:focus {
@@ -886,7 +877,6 @@ contact
 }
 
 /* privacy policy */
-
 
 .privacy-policy-container {
   padding: 10rem;
@@ -916,7 +906,7 @@ contact
 }
 
 .privacy-policy-contact a {
-  color: #007bff;
+  color: var(--color5);
   text-decoration: none;
 }
 
@@ -927,7 +917,7 @@ contact
 /*company */
 
 .company-section {
-  background: #f0f4f8; /* Soft background color */
+  background: var(--color7); /* Soft background color */
   padding: 50px 0;
   text-align: center;
   position: relative;
@@ -939,10 +929,10 @@ contact
 }
 
 .company-name {
-  font-family: 'Montserrat', sans-serif;
+  font-family: "Montserrat", sans-serif;
   font-size: 3rem;
   font-weight: bold;
-  color: #333;
+  color: var(--color0);
   letter-spacing: 2px;
   display: flex;
   justify-content: center;
@@ -953,14 +943,14 @@ contact
 }
 
 .company-prefix {
-  color: #007bff;
+  color: var(--color5);
   font-size: 1.2rem;
   margin-right: 10px;
   transform: translateY(-5px);
 }
 
 .company-main-name {
-  color: #333;
+  color: var(--color0);
   font-size: 3.2rem;
   animation: bounce 1.5s ease-out infinite alternate;
 }
@@ -968,7 +958,7 @@ contact
 .company-tagline {
   margin-top: 20px;
   font-size: 1.2rem;
-  color: #555;
+  color: var(--color00);
   font-style: italic;
   opacity: 0;
   animation: fadeIn 2s ease-out forwards 0.5s; /* Delayed for smooth transition */
@@ -989,7 +979,23 @@ contact
   }
 }
 
+@media (max-width: 768px) {
+  .company-name {
+    font-size: 2rem; /* Reduce font size on mobile */
+  }
 
+  .company-main-name {
+    font-size: 2.2rem; /* Reduce font size on mobile */
+  }
+
+  .company-prefix {
+    font-size: 1rem; /* Adjust prefix size */
+  }
+
+  .company-tagline {
+    font-size: 1rem; /* Adjust tagline size */
+  }
+}
 
 /* terms of service */
 
@@ -1008,7 +1014,7 @@ contact
   font-weight: bold;
   margin-bottom: 1rem;
   text-align: center;
-  color: #333;
+  color: var(--color0);
 }
 
 /* Introduction paragraph */
@@ -1016,20 +1022,20 @@ contact
   font-size: 1.1rem;
   margin-bottom: 2rem;
   text-align: justify;
-  color: #555;
+  color: var(--color00);
 }
 
 /* Section titles */
 .terms-subtitle {
   font-size: 1.5rem;
   margin-top: 2rem;
-  color: #4CAF50; /* Green color */
+  color: var(--color6); /* Green color */
 }
 
 /* Section content */
 .terms-section p {
   font-size: 1rem;
-  color: #666;
+  color: var(--color00);
   margin-bottom: 1rem;
 }
 
@@ -1041,7 +1047,7 @@ contact
 .terms-list li {
   font-size: 1rem;
   margin-bottom: 0.5rem;
-  color: #666;
+  color: var(--color00);
 }
 
 /* Footer section */
@@ -1049,7 +1055,7 @@ contact
   text-align: center;
   margin-top: 3rem;
   font-size: 1rem;
-  color: #333;
+  color: var(--color0);
 }
 
 /* Responsive Design */
@@ -1078,8 +1084,8 @@ footer
 */
 
 .footer {
-  background: #111 !important;
-  color: #fff !important;
+  background: var(--colorB) !important;
+  color: var(--colorW) !important;
   padding: 20px 0 !important; /* Adjust padding for a compact footer */
   text-align: center;
 }
@@ -1091,13 +1097,13 @@ footer
 }
 
 .footer .fas {
-  color: #1890ff;
+  color: var(--color5);
   font-size: 28px;
   margin: 0 5px 0 0;
 }
 
 .footer .logo a {
-  color: #fff;
+  color: var(--colorW);
 }
 
 .footer .socials {
@@ -1114,11 +1120,11 @@ footer
 }
 
 .footer .socials a {
-  color: #fff;
+  color: var(--colorW);
 }
 
 .footer .socials a:hover {
-  color: #1890ff;
+  color: var(--color5);
 }
 
 .footer .goTop:hover {

@@ -1,6 +1,6 @@
 {
   "files": {
-    "main.css": "/static/css/main.d0a45fb4.css",
+    "main.css": "/static/css/main.6819afa2.css",
     "main.js": "/static/js/main.8fa3695b.js",
     "static/media/komatsu.png": "/static/media/komatsu.9fc81522390b757e4ed0.png",
     "static/media/factoryMachines.jpg": "/static/media/factoryMachines.b676292bdca5c16695d6.jpg",
@@ -27,11 +27,11 @@
     "static/media/camelscaravan.png": "/static/media/camelscaravan.aeda5112273c7c07f7cd.png",
     "static/media/logonomadmee.png": "/static/media/logonomadmee.590c40e5fb842607b08d.png",
     "index.html": "/index.html",
-    "main.d0a45fb4.css.map": "/static/css/main.d0a45fb4.css.map",
+    "main.6819afa2.css.map": "/static/css/main.6819afa2.css.map",
     "main.8fa3695b.js.map": "/static/js/main.8fa3695b.js.map"
   },
   "entrypoints": [
-    "static/css/main.d0a45fb4.css",
+    "static/css/main.6819afa2.css",
     "static/js/main.8fa3695b.js"
   ]
 }
