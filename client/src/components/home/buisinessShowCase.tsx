@@ -14,13 +14,18 @@ function BusinessShowcase() {
     }
   };
 
-  fetch('http://nomadmeshop.com/api/status', {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    credentials: 'include', // Include credentials if need
-  });
+  // try{
+
+  //   fetch('http://localhost:8000/api/status', {
+  //     method: 'GET',
+  //     headers: {
+  //       'Content-Type': 'application/json',
+  //     },
+  //     credentials: 'include', // Include credentials if need
+  //   });
+  // } catch(err){
+  //   console.log("error fetch")
+  // }
   return (
     <div id="showcase" className="showcaseBlock">
       <header className="showcaseHeader">

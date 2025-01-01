@@ -850,6 +850,41 @@ contact
   border-color: var(--color1);
 }
 
+
+.contact-icons {
+  display: flex;
+  justify-content: center;
+  margin-top: 30px;
+}
+
+.contact-icon-item {
+  margin: 0 20px;
+  text-align: center;
+}
+
+.contact-icon-item a {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: inherit;
+  text-decoration: none;
+  transition: transform 0.2s ease-in-out;
+}
+
+.contact-icon-item a:hover {
+  transform: scale(1.1);
+}
+
+.contact-icon-item span {
+  margin-top: 10px;
+  font-size: 1.2rem;
+  color: #333;
+}
+
+.contact-icon-item a:focus {
+  outline: none;
+}
+
 /* privacy policy */
 
 
@@ -888,6 +923,72 @@ contact
 .privacy-policy-contact a:hover {
   text-decoration: underline;
 }
+
+/*company */
+
+.company-section {
+  background: #f0f4f8; /* Soft background color */
+  padding: 50px 0;
+  text-align: center;
+  position: relative;
+}
+
+.company-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.company-name {
+  font-family: 'Montserrat', sans-serif;
+  font-size: 3rem;
+  font-weight: bold;
+  color: #333;
+  letter-spacing: 2px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  line-height: 1.2;
+  opacity: 0;
+  animation: fadeIn 1.5s ease-out forwards;
+}
+
+.company-prefix {
+  color: #007bff;
+  font-size: 1.2rem;
+  margin-right: 10px;
+  transform: translateY(-5px);
+}
+
+.company-main-name {
+  color: #333;
+  font-size: 3.2rem;
+  animation: bounce 1.5s ease-out infinite alternate;
+}
+
+.company-tagline {
+  margin-top: 20px;
+  font-size: 1.2rem;
+  color: #555;
+  font-style: italic;
+  opacity: 0;
+  animation: fadeIn 2s ease-out forwards 0.5s; /* Delayed for smooth transition */
+}
+
+@keyframes fadeIn {
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes bounce {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-10px);
+  }
+}
+
 
 
 /* terms of service */

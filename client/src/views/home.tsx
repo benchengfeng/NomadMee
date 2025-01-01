@@ -10,6 +10,7 @@ import AppAbout from '../components/home/about';
 import AppContact from '../components/home/contact';
 import AppFooter from "../components/common/footer";
 import HomeDeals from "../components/home/homeDeals";
+import CompanySection from "../components/home/company";
 
 function AppHome() {
   return (
@@ -18,6 +19,7 @@ function AppHome() {
       <HomeDeals/>
       <AppAbout/>
       <AppContact/>
+      <CompanySection/>
       <AppFooter/>
     </div>
   );

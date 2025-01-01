@@ -1,6 +1,7 @@
 import React from "react";
 import { Form, Input, Button, notification } from "antd";
 import { useTranslation } from "react-i18next";
+import { FaWhatsapp, FaWeixin } from 'react-icons/fa'; // Import WhatsApp and WeChat icons
 
 const { TextArea } = Input;
 
@@ -111,6 +112,22 @@ function AppContact() {
             </Button>
           </Form.Item>
         </Form>
+
+        {/* WhatsApp and WeChat Contact Info */}
+        <div className="contact-icons">
+          <div className="contact-icon-item">
+            <a href="https://wa.me/+21620086407" target="_blank" rel="noopener noreferrer">
+              <FaWhatsapp size={30} color="#25D366" />
+              <span>216 20 086 407</span>
+            </a>
+          </div>
+          <div className="contact-icon-item">
+            <a href="weixin://dl/benchengfeng" target="_blank" rel="noopener noreferrer">
+              <FaWeixin size={30} color="#1C9B88" />
+              <span>+86 198 7629 7359</span>
+            </a>
+          </div>
+        </div>
       </div>
     </div>
   );

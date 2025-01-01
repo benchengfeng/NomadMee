@@ -215,6 +215,10 @@
           "description": "If you have any questions or concerns about our terms, please contact us at:",
           "contact": "If you have any questions or concerns, please contact us."
         }
-      }    
+      },
+
+      "company": {
+        "tagline": "Where innovation meets experience."
+      }
   
 }
