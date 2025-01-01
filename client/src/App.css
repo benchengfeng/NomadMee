@@ -8,23 +8,27 @@ general
   --colorB: #111; /* primary black */
   --color0: #333; /* primary text color */
   --color00: #555; /* primary tag line text color */
-  --color1: #ff6f61; /* Primary Color (coral red)  */
-  --color2: #ffa657; /* Secondary Color (golden Orange)  */
-  --color3: #ffc857; /* Highlight Color (gold yellow)  */
-  --color4: #f9f9e6; /* Text Color (off white)  */
-  --color5: #4a90e2; /* Background Color (medium Blue)  */
-  --color6: #58b368; /* Success Color (earthly Green)  */
-  --color7: #eaeaea; /* Background Color (clean Light Grey)  */
-  --color8: #f7f7f7; /* Background 2 Color (darker Lighter Grey)  */
+  --color1: #008C76; /* Primary Color (teal green) */
+  --color2: #F4A300; /* Secondary Color (golden yellow) */
+  --color3: #FDCB82; /* Highlight Color (soft yellow) */
+  --color4: #fcfbfb; /* Text Color (off white) */
+  --color5: #005f73; /* Background Color (deep teal) */
+  --color6: #0a4d68; /* Secondary Color (strong navy) */
+  --color7: #a3b18c; /* Background Color (sage green) */
+  --color8: #f1f1f1; /* Background 2 Color (soft light gray) */
 }
+
 
 html {
   scroll-behavior: smooth;
 }
 
 body {
+  margin: 0; /* Optional: remove default body margin */
+  font-family: Arial, sans-serif !important; /* Optional: set a default font */
   font-size: 16px;
   line-height: 1.6;
+  background-color: var(--color4) !important; /* Set background color using your CSS variable */
   color: var(--color0);
   overflow-x: hidden;
 }
@@ -431,7 +435,7 @@ about
 .block.aboutBlock .content {
   text-align: center;
   padding: 20px;
-  background: var(--colorW);;
+  background: var(--color4);;
   border-radius: 8px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
@@ -520,7 +524,7 @@ buisiness showcase
 */
 /* Overall Container */
 .showcaseBlock {
-  background: linear-gradient(to bottom right, var(--colorW), var(--color8));
+  background: linear-gradient(to bottom right, var(--color4), var(--color8));
   color: var(--color5);
   font-family: "Arial", sans-serif;
   padding: 40px 20px;
@@ -639,7 +643,7 @@ features
 */
 
 .featureBlock {
-  background-color: var(--color7);
+  background-color: var(--color8);
   padding: 50px 0;
   margin: 40px auto;
 }
@@ -668,8 +672,9 @@ features
 
 .featureCard {
   border-radius: 8px;
+  object-fit: cover;
   overflow: hidden;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 44px 18px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease;
 }
 
@@ -919,6 +924,7 @@ contact
 .company-section {
   background: var(--color7); /* Soft background color */
   padding: 50px 0;
+  padding-top: 100px;
   text-align: center;
   position: relative;
 }
@@ -1085,7 +1091,7 @@ footer
 
 .footer {
   background: var(--colorB) !important;
-  color: var(--colorW) !important;
+  color: var(--color4) !important;
   padding: 20px 0 !important; /* Adjust padding for a compact footer */
   text-align: center;
 }
@@ -1103,7 +1109,7 @@ footer
 }
 
 .footer .logo a {
-  color: var(--colorW);
+  color: var(--color4);
 }
 
 .footer .socials {
@@ -1120,7 +1126,7 @@ footer
 }
 
 .footer .socials a {
-  color: var(--colorW);
+  color: var(--color4);
 }
 
 .footer .socials a:hover {

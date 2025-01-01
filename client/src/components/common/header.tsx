@@ -52,8 +52,8 @@ function AppHeader() {
         <div
           style={{
             position: "absolute",
-            right: isMobile ? "10px" : "100px",
-            top: "0",
+            right: isMobile ? "-10px" : "150px",
+            top: isMobile ? "65px" : "5px",
             flex: "0 0 auto",
             display: "flex",
             alignItems: "center",

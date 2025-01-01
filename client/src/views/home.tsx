@@ -15,6 +15,7 @@ import CompanySection from "../components/home/company";
 function AppHome() {
   return (
     <div className="main">
+      <CompanySection/>
       <BusinessShowcase/>
       <HomeDeals/>
       <AppAbout/>
