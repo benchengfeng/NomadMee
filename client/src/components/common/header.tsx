@@ -109,6 +109,9 @@ function AppHeader() {
           <li>
             <a href="aboutUs">{t("aboutUsHeader")}</a>
           </li>
+          <li>
+            <a href="contact">{t("contactHeader")}</a>
+          </li>
         </ul>
       </div>
     </div>
