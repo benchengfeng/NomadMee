@@ -1,7 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { Row, Col } from "antd";
-import { color1, color2 } from "../../global";
+import { color2 } from "../../global";
 
 function AppAbout() {
   const { t } = useTranslation(); // Initialize t for translations
@@ -31,7 +31,7 @@ function AppAbout() {
     <div id="about" className="block aboutBlock">
       <div className="container-fluid" style={{ maxWidth: "1200px", margin: "0 auto" }}>
         <div className="titleHolder">
-          <h2 style={{ color: color1 }}>{t("about.title")}</h2>
+          <h2>{t("about.title")}</h2>
           <p>{t("about.description")}</p>
         </div>
         <Row gutter={[32, 32]}>

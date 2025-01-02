@@ -49,7 +49,7 @@ function BusinessShowcase() {
   return (
     <div id="showcase" className="showcaseBlock">
       <header className="showcaseHeader">
-        <h1 style={{ fontSize: isMobile ? "24px" : "36px", color: color2 }}>
+        <h1 style={{ fontSize: isMobile ? "24px" : "36px" }}>
           {t("showcase.headerTitle")}
         </h1>
         <p style={{ fontSize: isMobile ? "14px" : "18px" }}>

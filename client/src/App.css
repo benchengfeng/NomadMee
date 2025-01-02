@@ -208,7 +208,7 @@ header
   align-items: center;
   padding: 15px 0;
   height: 100px; /* Ensure a defined height for the header */
-  background-color: var(--color1);
+  background-color: var(--color5);
   max-width: 100%;
   overflow: hidden;
 }
@@ -424,7 +424,7 @@ about
 .block.aboutBlock .titleHolder h2 {
   font-size: 2rem;
   font-weight: bold;
-  color: var(--color0);
+  color: var(--color6);
 }
 
 .block.aboutBlock .titleHolder p {
@@ -546,7 +546,7 @@ buisiness showcase
 .showcaseHeader h1 {
   font-size: 2.5rem;
   font-weight: 700;
-  color: var(--color0);
+  color: var(--color1);
   margin-bottom: 10px;
 }
 
@@ -801,12 +801,12 @@ contact
 .titleHolder h2 {
   font-size: 2.2rem;
   font-weight: bold;
-  color: var(--color1);
+  color: var(--color6);
 }
 
 .titleHolder p {
   font-size: 1rem;
-  color: var(--color4);
+  color: var(--color00);
 }
 
 .contact-form {
