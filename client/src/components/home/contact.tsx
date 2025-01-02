@@ -19,8 +19,10 @@ function AppContact() {
       ${values.message}
     `;
 
+    const apiUrl = process.env['REACT_APP_API_URL'];
+
     // Now, send the formatted email body to the backend
-    fetch("http://nomadmeshop.com/api/sendEmail", {
+    fetch(`${apiUrl}/api/sendEmail`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
