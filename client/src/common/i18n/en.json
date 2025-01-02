@@ -4,6 +4,7 @@
   "headerTitle": "Bridging Trade Across Continents",
   "home": "Home",
   "hotDealsHeader": "Hot Deals",
+  "aboutUsHeader": "About Us",
 
   "showcase": {
     "headerTitle": "Streamlining Global Sourcing and Trade Across Continents",
@@ -222,5 +223,41 @@
 
   "company": {
     "tagline": "Where innovation meets experience."
+  },
+
+  "aboutUs": {
+    "title": "About Us",
+    "introduction": "We are a dynamic and diverse group of trading companies based in China, dedicated to bridging the gap between African businesses and high-quality products and services from China. With years of experience and a deep understanding of international trade, we are committed to empowering businesses across Africa by providing them with unmatched access to top-tier goods, machinery, and technology from one of the world's largest and most innovative manufacturing hubs.",
+    "missionTitle": "Our Mission",
+    "missionDescription": "Our mission is to streamline global sourcing and trade, empowering businesses in Africa to thrive by connecting them with the best products and machinery available on the global market. We focus on providing transparent, reliable, and efficient trade solutions that foster growth, enable long-term partnerships, and open new opportunities in a fast-evolving global market.",
+    "companyOverviewTitle": "Our Company",
+    "companyOverviewDescription": "Founded by a group of passionate professionals with a wealth of experience in international trade and logistics, we operate as a group of closely-knit trading companies strategically located in China. Our expertise spans multiple industries, from manufacturing equipment and industrial machinery to electronics, fashion, and consumer goods. We work tirelessly to ensure that our clients have direct access to the best deals, the most reliable suppliers, and the latest market trends, all while navigating the complexities of cross-border commerce.",
+    "whyChooseUsTitle": "Why Choose Us?",
+    "whyChooseUsDescription": "We differentiate ourselves through a combination of expertise, personalized service, and a deep understanding of the markets we serve. Our dedicated team offers tailored services to help businesses find the right suppliers, negotiate better deals, and manage logistics seamlessly. Whether you're looking for cost-effective solutions or cutting-edge technology, we provide the right tools, resources, and support to help your business succeed.",
+    "whyChooseUsExpertKnowledge": "Expert Knowledge",
+    "whyChooseUsExpertKnowledgeDescription": "With years of experience in global trade, we offer comprehensive knowledge about sourcing products and managing international supply chains.",
+    "whyChooseUsTailoredSolutions": "Tailored Solutions",
+    "whyChooseUsTailoredSolutionsDescription": "We understand that every business is unique. That's why we offer custom solutions to meet the specific needs of our clients.",
+    "whyChooseUsReliablePartnerships": "Reliable Partnerships",
+    "whyChooseUsReliablePartnershipsDescription": "Our extensive network of suppliers, manufacturers, and logistics partners ensures that we can provide our clients with the best possible service and products.",
+    "whyChooseUsStreamlinedProcess": "Streamlined Process",
+    "whyChooseUsStreamlinedProcessDescription": "From sourcing and quality control to shipping and delivery, we handle all aspects of the supply chain, allowing you to focus on growing your business.",
+    "ourValuesTitle": "Our Core Values",
+    "ourValuesDescription": "At the heart of our business, we are driven by a set of core values that guide everything we do. These values define how we interact with our clients, suppliers, and partners, and how we continuously strive for excellence.",
+    "integrity": "Integrity",
+    "integrityDescription": "We operate with transparency and honesty, ensuring that all our dealings are conducted ethically and professionally.",
+    "commitment": "Commitment",
+    "commitmentDescription": "We are committed to helping our clients succeed by providing reliable and consistent services.",
+    "innovation": "Innovation",
+    "innovationDescription": "We constantly seek new and innovative ways to improve the sourcing and trade process, making it easier and more efficient for our clients.",
+    "customerCentric": "Customer-Centric",
+    "customerCentricDescription": "Our clients' satisfaction is our top priority. We go above and beyond to meet their needs and exceed expectations.",
+    "futureVisionTitle": "Our Vision for the Future",
+    "futureVisionDescription": "Looking ahead, we are focused on expanding our network and capabilities to further enhance our services. As the global trade landscape evolves, we aim to stay at the forefront by continually adapting our strategies and offerings. We envision a future where our clients have seamless access to the best products, reliable partners, and efficient logistics solutions, enabling them to compete and thrive on the global stage.",
+    "contactCallToActionTitle": "Ready to take your business to the next level?",
+    "contactCallToActionDescription": "Contact us today to learn more about how we can help you unlock new opportunities and grow your business globally.",
+    "contactButtonText": "Contact Us",
+    "learnMore": "Learn More",
+    "closeModal": "Close"
   }
 }

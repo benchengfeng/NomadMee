@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useTranslation } from 'react-i18next';
+import { useTranslation } from "react-i18next";
 import { color1, color4 } from "../../global";
 import { Image } from "rebass";
 import logonomadmee from "../../assets/images/logonomadmee.png";
@@ -11,7 +11,9 @@ function AppHeader() {
   const isMobile = useIsMobile();
   const [language, setLanguage] = useState("ENG");
 
-  const handleLanguageChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleLanguageChange = (
+    event: React.ChangeEvent<HTMLSelectElement>
+  ) => {
     const selectedLanguage = event.target.value;
     setLanguage(selectedLanguage);
     i18n.changeLanguage(selectedLanguage === "ENG" ? "en" : "fr"); // Map language codes
@@ -45,7 +47,7 @@ function AppHeader() {
             overflow: "hidden",
           }}
         >
-          {t('headerTitle')}
+          {t("headerTitle")}
         </div>
 
         {/* Language Switcher */}
@@ -99,10 +101,13 @@ function AppHeader() {
       <div className="stickyMenu">
         <ul className="menuItems">
           <li>
-            <a href="/">{t('home')}</a>
+            <a href="/">{t("home")}</a>
           </li>
           <li>
-            <a href="hotDeals">{t('hotDealsHeader')}</a>
+            <a href="hotDeals">{t("hotDealsHeader")}</a>
+          </li>
+          <li>
+            <a href="aboutUs">{t("aboutUsHeader")}</a>
           </li>
         </ul>
       </div>

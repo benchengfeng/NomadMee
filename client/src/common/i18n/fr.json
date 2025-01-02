@@ -4,21 +4,22 @@
   "headerTitle": "Relier le commerce à travers les continents",
   "home": "Accueil",
   "hotDealsHeader": "Bonnes Affaires",
+  "aboutUsHeader": "À propos de nous",
 
   "hotDeals": {
-  "buyOneGetOne": "Achetez-en un, obtenez-en un gratuitement !",
-  "exclusiveOpportunities": "Opportunités Exclusives",
-  "truck": "Camions",
-  "excavator": "Excavatrices",
-  "mixerTruck": "Camions Malaxeurs",
-  "manufacturingEquipment": "Équipements de Fabrication",
-  "printers": "Imprimantes",
-  "motorcycleParts": "Pièces Détachées de Moto",
-  "discoverMore": "Découvrez-en plus dans notre vidéo",
-  "exclusiveOpportunitiesVideo": "Vidéo des Opportunités Exclusives",
-  "hotPicks": "Sélections Coup de Cœur",
-  "advantages": "Découvrez les avantages qui distinguent notre plateforme."
-},
+    "buyOneGetOne": "Achetez-en un, obtenez-en un gratuitement !",
+    "exclusiveOpportunities": "Opportunités Exclusives",
+    "truck": "Camions",
+    "excavator": "Excavatrices",
+    "mixerTruck": "Camions Malaxeurs",
+    "manufacturingEquipment": "Équipements de Fabrication",
+    "printers": "Imprimantes",
+    "motorcycleParts": "Pièces Détachées de Moto",
+    "discoverMore": "Découvrez-en plus dans notre vidéo",
+    "exclusiveOpportunitiesVideo": "Vidéo des Opportunités Exclusives",
+    "hotPicks": "Sélections Coup de Cœur",
+    "advantages": "Découvrez les avantages qui distinguent notre plateforme."
+  },
 
   "showcase": {
     "headerTitle": "Rationaliser l'approvisionnement et le commerce mondiaux à travers les continents",
@@ -42,14 +43,14 @@
     "title": "Explorez, Connectez-vous et Commercez avec Confiance",
     "subtitle": "Nous nous occupons des détails, vous concentrez sur la croissance"
   },
-"deals": {
-  "businessNegotiations": "Négociations commerciales",
-  "hotelAndAirport": "Services hôteliers et aéroportuaires",
-  "guidedBusinessTour": "Visites guidées d'affaires",
-  "businessNegotiationDescription": "Le processus de négociation commerciale joue un rôle crucial dans la facilitation des partenariats transfrontaliers et permet aux entreprises d'identifier des fournisseurs et partenaires fiables. Ce service offre une guidance experte à chaque étape de la négociation, garantissant que toutes les parties atteignent des conditions favorables. En comprenant les pratiques et stratégies commerciales locales, les entreprises peuvent débloquer des opportunités précieuses pour leur croissance et leur expansion sur les marchés mondiaux.",
-  "hotelAndAirportDescription": "Nos services hôteliers et aéroportuaires offrent une assistance complète pour les voyageurs d'affaires se rendant en Chine. De la réservation d'hébergements confortables et pratiques à l'organisation de transferts aéroportuaires sans tracas, nous veillons à ce que chaque aspect de votre expérience de voyage soit pris en charge. Notre objectif est de rendre votre voyage aussi fluide et efficace que possible, afin que vous puissiez vous concentrer sur vos affaires sans le stress de la logistique.",
-  "guidedBusinessTourDescription": "Découvrez de première main l'environnement dynamique et en constante évolution des affaires en Chine avec nos visites guidées. Ces visites vous offrent un aperçu approfondi des usines chinoises, des centres commerciaux et des hubs industriels clés. Nos guides experts vous feront découvrir les processus de fabrication locaux, les opérations de chaîne d'approvisionnement et les opportunités commerciales, vous aidant à établir des connexions significatives et à mieux comprendre le paysage des affaires pour améliorer vos décisions stratégiques."
-},
+  "deals": {
+    "businessNegotiations": "Négociations commerciales",
+    "hotelAndAirport": "Services hôteliers et aéroportuaires",
+    "guidedBusinessTour": "Visites guidées d'affaires",
+    "businessNegotiationDescription": "Le processus de négociation commerciale joue un rôle crucial dans la facilitation des partenariats transfrontaliers et permet aux entreprises d'identifier des fournisseurs et partenaires fiables. Ce service offre une guidance experte à chaque étape de la négociation, garantissant que toutes les parties atteignent des conditions favorables. En comprenant les pratiques et stratégies commerciales locales, les entreprises peuvent débloquer des opportunités précieuses pour leur croissance et leur expansion sur les marchés mondiaux.",
+    "hotelAndAirportDescription": "Nos services hôteliers et aéroportuaires offrent une assistance complète pour les voyageurs d'affaires se rendant en Chine. De la réservation d'hébergements confortables et pratiques à l'organisation de transferts aéroportuaires sans tracas, nous veillons à ce que chaque aspect de votre expérience de voyage soit pris en charge. Notre objectif est de rendre votre voyage aussi fluide et efficace que possible, afin que vous puissiez vous concentrer sur vos affaires sans le stress de la logistique.",
+    "guidedBusinessTourDescription": "Découvrez de première main l'environnement dynamique et en constante évolution des affaires en Chine avec nos visites guidées. Ces visites vous offrent un aperçu approfondi des usines chinoises, des centres commerciaux et des hubs industriels clés. Nos guides experts vous feront découvrir les processus de fabrication locaux, les opérations de chaîne d'approvisionnement et les opportunités commerciales, vous aidant à établir des connexions significatives et à mieux comprendre le paysage des affaires pour améliorer vos décisions stratégiques."
+  },
 
   "about": {
     "title": "À propos de nous",
@@ -222,5 +223,41 @@
 
   "company": {
     "tagline": "Là où l'innovation rencontre l'expérience."
-  }
+  },
+
+    "aboutUs": {
+      "title": "À propos de nous",
+      "introduction": "Nous sommes un groupe dynamique et diversifié d'entreprises de commerce basées en Chine, dédié à combler le fossé entre les entreprises africaines et les produits et services de haute qualité en provenance de Chine. Forts de nombreuses années d'expérience et d'une compréhension approfondie du commerce international, nous nous engageons à autonomiser les entreprises à travers l'Afrique en leur offrant un accès inégalé aux produits, machines et technologies de pointe en provenance de l'un des plus grands et innovants centres de fabrication du monde.",
+      "missionTitle": "Notre mission",
+      "missionDescription": "Notre mission est de simplifier l'approvisionnement mondial et le commerce, en permettant aux entreprises africaines de prospérer en les connectant aux meilleurs produits et machines disponibles sur le marché mondial. Nous nous concentrons sur la fourniture de solutions commerciales transparentes, fiables et efficaces qui favorisent la croissance, permettent des partenariats à long terme et ouvrent de nouvelles opportunités dans un marché mondial en constante évolution.",
+      "companyOverviewTitle": "Présentation de l'entreprise",
+      "companyOverviewDescription": "Fondé par un groupe de professionnels passionnés ayant une grande expérience dans le commerce international et la logistique, nous opérons en tant que groupe d'entreprises commerciales étroitement liées et stratégiquement situées en Chine. Notre expertise couvre plusieurs industries, allant des équipements de fabrication et des machines industrielles à l'électronique, la mode et les biens de consommation. Nous travaillons sans relâche pour garantir que nos clients aient un accès direct aux meilleures offres, aux fournisseurs les plus fiables et aux dernières tendances du marché, tout en naviguant dans les complexités du commerce transfrontalier.",
+      "whyChooseUsTitle": "Pourquoi nous choisir ?",
+      "whyChooseUsDescription": "Nous nous distinguons par une combinaison d'expertise, de service personnalisé et une profonde compréhension des marchés que nous servons. Notre équipe dédiée offre des services sur mesure pour aider les entreprises à trouver les bons fournisseurs, à négocier de meilleures offres et à gérer la logistique sans accroc. Que vous cherchiez des solutions économiques ou des technologies de pointe, nous fournissons les bons outils, ressources et soutien pour aider votre entreprise à réussir.",
+      "whyChooseUsExpertKnowledge": "Expertise",
+      "whyChooseUsExpertKnowledgeDescription": "Fort de nombreuses années d'expérience dans le commerce mondial, nous offrons une connaissance approfondie de l'approvisionnement en produits et de la gestion des chaînes d'approvisionnement internationales.",
+      "whyChooseUsTailoredSolutions": "Solutions sur mesure",
+      "whyChooseUsTailoredSolutionsDescription": "Nous comprenons que chaque entreprise est unique. C'est pourquoi nous offrons des solutions personnalisées pour répondre aux besoins spécifiques de nos clients.",
+      "whyChooseUsReliablePartnerships": "Partenariats fiables",
+      "whyChooseUsReliablePartnershipsDescription": "Notre vaste réseau de fournisseurs, fabricants et partenaires logistiques garantit que nous pouvons offrir à nos clients les meilleurs services et produits possibles.",
+      "whyChooseUsStreamlinedProcess": "Processus rationalisé",
+      "whyChooseUsStreamlinedProcessDescription": "De l'approvisionnement au contrôle qualité, en passant par l'expédition et la livraison, nous gérons tous les aspects de la chaîne d'approvisionnement, vous permettant ainsi de vous concentrer sur la croissance de votre entreprise.",
+      "ourValuesTitle": "Nos valeurs fondamentales",
+      "ourValuesDescription": "Au cœur de notre entreprise, nous sommes guidés par un ensemble de valeurs fondamentales qui influencent tout ce que nous faisons. Ces valeurs définissent la manière dont nous interagissons avec nos clients, fournisseurs et partenaires, et comment nous cherchons constamment à exceller.",
+      "integrity": "Intégrité",
+      "integrityDescription": "Nous agissons avec transparence et honnêteté, en veillant à ce que toutes nos transactions soient menées de manière éthique et professionnelle.",
+      "commitment": "Engagement",
+      "commitmentDescription": "Nous nous engageons à aider nos clients à réussir en offrant des services fiables et constants.",
+      "innovation": "Innovation",
+      "innovationDescription": "Nous cherchons constamment de nouvelles manières d'améliorer le processus d'approvisionnement et de commerce, le rendant ainsi plus facile et plus efficace pour nos clients.",
+      "customerCentric": "Centricité client",
+      "customerCentricDescription": "La satisfaction de nos clients est notre priorité. Nous allons au-delà de leurs attentes pour répondre à leurs besoins.",
+      "futureVisionTitle": "Notre vision pour l'avenir",
+      "futureVisionDescription": "Nous nous concentrons sur l'expansion de notre réseau et de nos capacités pour améliorer encore nos services. Alors que le paysage commercial mondial évolue, nous visons à rester à la pointe en adaptant continuellement nos stratégies et nos offres. Nous envisageons un avenir où nos clients auront un accès fluide aux meilleurs produits, partenaires fiables et solutions logistiques efficaces, leur permettant de rivaliser et de prospérer sur la scène mondiale.",
+      "contactCallToActionTitle": "Prêt à faire passer votre entreprise au niveau supérieur ?",
+      "contactCallToActionDescription": "Contactez-nous aujourd'hui pour en savoir plus sur la manière dont nous pouvons vous aider à débloquer de nouvelles opportunités et développer votre entreprise à l'échelle mondiale.",
+      "contactButtonText": "Contactez-nous",
+      "learnMore": "En savoir plus",
+      "closeModal": "Fermer"
+    }  
 }

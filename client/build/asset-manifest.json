@@ -1,37 +1,25 @@
 {
   "files": {
-    "main.css": "/static/css/main.e45ad83a.css",
-    "main.js": "/static/js/main.f0c7ff7d.js",
+    "main.css": "/static/css/main.8ebcfded.css",
+    "main.js": "/static/js/main.b35d00c4.js",
     "static/media/komatsu.png": "/static/media/komatsu.9fc81522390b757e4ed0.png",
     "static/media/factoryMachines.jpg": "/static/media/factoryMachines.b676292bdca5c16695d6.jpg",
     "static/media/mixerTruck.jpg": "/static/media/mixerTruck.1077751f4ccdb80f9a87.jpg",
     "static/media/hotel.jpg": "/static/media/hotel.08d45a6577b97e5abc7f.jpg",
     "static/media/motoSpareParts.jpeg": "/static/media/motoSpareParts.52b837d042f148f67a81.jpeg",
     "static/media/loadedPort.jpg": "/static/media/loadedPort.c898727572c4029d865c.jpg",
-    "static/media/arachide.jpg": "/static/media/arachide.d69c97ac2b0143a8ef8b.jpg",
     "static/media/bg-works.jpg": "/static/media/bg-works.abd66d06d525eadfd24a.jpg",
-    "static/media/karite.jpg": "/static/media/karite.c1924568c314ff283ebb.jpg",
-    "static/media/easy-customise.jpg": "/static/media/easy-customise.d4fe22138e1668906aab.jpg",
     "static/media/truck.jpg": "/static/media/truck.2978259b92521a7f2b2f.jpg",
-    "static/media/artistana.jpg": "/static/media/artistana.25adf9e35eacb9a176aa.jpg",
-    "static/media/great-support.jpg": "/static/media/great-support.13341f4e93333e45ebbe.jpg",
     "static/media/businessNegotiation.png": "/static/media/businessNegotiation.c7a64f8658af297e6ca4.png",
-    "static/media/essentialOils.jpg": "/static/media/essentialOils.26f330275b507220c82d.jpg",
-    "static/media/advanced-option.jpg": "/static/media/advanced-option.84c7d0693123632c9035.jpg",
-    "static/media/modern-design.jpg": "/static/media/modern-design.e2114f5b8abbe8b1fa8b.jpg",
-    "static/media/djembe.jpg": "/static/media/djembe.7d704971f798641711cc.jpg",
-    "static/media/clean-design.jpg": "/static/media/clean-design.728069dab437b67d9da8.jpg",
     "static/media/printers.jpg": "/static/media/printers.e6e10c9df9af3c36f329.jpg",
-    "static/media/unlimited-features.jpg": "/static/media/unlimited-features.a0b8acf77e6b57772078.jpg",
-    "static/media/acajou.jpg": "/static/media/acajou.43c8c9f165c32a06feaa.jpg",
     "static/media/camelscaravan.png": "/static/media/camelscaravan.aeda5112273c7c07f7cd.png",
     "static/media/logonomadmee.png": "/static/media/logonomadmee.590c40e5fb842607b08d.png",
     "index.html": "/index.html",
-    "main.e45ad83a.css.map": "/static/css/main.e45ad83a.css.map",
-    "main.f0c7ff7d.js.map": "/static/js/main.f0c7ff7d.js.map"
+    "main.8ebcfded.css.map": "/static/css/main.8ebcfded.css.map",
+    "main.b35d00c4.js.map": "/static/js/main.b35d00c4.js.map"
   },
   "entrypoints": [
-    "static/css/main.e45ad83a.css",
-    "static/js/main.f0c7ff7d.js"
+    "static/css/main.8ebcfded.css",
+    "static/js/main.b35d00c4.js"
   ]
 }
