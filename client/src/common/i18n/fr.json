@@ -5,6 +5,21 @@
   "home": "Accueil",
   "hotDealsHeader": "Bonnes Affaires",
 
+  "hotDeals": {
+  "buyOneGetOne": "Achetez-en un, obtenez-en un gratuitement !",
+  "exclusiveOpportunities": "Opportunités Exclusives",
+  "truck": "Camions",
+  "excavator": "Excavatrices",
+  "mixerTruck": "Camions Malaxeurs",
+  "manufacturingEquipment": "Équipements de Fabrication",
+  "printers": "Imprimantes",
+  "motorcycleParts": "Pièces Détachées de Moto",
+  "discoverMore": "Découvrez-en plus dans notre vidéo",
+  "exclusiveOpportunitiesVideo": "Vidéo des Opportunités Exclusives",
+  "hotPicks": "Sélections Coup de Cœur",
+  "advantages": "Découvrez les avantages qui distinguent notre plateforme."
+},
+
   "showcase": {
     "headerTitle": "Rationaliser l'approvisionnement et le commerce mondiaux à travers les continents",
     "headerSubtitle": "Nous aidons les entreprises africaines en les connectant aux meilleurs produits et machines en provenance de Chine, à des prix imbattables. Nous simplifions l'approvisionnement, débloquons des opportunités commerciales et vous aidons à croître avec les solutions les plus adaptées.",
