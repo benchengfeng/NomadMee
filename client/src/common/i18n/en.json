@@ -4,24 +4,24 @@
   "headerTitle": "Bridging Trade Across Continents",
   "home": "Home",
   "hotDealsHeader": "Hot Deals",
-  
-    "showcase": {
-      "headerTitle": "Streamlining Global Sourcing and Trade Across Continents",
-      "headerSubtitle": "Empowering African businesses by connecting them with the best products and machinery from China at unbeatable prices. We simplify sourcing, unlock trade opportunities, and help you grow with the right solutions.",
-      "clientSourcing": {
-        "title": "Client Sourcing",
-        "description": "Helping you find and connect with the right partners for your business needs."
-      },
-      "purchaseAssistance": {
-        "title": "Purchase Assistance",
-        "description": "Providing expert support to ensure smooth transactions and top-quality purchases."
-      },
-      "facilitationServices": {
-        "title": "Facilitation Services",
-        "description": "Simplifying your journey with logistics, guidance, and local expertise."
-      },
-      "getInTouch": "Get in touch today to start your journey with us!"
+
+  "showcase": {
+    "headerTitle": "Streamlining Global Sourcing and Trade Across Continents",
+    "headerSubtitle": "Empowering African businesses by connecting them with the best products and machinery from China at unbeatable prices. We simplify sourcing, unlock trade opportunities, and help you grow with the right solutions.",
+    "clientSourcing": {
+      "title": "Client Sourcing",
+      "description": "Helping you find and connect with the right partners for your business needs."
     },
+    "purchaseAssistance": {
+      "title": "Purchase Assistance",
+      "description": "Providing expert support to ensure smooth transactions and top-quality purchases."
+    },
+    "facilitationServices": {
+      "title": "Facilitation Services",
+      "description": "Simplifying your journey with logistics, guidance, and local expertise."
+    },
+    "getInTouch": "Get in touch today to start your journey with us!"
+  },
 
   "header": {
     "title": "Explore, Connect, and Trade with Confidence",
@@ -29,8 +29,11 @@
   },
   "deals": {
     "businessNegotiations": "Business Negotiations",
-    "hotelAndAirport": "Hotel & Airport",
-    "guidedBusinessTour": "Guided Business Tour"
+    "hotelAndAirport": "Hotel and Airport Services",
+    "guidedBusinessTour": "Guided Business Tours",
+    "businessNegotiationDescription": "The business negotiation process plays a crucial role in facilitating cross-border partnerships and ensuring that businesses are able to identify reliable suppliers and partners. This service involves expert guidance through every step of the negotiation, ensuring that all parties achieve favorable terms. By understanding local business practices and strategies, companies can unlock valuable opportunities for growth and expansion in global markets.",
+    "hotelAndAirportDescription": "Our hotel and airport services provide comprehensive assistance for business travelers visiting China. From arranging comfortable and convenient hotel accommodations to seamless airport transfers, we ensure that every aspect of your travel experience is taken care of. Our goal is to make your trip as smooth and efficient as possible, so you can focus on your business engagements without the stress of logistics.",
+    "guidedBusinessTourDescription": "Experience firsthand the dynamic and rapidly evolving business environment in China with our guided business tours. These tours provide you with an in-depth look into Chinese factories, trade centers, and key industrial hubs. Our expert guides will introduce you to local manufacturing processes, supply chain operations, and trade opportunities, helping you establish meaningful connections and better understand the business landscape to enhance your strategic decisions."
   },
 
   "about": {
@@ -109,116 +112,115 @@
     "advantages": "Discover the advantages that make our platform stand out."
   },
 
-    "privacyPolicy": {
-      "title": "Privacy Policy",
-      "introduction": "At NomadMee, your privacy is of paramount importance to us. This Privacy Policy document outlines the types of personal information that is received and collected by NomadMee and how we use it.",
-      "section1": {
-        "title": "1. Information We Collect",
-        "description": "We collect various types of information in order to provide and improve our services:",
-        "item1": {
-          "title": "Personal Information",
-          "description": "This may include your name, email address, phone number, etc., that you voluntarily provide when registering on our platform or contacting us."
-        },
-        "item2": {
-          "title": "Usage Data",
-          "description": "This may include information such as your IP address, browser type, and operating system, collected automatically when you access our platform."
-        },
-        "item3": {
-          "title": "Cookies",
-          "description": "We use cookies to personalize your experience, track usage patterns, and improve our website's functionality."
-        }
+  "privacyPolicy": {
+    "title": "Privacy Policy",
+    "introduction": "At NomadMee, your privacy is of paramount importance to us. This Privacy Policy document outlines the types of personal information that is received and collected by NomadMee and how we use it.",
+    "section1": {
+      "title": "1. Information We Collect",
+      "description": "We collect various types of information in order to provide and improve our services:",
+      "item1": {
+        "title": "Personal Information",
+        "description": "This may include your name, email address, phone number, etc., that you voluntarily provide when registering on our platform or contacting us."
       },
-      "section2": {
-        "title": "2. How We Use Your Information",
-        "description": "The information we collect is used for various purposes:",
-        "item1": "To provide and maintain our services",
-        "item2": "To notify you about changes to our services",
-        "item3": "To improve our website and services based on user feedback",
-        "item4": "To provide customer support and communication"
+      "item2": {
+        "title": "Usage Data",
+        "description": "This may include information such as your IP address, browser type, and operating system, collected automatically when you access our platform."
       },
-      "section3": {
-        "title": "3. Data Sharing and Disclosure",
-        "description": "We do not sell or share your personal information with third parties except in the following circumstances:",
-        "item1": {
-          "title": "With service providers",
-          "description": "We may share your data with trusted third-party providers who help us operate our platform."
-        },
-        "item2": {
-          "title": "For legal reasons",
-          "description": "If required by law, we may disclose your information to comply with legal obligations or to protect our rights."
-        },
-        "item3": {
-          "title": "Business transfers",
-          "description": "If we undergo a business merger, acquisition, or asset sale, your information may be transferred as part of that process."
-        }
-      },
-      "section4": {
-        "title": "4. Your Data Protection Rights",
-        "description": "Depending on your location, you may have certain data protection rights under applicable laws."
-      },
-      "section5": {
-        "title": "5. Data Security",
-        "description": "We take the security of your personal data seriously. We implement industry-standard security measures to protect your information from unauthorized access, disclosure, alteration, and destruction."
-      },
-      "section6": {
-        "title": "6. Changes to This Privacy Policy",
-        "description": "We may update our Privacy Policy from time to time. Any changes will be posted on this page, and we will notify you of any significant changes."
-      },
-      "section7": {
-        "title": "7. Contact Us",
-        "description": "If you have any questions or concerns regarding this Privacy Policy or our practices, feel free to contact us."
-      },
-      "contact": {
-        "title": "Contact Us",
-        "email": "Email"
+      "item3": {
+        "title": "Cookies",
+        "description": "We use cookies to personalize your experience, track usage patterns, and improve our website's functionality."
       }
     },
-
-      "termsOfService": {
-        "title": "Terms of Service",
-        "introduction": "Welcome to NomadMee. These terms and conditions outline the rules and regulations for the use of our platform.",
-        "section1": {
-          "title": "1. User Responsibilities",
-          "description": "As a user, you are responsible for ensuring that your activities comply with the following:",
-          "item1": "Provide accurate and up-to-date information.",
-          "item2": "Use the platform in a lawful manner.",
-          "item3": "Respect other users' rights and privacy."
-        },
-        "section2": {
-          "title": "2. Account Creation and Security",
-          "description": "To access certain features, you must create an account and ensure its security.",
-          "item1": "Choose a strong password and keep it confidential.",
-          "item2": "Notify us immediately of any unauthorized access.",
-          "item3": "You are responsible for any activities on your account."
-        },
-        "section3": {
-          "title": "3. Platform Usage",
-          "description": "By using our platform, you agree to the following terms of usage:",
-          "item1": "You will not engage in illegal or harmful activities.",
-          "item2": "You will respect intellectual property rights.",
-          "item3": "You will not misuse the platform for spam or fraud."
-        },
-        "section4": {
-          "title": "4. Payment Terms",
-          "description": "Certain features or services may require payment, subject to the following conditions:"
-        },
-        "section5": {
-          "title": "5. Privacy and Data Protection",
-          "description": "We are committed to protecting your privacy and personal data. Please review our Privacy Policy for more details."
-        },
-        "section6": {
-          "title": "6. Termination",
-          "description": "We reserve the right to suspend or terminate your account in the event of a breach of these terms."
-        },
-        "section7": {
-          "title": "7. Contact Us",
-          "description": "If you have any questions or concerns about our terms, please contact us at:",
-          "contact": "If you have any questions or concerns, please contact us."
-        }
+    "section2": {
+      "title": "2. How We Use Your Information",
+      "description": "The information we collect is used for various purposes:",
+      "item1": "To provide and maintain our services",
+      "item2": "To notify you about changes to our services",
+      "item3": "To improve our website and services based on user feedback",
+      "item4": "To provide customer support and communication"
+    },
+    "section3": {
+      "title": "3. Data Sharing and Disclosure",
+      "description": "We do not sell or share your personal information with third parties except in the following circumstances:",
+      "item1": {
+        "title": "With service providers",
+        "description": "We may share your data with trusted third-party providers who help us operate our platform."
       },
-
-      "company": {
-        "tagline": "Where innovation meets experience."
+      "item2": {
+        "title": "For legal reasons",
+        "description": "If required by law, we may disclose your information to comply with legal obligations or to protect our rights."
+      },
+      "item3": {
+        "title": "Business transfers",
+        "description": "If we undergo a business merger, acquisition, or asset sale, your information may be transferred as part of that process."
       }
-  
+    },
+    "section4": {
+      "title": "4. Your Data Protection Rights",
+      "description": "Depending on your location, you may have certain data protection rights under applicable laws."
+    },
+    "section5": {
+      "title": "5. Data Security",
+      "description": "We take the security of your personal data seriously. We implement industry-standard security measures to protect your information from unauthorized access, disclosure, alteration, and destruction."
+    },
+    "section6": {
+      "title": "6. Changes to This Privacy Policy",
+      "description": "We may update our Privacy Policy from time to time. Any changes will be posted on this page, and we will notify you of any significant changes."
+    },
+    "section7": {
+      "title": "7. Contact Us",
+      "description": "If you have any questions or concerns regarding this Privacy Policy or our practices, feel free to contact us."
+    },
+    "contact": {
+      "title": "Contact Us",
+      "email": "Email"
+    }
+  },
+
+  "termsOfService": {
+    "title": "Terms of Service",
+    "introduction": "Welcome to NomadMee. These terms and conditions outline the rules and regulations for the use of our platform.",
+    "section1": {
+      "title": "1. User Responsibilities",
+      "description": "As a user, you are responsible for ensuring that your activities comply with the following:",
+      "item1": "Provide accurate and up-to-date information.",
+      "item2": "Use the platform in a lawful manner.",
+      "item3": "Respect other users' rights and privacy."
+    },
+    "section2": {
+      "title": "2. Account Creation and Security",
+      "description": "To access certain features, you must create an account and ensure its security.",
+      "item1": "Choose a strong password and keep it confidential.",
+      "item2": "Notify us immediately of any unauthorized access.",
+      "item3": "You are responsible for any activities on your account."
+    },
+    "section3": {
+      "title": "3. Platform Usage",
+      "description": "By using our platform, you agree to the following terms of usage:",
+      "item1": "You will not engage in illegal or harmful activities.",
+      "item2": "You will respect intellectual property rights.",
+      "item3": "You will not misuse the platform for spam or fraud."
+    },
+    "section4": {
+      "title": "4. Payment Terms",
+      "description": "Certain features or services may require payment, subject to the following conditions:"
+    },
+    "section5": {
+      "title": "5. Privacy and Data Protection",
+      "description": "We are committed to protecting your privacy and personal data. Please review our Privacy Policy for more details."
+    },
+    "section6": {
+      "title": "6. Termination",
+      "description": "We reserve the right to suspend or terminate your account in the event of a breach of these terms."
+    },
+    "section7": {
+      "title": "7. Contact Us",
+      "description": "If you have any questions or concerns about our terms, please contact us at:",
+      "contact": "If you have any questions or concerns, please contact us."
+    }
+  },
+
+  "company": {
+    "tagline": "Where innovation meets experience."
+  }
 }

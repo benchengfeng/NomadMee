@@ -42,11 +42,14 @@
     "title": "Explorez, Connectez-vous et Commercez avec Confiance",
     "subtitle": "Nous nous occupons des détails, vous concentrez sur la croissance"
   },
-  "deals": {
-    "businessNegotiations": "Négociations commerciales",
-    "hotelAndAirport": "Hôtel & Aéroport",
-    "guidedBusinessTour": "Visite guidée d'affaires"
-  },
+"deals": {
+  "businessNegotiations": "Négociations commerciales",
+  "hotelAndAirport": "Services hôteliers et aéroportuaires",
+  "guidedBusinessTour": "Visites guidées d'affaires",
+  "businessNegotiationDescription": "Le processus de négociation commerciale joue un rôle crucial dans la facilitation des partenariats transfrontaliers et permet aux entreprises d'identifier des fournisseurs et partenaires fiables. Ce service offre une guidance experte à chaque étape de la négociation, garantissant que toutes les parties atteignent des conditions favorables. En comprenant les pratiques et stratégies commerciales locales, les entreprises peuvent débloquer des opportunités précieuses pour leur croissance et leur expansion sur les marchés mondiaux.",
+  "hotelAndAirportDescription": "Nos services hôteliers et aéroportuaires offrent une assistance complète pour les voyageurs d'affaires se rendant en Chine. De la réservation d'hébergements confortables et pratiques à l'organisation de transferts aéroportuaires sans tracas, nous veillons à ce que chaque aspect de votre expérience de voyage soit pris en charge. Notre objectif est de rendre votre voyage aussi fluide et efficace que possible, afin que vous puissiez vous concentrer sur vos affaires sans le stress de la logistique.",
+  "guidedBusinessTourDescription": "Découvrez de première main l'environnement dynamique et en constante évolution des affaires en Chine avec nos visites guidées. Ces visites vous offrent un aperçu approfondi des usines chinoises, des centres commerciaux et des hubs industriels clés. Nos guides experts vous feront découvrir les processus de fabrication locaux, les opérations de chaîne d'approvisionnement et les opportunités commerciales, vous aidant à établir des connexions significatives et à mieux comprendre le paysage des affaires pour améliorer vos décisions stratégiques."
+},
 
   "about": {
     "title": "À propos de nous",
