@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { color1, color4 } from "../../global";
 import { Image } from "rebass";
@@ -6,17 +6,27 @@ import logonomadmee from "../../assets/images/logonomadmee.png";
 import camelsCaravan from "../../assets/images/camelscaravan.png";
 import useIsMobile from "../../hooks/useIsMobile";
 
-function AppHeader() {
+const AppHeader: React.FC = () => {
   const { t, i18n } = useTranslation();
   const isMobile = useIsMobile();
-  const [language, setLanguage] = useState("ENG");
 
-  const handleLanguageChange = (
-    event: React.ChangeEvent<HTMLSelectElement>
-  ) => {
+  // Initialize language state from i18n or localStorage
+  const [language, setLanguage] = useState<string>(i18n.language === "fr" ? "FR" : "ENG");
+
+  useEffect(() => {
+    // Update language state when i18n language changes
+    const storedLang = localStorage.getItem("i18nextLng");
+    if (storedLang) {
+      setLanguage(storedLang === "fr" ? "FR" : "ENG");
+    }
+  }, [i18n.language]); // This ensures the state is updated whenever the language changes
+
+  const handleLanguageChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedLanguage = event.target.value;
     setLanguage(selectedLanguage);
-    i18n.changeLanguage(selectedLanguage === "ENG" ? "en" : "fr"); // Map language codes
+
+    // Change the language in i18n
+    i18n.changeLanguage(selectedLanguage === "ENG" ? "en" : "fr");
   };
 
   return (
@@ -116,6 +126,6 @@ function AppHeader() {
       </div>
     </div>
   );
-}
+};
 
 export default AppHeader;
