@@ -120,7 +120,7 @@ function AppContact() {
           <div className="contact-icon-item">
             <a href="https://wa.me/+21620086407" target="_blank" rel="noopener noreferrer">
               <FaWhatsapp size={30} color="#25D366" />
-              <span>216 20 086 407</span>
+              <span>+216 20 086 407</span>
             </a>
           </div>
           <div className="contact-icon-item">

@@ -1,7 +1,7 @@
 {
   "files": {
     "main.css": "/static/css/main.e45ad83a.css",
-    "main.js": "/static/js/main.ad8bea61.js",
+    "main.js": "/static/js/main.f0c7ff7d.js",
     "static/media/komatsu.png": "/static/media/komatsu.9fc81522390b757e4ed0.png",
     "static/media/factoryMachines.jpg": "/static/media/factoryMachines.b676292bdca5c16695d6.jpg",
     "static/media/mixerTruck.jpg": "/static/media/mixerTruck.1077751f4ccdb80f9a87.jpg",
@@ -28,10 +28,10 @@
     "static/media/logonomadmee.png": "/static/media/logonomadmee.590c40e5fb842607b08d.png",
     "index.html": "/index.html",
     "main.e45ad83a.css.map": "/static/css/main.e45ad83a.css.map",
-    "main.ad8bea61.js.map": "/static/js/main.ad8bea61.js.map"
+    "main.f0c7ff7d.js.map": "/static/js/main.f0c7ff7d.js.map"
   },
   "entrypoints": [
     "static/css/main.e45ad83a.css",
-    "static/js/main.ad8bea61.js"
+    "static/js/main.f0c7ff7d.js"
   ]
 }
