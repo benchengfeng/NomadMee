@@ -64,7 +64,7 @@ const PrivacyPolicy: React.FC = () => {
 
       <section className="privacy-policy-contact">
         <h2>{t('privacyPolicy.contact.title')}</h2>
-        <p>{t('privacyPolicy.contact.email')}: <a href="mailto:amine_bh@outlook.com">amine_bh@outlook.com</a></p>
+        <p>{t('privacyPolicy.contact.email')}: <a href="mailto:sales@nomadmeshop.com">sales@nomadmeshop.com</a></p>
       </section>
     </div>
   );

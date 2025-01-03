@@ -20,7 +20,7 @@ function AppFooter() {
           <li><a href="https://www.instagram.com/" aria-label="Instagram"><i className="fab fa-instagram"></i></a></li>
         </ul>
         <div className="contact-info">
-          <p>Email: <a href="mailto:amine_bh@outlook.com">amine_bh@outlook.com</a></p>
+          <p>Email: <a href="mailto:sales@nomadmeshop.com">sales@nomadmeshop.com</a></p>
           <p>Phone: <a href="tel:+8619876297359">+8619876297359</a></p>
         </div>
         <div className="legal-links">
