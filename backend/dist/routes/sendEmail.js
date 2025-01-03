@@ -18,18 +18,20 @@ const router = (0, express_1.Router)();
 // POST route to send an email
 router.post('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { subject, message } = req.body;
-    // Set up the SMTP transporter (using Gmail for this example)
+    // Set up the SMTP transporter (using Aliyun for this example)
     const transporter = nodemailer_1.default.createTransport({
-        service: 'gmail',
+        host: 'smtp.mail.aliyun.com', // Aliyun SMTP server
+        port: 465, // Use port 465 for SSL (or 587 for TLS)
+        secure: true, // Use SSL
         auth: {
-            user: process.env.EMAIL_USER, // Your email address
-            pass: process.env.EMAIL_PASS, // Your email password or app-specific password
+            user: process.env.EMAIL_USER, // Your Aliyun email address (e.g., info@yourdomain.com)
+            pass: process.env.EMAIL_PASS, // Your Aliyun email password or App-specific password
         },
     });
     // Email options
     const mailOptions = {
-        from: process.env.EMAIL_USER, // Sender email
-        to: process.env.EMAIL_USER, // Receiver email
+        from: process.env.EMAIL_USER, // Sender email (your Aliyun email)
+        to: process.env.EMAIL_USER, // Receiver email (you can change this to the recipient)
         subject, // Subject of the email
         text: message, // Plain text body
         html: message, // HTML body (optional)
