@@ -3,7 +3,7 @@ import nodemailer from 'nodemailer';
 
 const router = Router();
 
-// POST route to send an email
+// POST route to send email
 router.post('/', async (req: Request, res: Response) => {
   const { subject, message } = req.body;
 
