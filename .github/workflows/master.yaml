@@ -30,4 +30,6 @@ jobs:
     # Step 3: Restart the PM2 service
     - name: Restart PM2 service
       run: |
-        ssh ${{ secrets.ECS_USERNAME }}@${{ secrets.ECS_IP }} "pm2 restart backend-service"
+        ssh ${{ secrets.ECS_USERNAME }}@${{ secrets.ECS_IP }} "
+        cd /var/www/NomadMee/backend &&
+        pm2 reload ecosystem.config.js --only backend-service"
