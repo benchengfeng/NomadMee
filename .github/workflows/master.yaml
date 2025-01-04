@@ -29,7 +29,7 @@ jobs:
         scp -r backend/dist* ${{ secrets.ECS_USERNAME }}@${{ secrets.ECS_IP }}:/var/www/NomadMee/backend
     # Step 3: Restart the PM2 service
     - name: Restart PM2 service
-      run: |
-        ssh ${{ secrets.ECS_USERNAME }}@${{ secrets.ECS_IP }} "
-        cd /var/www/NomadMee/backend &&
-        pm2 reload ecosystem.config.js --only backend-service"
+     run: |
+       ssh ${{ secrets.ECS_USERNAME }}@${{ secrets.ECS_IP }} "
+       export PATH=$PATH:/home/${{ secrets.ECS_USERNAME }}/.npm-global/bin &&
+       pm2 restart backend-service"
