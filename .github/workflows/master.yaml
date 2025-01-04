@@ -27,3 +27,7 @@ jobs:
       run: |
         ssh -o StrictHostKeyChecking=no ${{ secrets.ECS_USERNAME }}@${{ secrets.ECS_IP }} "mkdir -p /var/www/NomadMee/backend"
         scp -r backend/dist* ${{ secrets.ECS_USERNAME }}@${{ secrets.ECS_IP }}:/var/www/NomadMee/backend
+    # Step 3: Restart the PM2 service
+    - name: Restart PM2 service
+      run: |
+        ssh ${{ secrets.ECS_USERNAME }}@${{ secrets.ECS_IP }} "pm2 restart backend-service"
