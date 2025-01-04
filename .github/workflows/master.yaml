@@ -10,26 +10,26 @@ jobs:
     name: 🎉 Deploy to Alibaba Cloud ECS
     runs-on: ubuntu-latest
     steps:
-    - name: 🚚 Get latest code
-      uses: actions/checkout@v3
+      - name: 🚚 Get latest code
+        uses: actions/checkout@v3
 
-    - name: 🔑 Set up SSH
-      uses: webfactory/ssh-agent@v0.5.3
-      with:
-        ssh-private-key: ${{ secrets.ECS_SSH_PRIVATE_KEY }}
+      - name: 🔑 Set up SSH
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.ECS_SSH_PRIVATE_KEY }}
 
-    - name: 📂 Deploy client files to ECS
-      run: |
-        ssh -o StrictHostKeyChecking=no ${{ secrets.ECS_USERNAME }}@${{ secrets.ECS_IP }} "mkdir -p /var/www/NomadMee/client"
-        scp -r client/build* ${{ secrets.ECS_USERNAME }}@${{ secrets.ECS_IP }}:/var/www/NomadMee/client
+      - name: 📂 Deploy client files to ECS
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.ECS_USERNAME }}@${{ secrets.ECS_IP }} "mkdir -p /var/www/NomadMee/client"
+          scp -r client/build* ${{ secrets.ECS_USERNAME }}@${{ secrets.ECS_IP }}:/var/www/NomadMee/client
 
-    - name: 📂 Deploy backend files to ECS
-      run: |
-        ssh -o StrictHostKeyChecking=no ${{ secrets.ECS_USERNAME }}@${{ secrets.ECS_IP }} "mkdir -p /var/www/NomadMee/backend"
-        scp -r backend/dist* ${{ secrets.ECS_USERNAME }}@${{ secrets.ECS_IP }}:/var/www/NomadMee/backend
-    # Step 3: Restart the PM2 service
-    - name: Restart PM2 service
-     run: |
-       ssh ${{ secrets.ECS_USERNAME }}@${{ secrets.ECS_IP }} "
-       export PATH=$PATH:/home/${{ secrets.ECS_USERNAME }}/.npm-global/bin &&
-       pm2 restart backend-service"
+      - name: 📂 Deploy backend files to ECS
+        run: |
+          ssh -o StrictHostKeyChecking=no ${{ secrets.ECS_USERNAME }}@${{ secrets.ECS_IP }} "mkdir -p /var/www/NomadMee/backend"
+          scp -r backend/dist* ${{ secrets.ECS_USERNAME }}@${{ secrets.ECS_IP }}:/var/www/NomadMee/backend
+
+      - name: Restart PM2 service
+        run: |
+          ssh ${{ secrets.ECS_USERNAME }}@${{ secrets.ECS_IP }} "
+          export PATH=$PATH:/root/.nvm/versions/node/v16.0.0/bin &&
+          pm2 restart server"
