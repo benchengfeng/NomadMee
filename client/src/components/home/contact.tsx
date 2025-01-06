@@ -28,6 +28,7 @@ function AppContact() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
+        fullName: values.fullname,
         email: values.email, // Sender's email
         subject: values.subject, // Subject
         message: emailBody, // Formatted message body

@@ -1,29 +1,40 @@
 import { Router, Request, Response } from 'express';
-import nodemailer from 'nodemailer';
+// import nodemailer from 'nodemailer';
 
 const router = Router();
 
+var nodemailer = require('nodemailer');
+
 // POST route to send email
 router.post('/', async (req: Request, res: Response) => {
-  const { subject, message } = req.body;
+  const { subject, message, fullName } = req.body;
 
-  // Set up the SMTP transporter (using Gmail for this example)
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: process.env.EMAIL_USER, // Your email address
-      pass: process.env.EMAIL_PASS, // Your email password or app-specific password
-    },
-  });
 
-  // Email options
-  const mailOptions = {
-    from: process.env.EMAIL_USER , // Sender email
-    to: process.env.EMAIL_USER, // Receiver email
-    subject, // Subject of the email
-    text: message, // Plain text body
-    html: message, // HTML body (optional)
-  };
+  var transporter = nodemailer.createTransport({
+    "host": "smtp.qiye.aliyun.com",
+    "port": 465,
+    "secureConnection": true, // use SSL
+    "auth": {
+        "user": `${process.env.EMAIL_USER}`, // user name
+        "pass": `${process.env.EMAIL_PASS}`         // password
+    }
+});
+
+  // setup e-mail data with unicode symbols.
+var mailOptions = {
+  from: `${process.env.EMAIL_USER}`, // sender address mailfrom must be same with the user.
+  to: process.env.EMAIL_USER, // list of receivers
+  subject: subject, // Subject line
+  text: message, // plaintext body
+  // html: '<b>Hello world</b><img src="cid:01" style="width:200px;height:auto">', // html body
+  attachments: [
+      {
+          filename: fullName,
+          content: message
+      }
+  ],
+
+};
 
   try {
     // Send the email
@@ -34,5 +45,6 @@ router.post('/', async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Failed to send email', error: error.message });
   }
 });
+
 
 export default router;

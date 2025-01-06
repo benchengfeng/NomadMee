@@ -8,31 +8,36 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
-const nodemailer_1 = __importDefault(require("nodemailer"));
+// import nodemailer from 'nodemailer';
 const router = (0, express_1.Router)();
-// POST route to send an email
+var nodemailer = require('nodemailer');
+// POST route to send email
 router.post('/', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { subject, message } = req.body;
-    // Set up the SMTP transporter (using Gmail for this example)
-    const transporter = nodemailer_1.default.createTransport({
-        service: 'gmail',
-        auth: {
-            user: process.env.EMAIL_USER, // Your email address
-            pass: process.env.EMAIL_PASS, // Your email password or app-specific password
-        },
+    const { subject, message, fullName } = req.body;
+    var transporter = nodemailer.createTransport({
+        "host": "smtp.qiye.aliyun.com",
+        "port": 465,
+        "secureConnection": true, // use SSL
+        "auth": {
+            "user": `${process.env.EMAIL_USER}`, // user name
+            "pass": `${process.env.EMAIL_PASS}` // password
+        }
     });
-    // Email options
-    const mailOptions = {
-        from: process.env.EMAIL_USER, // Sender email
-        to: process.env.EMAIL_USER, // Receiver email
-        subject, // Subject of the email
-        text: message, // Plain text body
-        html: message, // HTML body (optional)
+    // setup e-mail data with unicode symbols.
+    var mailOptions = {
+        from: `${process.env.EMAIL_USER}`, // sender address mailfrom must be same with the user.
+        to: process.env.EMAIL_USER, // list of receivers
+        subject: subject, // Subject line
+        text: message, // plaintext body
+        // html: '<b>Hello world</b><img src="cid:01" style="width:200px;height:auto">', // html body
+        attachments: [
+            {
+                filename: fullName,
+                content: message
+            }
+        ],
     };
     try {
         // Send the email
