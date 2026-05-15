@@ -1,11 +1,10 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
-import dotenv from 'dotenv';
 import sendEmailRoutes from './routes/sendEmail';
 import statusRoutes from './routes/status';
-
-dotenv.config();
+import dashboardRoutes from './routes/dashboard';
 
 const app = express();
 
@@ -34,6 +33,7 @@ app.options('*', (req, res) => {
 // Routes
 app.use('/api/sendEmail', sendEmailRoutes);
 app.use('/api/status', statusRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // Server Listening
 const port = process.env.PORT || 8000;
