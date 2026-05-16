@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardResponse, getDashboardHome, logoutInvestor } from '../api/dashboardApi';
 
@@ -20,17 +20,37 @@ function money(value: number, currency: InvestorCurrency): string {
   }).format(value);
 }
 
-function buildMapEmbedUrl(lat: number, lng: number): string {
-  const offset = 4.2;
-  const left = lng - offset;
-  const right = lng + offset;
-  const top = lat + offset;
-  const bottom = lat - offset;
+function buildMapUrlForShips(ships: Array<{ lat: number; lng: number }>): string {
+  if (ships.length === 0) {
+    // Default to world view if no ships
+    return `https://www.openstreetmap.org/export/embed.html?bbox=-180,-90,180,90&layer=mapnik`;
+  }
 
-  const bbox = `${left},${bottom},${right},${top}`;
-  return `https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(
-    bbox
-  )}&layer=mapnik&marker=${encodeURIComponent(`${lat},${lng}`)}`;
+  if (ships.length === 1) {
+    const ship = ships[0]!;
+    const offset = 4.2;
+    const left = ship.lng - offset;
+    const right = ship.lng + offset;
+    const top = ship.lat + offset;
+    const bottom = ship.lat - offset;
+    const bbox = `${left},${bottom},${right},${top}`;
+    return `https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(bbox)}&layer=mapnik&marker=${encodeURIComponent(`${ship.lat},${ship.lng}`)}`;
+  }
+
+  // Multiple ships: calculate bounding box that includes all
+  const lats = ships.map(s => s.lat);
+  const lngs = ships.map(s => s.lng);
+  const minLat = Math.min(...lats);
+  const maxLat = Math.max(...lats);
+  const minLng = Math.min(...lngs);
+  const maxLng = Math.max(...lngs);
+  
+  // Add padding
+  const latPadding = (maxLat - minLat) * 0.1 || 1;
+  const lngPadding = (maxLng - minLng) * 0.1 || 1;
+  
+  const bbox = `${minLng - lngPadding},${minLat - latPadding},${maxLng + lngPadding},${maxLat + latPadding}`;
+  return `https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(bbox)}&layer=mapnik`;
 }
 
 const InvestorHome: React.FC = () => {
@@ -74,18 +94,23 @@ const InvestorHome: React.FC = () => {
     };
   }, []);
 
-  const mapUrl = useMemo(() => {
-    if (!data) {
-      return '';
-    }
-
-    return buildMapEmbedUrl(data.cargo.location.lat, data.cargo.location.lng);
-  }, [data]);
-
   const handleLogout = async () => {
     await logoutInvestor();
     navigate('/');
   };
+
+  // Calculate map URL early (before conditionals)
+  const filteredShips = useMemo(() => {
+    if (!data || !data.aisstream.trackedMmsiList || data.aisstream.trackedMmsiList.length === 0) {
+      return [];
+    }
+    const trackedMmsiSet = new Set(data.aisstream.trackedMmsiList.map(m => Number(m)));
+    return (data.aisstream.ships || []).filter(ship => trackedMmsiSet.has(ship.mmsi));
+  }, [data]);
+
+  const mapUrl = useMemo(() => {
+    return buildMapUrlForShips(filteredShips);
+  }, [filteredShips]);
 
   if (loading) {
     return <div className="investor-loading">Loading dashboard...</div>;
@@ -100,7 +125,17 @@ const InvestorHome: React.FC = () => {
     );
   }
 
-  const { investor, cargo } = data;
+  // Show loader while waiting for AISStream data
+  if (data.aisstream.isLoading) {
+    return (
+      <div className="investor-loading">
+        <p>Loading AISStream data...</p>
+        <p style={{ fontSize: '14px', marginTop: '10px', color: '#666' }}>Connecting to live vessel tracking...</p>
+      </div>
+    );
+  }
+
+  const { investor, aisstream } = data;
 
   return (
     <main className="investor-dashboard-shell">
@@ -136,20 +171,16 @@ const InvestorHome: React.FC = () => {
         </article>
 
         <article className="investor-panel investor-panel-right">
-          <h2>Cargo Tracking</h2>
+          <h2>Live Ship Tracking</h2>
           <div className="cargo-stats">
-            <p><strong>Status:</strong> {cargo.info.status}</p>
-            <p><strong>Vessel:</strong> {cargo.info.vesselName}</p>
-            <p><strong>Origin:</strong> {cargo.info.origin}</p>
-            <p><strong>Destination:</strong> {cargo.info.destination}</p>
-            <p><strong>Current Zone:</strong> {cargo.location.currentLabel}</p>
-            <p><strong>Next Zone:</strong> {cargo.location.nextLabel}</p>
-            <p><strong>ETA:</strong> {cargo.info.estimatedArrivalInDays} day(s)</p>
+            <p><strong>Tracked MMSI:</strong> {aisstream.trackedMmsiList?.join(', ') || 'None'}</p>
+            <p><strong>Ships Found:</strong> {filteredShips?.length || 0}</p>
+            <p><strong>Last Updated:</strong> {aisstream.receivedAt || 'Waiting...'}</p>
           </div>
 
           <div className="cargo-map-wrapper">
             <iframe
-              title="cargo-live-map"
+              title="ais-live-ships-map"
               src={mapUrl}
               className="cargo-map"
             />

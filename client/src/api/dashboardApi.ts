@@ -20,23 +20,21 @@ export type DashboardResponse = {
     projectedPayout: number;
     expectedProfitRate: number;
   };
-  cargo: {
-    info: {
-      shipmentId: string;
-      containerId: string;
-      vesselName: string;
-      origin: string;
-      destination: string;
-      estimatedArrivalInDays: number;
-      status: string;
-    };
-    location: {
-      currentLabel: string;
-      nextLabel: string;
+  aisstream: {
+    receivedAt: string | null;
+    raw: unknown;
+    rawText: string | null;
+    hasData: boolean;
+    isLoading: boolean;
+    trackedMmsiList: string[];
+    ships: Array<{
+      mmsi: number;
       lat: number;
       lng: number;
-      progressPercent: number;
-    };
+      lastSeen: string;
+      sogKnots: number | null;
+      cogDegrees: number | null;
+    }>;
   };
 };
 

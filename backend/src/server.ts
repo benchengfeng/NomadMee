@@ -5,6 +5,8 @@ import bodyParser from 'body-parser';
 import sendEmailRoutes from './routes/sendEmail';
 import statusRoutes from './routes/status';
 import dashboardRoutes from './routes/dashboard';
+import { connectMongo } from './config/mongoose';
+import { startAisStreamSnapshotJob } from './services/aisStreamSnapshotJob';
 
 const app = express();
 
@@ -35,8 +37,17 @@ app.use('/api/sendEmail', sendEmailRoutes);
 app.use('/api/status', statusRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 
-// Server Listening
-const port = process.env.PORT || 8000;
-app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
+async function startServer(): Promise<void> {
+  await connectMongo();
+  startAisStreamSnapshotJob();
+
+  const port = process.env.PORT || 8000;
+  app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
+  });
+}
+
+void startServer().catch((error) => {
+  console.error('Failed to start server:', error);
+  process.exit(1);
 });
