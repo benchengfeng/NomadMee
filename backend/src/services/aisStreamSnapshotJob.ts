@@ -11,6 +11,7 @@ let jobInFlight = false;
 let activeSnapshotStartedAt: Date | null = null;
 let activeSnapshotWindowEndsAt: Date | null = null;
 let activeSnapshotSequence = 0;
+let schedulerStarted = false;
 
 function log(message: string, data?: Record<string, unknown>): void {
   if (AIS_VERBOSE_LOGGING) {
@@ -127,6 +128,59 @@ async function persistShipDocuments(
     })),
     { ordered: false }
   );
+}
+
+async function getLatestStoredShipTimestamp(): Promise<Date | null> {
+  const latestDocument = await AisStreamCargoSnapshotModel.findOne()
+    .sort({ collectedAt: -1, createdAt: -1 })
+    .lean();
+
+  if (!latestDocument) {
+    return null;
+  }
+
+  const collectedAt = new Date(latestDocument.collectedAt as unknown as string | Date);
+  if (Number.isNaN(collectedAt.getTime())) {
+    return null;
+  }
+
+  return collectedAt;
+}
+
+function clearScheduledRun(): void {
+  if (scheduledTimer) {
+    clearTimeout(scheduledTimer);
+    scheduledTimer = null;
+  }
+}
+
+async function scheduleNextRun(): Promise<void> {
+  clearScheduledRun();
+
+  if (jobInFlight) {
+    return;
+  }
+
+  const latestStoredTimestamp = await getLatestStoredShipTimestamp();
+  const now = Date.now();
+  const dueAt = latestStoredTimestamp
+    ? latestStoredTimestamp.getTime() + AIS_CRON_INTERVAL_MS
+    : now;
+  const delayMs = Math.max(0, dueAt - now);
+
+  log('AIS scheduler evaluated next run.', {
+    latestStoredTimestamp: latestStoredTimestamp ? latestStoredTimestamp.toISOString() : null,
+    dueAt: new Date(dueAt).toISOString(),
+    delayMs,
+  });
+
+  scheduledTimer = setTimeout(async () => {
+    try {
+      await runSnapshotJob();
+    } finally {
+      void scheduleNextRun();
+    }
+  }, delayMs);
 }
 
 async function runSnapshotJob(): Promise<void> {
@@ -269,15 +323,12 @@ async function runSnapshotJob(): Promise<void> {
 }
 
 export function startAisStreamSnapshotJob(): void {
-  if (scheduledTimer) {
+  if (schedulerStarted) {
     return;
   }
 
-  void runSnapshotJob();
-
-  scheduledTimer = setInterval(() => {
-    void runSnapshotJob();
-  }, AIS_CRON_INTERVAL_MS);
+  schedulerStarted = true;
+  void scheduleNextRun();
 
   log('AIS snapshot scheduler started.', {
     cronIntervalMs: AIS_CRON_INTERVAL_MS,

@@ -5,6 +5,7 @@ import bodyParser from 'body-parser';
 import sendEmailRoutes from './routes/sendEmail';
 import statusRoutes from './routes/status';
 import dashboardRoutes from './routes/dashboard';
+import portalRoutes from './routes/portal';
 import { connectMongo } from './config/mongoose';
 import { startAisStreamSnapshotJob } from './services/aisStreamSnapshotJob';
 
@@ -36,6 +37,7 @@ app.options('*', (req, res) => {
 app.use('/api/sendEmail', sendEmailRoutes);
 app.use('/api/status', statusRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/portal', portalRoutes);
 
 async function startServer(): Promise<void> {
   await connectMongo();

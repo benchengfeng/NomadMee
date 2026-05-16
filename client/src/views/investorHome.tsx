@@ -1,194 +1,111 @@
-import React, { useEffect, useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { DashboardResponse, getDashboardHome, logoutInvestor } from '../api/dashboardApi';
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { getInvestorHome, logoutInvestor, InvestorHomeResponse } from '../api/portalApi';
 
-const POLLING_INTERVAL_MS = 10000;
-
-type InvestorCurrency = 'YUAN' | 'TND' | 'EURO';
-
-const CURRENCY_TO_ISO: Record<InvestorCurrency, string> = {
-  YUAN: 'CNY',
-  TND: 'TND',
-  EURO: 'EUR',
-};
-
-function money(value: number, currency: InvestorCurrency): string {
-  return new Intl.NumberFormat('fr-FR', {
-    style: 'currency',
-    currency: CURRENCY_TO_ISO[currency],
-    maximumFractionDigits: 0,
-  }).format(value);
+function money(value: number): string {
+	return new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(value);
 }
 
-function buildMapUrlForShips(ships: Array<{ lat: number; lng: number }>): string {
-  if (ships.length === 0) {
-    // Default to world view if no ships
-    return `https://www.openstreetmap.org/export/embed.html?bbox=-180,-90,180,90&layer=mapnik`;
-  }
-
-  if (ships.length === 1) {
-    const ship = ships[0]!;
-    const offset = 4.2;
-    const left = ship.lng - offset;
-    const right = ship.lng + offset;
-    const top = ship.lat + offset;
-    const bottom = ship.lat - offset;
-    const bbox = `${left},${bottom},${right},${top}`;
-    return `https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(bbox)}&layer=mapnik&marker=${encodeURIComponent(`${ship.lat},${ship.lng}`)}`;
-  }
-
-  // Multiple ships: calculate bounding box that includes all
-  const lats = ships.map(s => s.lat);
-  const lngs = ships.map(s => s.lng);
-  const minLat = Math.min(...lats);
-  const maxLat = Math.max(...lats);
-  const minLng = Math.min(...lngs);
-  const maxLng = Math.max(...lngs);
-  
-  // Add padding
-  const latPadding = (maxLat - minLat) * 0.1 || 1;
-  const lngPadding = (maxLng - minLng) * 0.1 || 1;
-  
-  const bbox = `${minLng - lngPadding},${minLat - latPadding},${maxLng + lngPadding},${maxLat + latPadding}`;
-  return `https://www.openstreetmap.org/export/embed.html?bbox=${encodeURIComponent(bbox)}&layer=mapnik`;
+function formatDate(value: string): string {
+	const date = new Date(value);
+	return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString();
 }
 
 const InvestorHome: React.FC = () => {
-  const navigate = useNavigate();
-  const [data, setData] = useState<DashboardResponse | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+	const navigate = useNavigate();
+	const [data, setData] = useState<InvestorHomeResponse | null>(null);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    let isMounted = true;
+	useEffect(() => {
+		let isMounted = true;
 
-    const fetchData = async () => {
-      try {
-        const payload = await getDashboardHome();
-        if (!isMounted) {
-          return;
-        }
+		const load = async () => {
+			try {
+				const response = await getInvestorHome();
+				if (isMounted) {
+					setData(response);
+					setError(null);
+				}
+			} catch (err) {
+				if (isMounted) {
+					setError(err instanceof Error ? err.message : 'Unable to load investor dashboard');
+				}
+			} finally {
+				if (isMounted) {
+					setLoading(false);
+				}
+			}
+		};
 
-        setData(payload);
-        setError(null);
-      } catch (err) {
-        if (!isMounted) {
-          return;
-        }
+		void load();
+		return () => {
+			isMounted = false;
+		};
+	}, []);
 
-        const message = err instanceof Error ? err.message : 'Unable to load dashboard';
-        setError(message);
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
-    };
+	const handleLogout = async () => {
+		await logoutInvestor();
+		navigate('/');
+	};
 
-    fetchData();
-    const intervalId = window.setInterval(fetchData, POLLING_INTERVAL_MS);
+	if (loading) {
+		return <div className="portal-loading">Loading investor dashboard...</div>;
+	}
 
-    return () => {
-      isMounted = false;
-      window.clearInterval(intervalId);
-    };
-  }, []);
+	if (error || !data) {
+		return (
+			<div className="portal-loading">
+				<p>{error || 'Dashboard data not available.'}</p>
+				<Link to="/">Back to login</Link>
+			</div>
+		);
+	}
 
-  const handleLogout = async () => {
-    await logoutInvestor();
-    navigate('/');
-  };
+	return (
+		<main className="portal-shell">
+			<header className="portal-header">
+				<div>
+					<h1>Investor Dashboard</h1>
+					<p>{data.investor.name} · {data.investor.username}</p>
+				</div>
+				<button type="button" onClick={handleLogout}>Logout</button>
+			</header>
 
-  // Calculate map URL early (before conditionals)
-  const filteredShips = useMemo(() => {
-    if (!data || !data.aisstream.trackedMmsiList || data.aisstream.trackedMmsiList.length === 0) {
-      return [];
-    }
-    const trackedMmsiSet = new Set(data.aisstream.trackedMmsiList.map(m => Number(m)));
-    return (data.aisstream.ships || []).filter(ship => trackedMmsiSet.has(ship.mmsi));
-  }, [data]);
+			<section className="portal-grid">
+				<article className="portal-card">
+					<h2>Investment Info</h2>
+					<p><strong>Amount:</strong> {money(data.investor.investmentAmount)}</p>
+					<p><strong>Profit %:</strong> {data.investor.profitPercentageOnInvestment}%</p>
+					<p><strong>Estimated ROI:</strong> {money(data.investor.estimatedROI)}</p>
+				</article>
 
-  const mapUrl = useMemo(() => {
-    return buildMapUrlForShips(filteredShips);
-  }, [filteredShips]);
-
-  if (loading) {
-    return <div className="investor-loading">Loading dashboard...</div>;
-  }
-
-  if (error || !data) {
-    return (
-      <div className="investor-loading">
-        <p>{error || 'Dashboard data not available.'}</p>
-        <button type="button" onClick={() => navigate('/')}>Back to Login</button>
-      </div>
-    );
-  }
-
-  // Show loader while waiting for AISStream data
-  if (data.aisstream.isLoading) {
-    return (
-      <div className="investor-loading">
-        <p>Loading AISStream data...</p>
-        <p style={{ fontSize: '14px', marginTop: '10px', color: '#666' }}>Connecting to live vessel tracking...</p>
-      </div>
-    );
-  }
-
-  const { investor, aisstream } = data;
-
-  return (
-    <main className="investor-dashboard-shell">
-      <header className="investor-topbar">
-        <h1>NomadMe Cargo Dashboard</h1>
-        <button type="button" onClick={handleLogout}>
-          Logout
-        </button>
-      </header>
-
-      <section className="investor-grid">
-        <article className="investor-panel investor-panel-left">
-          <h2>Investor Profile</h2>
-          <div className="investor-highlight">
-            <span>Name</span>
-            <strong>{investor.firstName} {investor.lastName}</strong>
-          </div>
-          <div className="investor-highlight">
-            <span>Initial Investment</span>
-            <strong>{money(investor.initialInvestment, investor.currency)}</strong>
-          </div>
-          <div className="investor-highlight">
-            <span>Estimated Profit</span>
-            <strong>{money(investor.projectedProfit, investor.currency)}</strong>
-          </div>
-          <div className="investor-highlight">
-            <span>Projected Total Return</span>
-            <strong>{money(investor.projectedPayout, investor.currency)}</strong>
-          </div>
-          <p className="investor-profit-rate">
-            Expected ROI: {(investor.expectedProfitRate * 100).toFixed(0)}%
-          </p>
-        </article>
-
-        <article className="investor-panel investor-panel-right">
-          <h2>Live Ship Tracking</h2>
-          <div className="cargo-stats">
-            <p><strong>Tracked MMSI:</strong> {aisstream.trackedMmsiList?.join(', ') || 'None'}</p>
-            <p><strong>Ships Found:</strong> {filteredShips?.length || 0}</p>
-            <p><strong>Last Updated:</strong> {aisstream.receivedAt || 'Waiting...'}</p>
-          </div>
-
-          <div className="cargo-map-wrapper">
-            <iframe
-              title="ais-live-ships-map"
-              src={mapUrl}
-              className="cargo-map"
-            />
-          </div>
-        </article>
-      </section>
-    </main>
-  );
+				<article className="portal-card">
+					<h2>Assigned Cargos</h2>
+					{data.cargos.length === 0 ? (
+						<p>No cargos assigned yet.</p>
+					) : (
+						<div className="portal-stack">
+							{data.cargos.map((cargo) => (
+								<div key={cargo._id} className="portal-item">
+									<h3>{cargo.productBeingShipped}</h3>
+									<p><strong>Quantity:</strong> {cargo.quantity}</p>
+									<p><strong>Purchase location:</strong> {cargo.purchaseLocation}</p>
+									<p><strong>Destination:</strong> {cargo.shippingDestination}</p>
+									<p><strong>Purchase price:</strong> {money(cargo.purchasePrice)}</p>
+									<p><strong>Shipping price:</strong> {money(cargo.shippingPrice)}</p>
+									<p><strong>Other expenses:</strong> {money(cargo.otherExpenses)}</p>
+									<p><strong>ETA:</strong> {formatDate(cargo.estimatedTimeOfArrival)}</p>
+									<p><strong>Estimated selling:</strong> {formatDate(cargo.estimatedTimeOfSelling)}</p>
+								</div>
+							))}
+						</div>
+					)}
+				</article>
+			</section>
+		</main>
+	);
 };
 
 export default InvestorHome;
+

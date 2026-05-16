@@ -2,20 +2,29 @@ import React from "react";
 import { BrowserRouter as Router, Navigate, Route, Routes } from "react-router-dom";
 import AppHotDeals from "../components/home/appHotDeals";
 import AppHome from "../views/home";
-// import AppAfrica from "../components/home/appAfrica";
-// import AppEurope from "../components/home/appEurope";
 import PrivacyPolicy from "../components/common/privacy-policy";
 import TermsOfService from "../components/common/terms-service";
 import AboutUs from "../components/home/aboutUs";
 import AppContact from "../components/home/contact";
 import InvestorLogin from "../views/investorLogin";
 import InvestorHome from "../views/investorHome";
-import { getSessionToken } from "../utils/auth";
+import AdminLogin from "../views/adminLogin";
+import AdminDashboard from "../views/adminDashboard";
+import { getAdminToken, getSessionToken } from "../utils/auth";
 
-const ProtectedRoute: React.FC<{ children: JSX.Element }> = ({ children }) => {
+const InvestorProtectedRoute: React.FC<{ children: JSX.Element }> = ({ children }) => {
   const token = getSessionToken();
   if (!token) {
     return <Navigate to="/" replace />;
+  }
+
+  return children;
+};
+
+const AdminProtectedRoute: React.FC<{ children: JSX.Element }> = ({ children }) => {
+  const token = getAdminToken();
+  if (!token) {
+    return <Navigate to="/admin" replace />;
   }
 
   return children;
@@ -26,12 +35,21 @@ const AppRouter = () => {
     <Router>
       <Routes>
         <Route path="/" element={<InvestorLogin />} />
+        <Route path="/admin" element={<AdminLogin />} />
         <Route
           path="/home"
           element={
-            <ProtectedRoute>
+            <InvestorProtectedRoute>
               <InvestorHome />
-            </ProtectedRoute>
+            </InvestorProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/dashboard"
+          element={
+            <AdminProtectedRoute>
+              <AdminDashboard />
+            </AdminProtectedRoute>
           }
         />
         <Route path="/landing" element={<AppHome />} />
