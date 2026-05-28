@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { landingThemes } from '../utils/landingThemes';
 
-const popeyeHero = 'https://cdn.filestackcontent.com/8RjwAhARSeGhRLdcxsGm';
+const popeyeHero = '/assets/popeyesmall.png';
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();

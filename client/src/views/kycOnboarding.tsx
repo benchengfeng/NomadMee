@@ -3,9 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { completeInvestorKyc, getInvestorHome } from '../api/portalApi';
 
 const characterAssets: Record<string, string> = {
-  popeye: 'https://cdn.filestackcontent.com/8RjwAhARSeGhRLdcxsGm',
-  olive: 'https://cdn.filestackcontent.com/hvxOktvyRf6ik74Di6kY',
-  curto: 'https://cdn.filestackcontent.com/2IPGbGK4TQ2IyHr1QC7t',
+  popeye: '/assets/popeyesmall.png',
+  olive: '/assets/olive1.jpeg',
+  curto: '/assets/cortomaltese.png',
+};
+
+const characterLabels: Record<string, string> = {
+  popeye: 'Popeye',
+  olive: 'Olive Oyl',
+  curto: 'Curto Maltese',
 };
 
 const KycOnboarding: React.FC = () => {
@@ -94,64 +100,83 @@ const KycOnboarding: React.FC = () => {
               />
             </label>
 
-            <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '6px' }}>
-              <button
-                type="button"
-                onClick={() => setSelectedCharacter('popeye')}
-                style={{
-                  padding: '10px 12px',
-                  borderRadius: '999px',
-                  border: selectedCharacter === 'popeye' ? '2px solid #F4D06F' : '1px solid rgba(255,255,255,0.14)',
-                  background: selectedCharacter === 'popeye' ? '#A70000' : '#10131C',
-                  color: '#fff',
-                  cursor: 'pointer',
-                }}
-              >
-                Popeye
-              </button>
-              <button
-                type="button"
-                onClick={() => setSelectedCharacter('olive')}
-                style={{
-                  padding: '10px 12px',
-                  borderRadius: '999px',
-                  border: selectedCharacter === 'olive' ? '2px solid #F4D06F' : '1px solid rgba(255,255,255,0.14)',
-                  background: selectedCharacter === 'olive' ? '#6F2232' : '#10131C',
-                  color: '#fff',
-                  cursor: 'pointer',
-                }}
-              >
-                Olive Oyl
-              </button>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '10px', marginTop: '6px' }}>
+              {(['popeye', 'olive'] as const).map((characterKey) => (
+                <button
+                  key={characterKey}
+                  type="button"
+                  onClick={() => setSelectedCharacter(characterKey)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    padding: '10px 12px',
+                    borderRadius: '18px',
+                    border: selectedCharacter === characterKey ? '2px solid #F4D06F' : '1px solid rgba(255,255,255,0.14)',
+                    background: selectedCharacter === characterKey ? '#A70000' : '#10131C',
+                    color: '#fff',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                  }}
+                >
+                  <img
+                    src={characterAssets[characterKey]}
+                    alt={characterLabels[characterKey]}
+                    style={{ width: '42px', height: '42px', borderRadius: '999px', objectFit: 'cover', flexShrink: 0 }}
+                  />
+                  <span style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                    <span style={{ fontWeight: 800 }}>{characterLabels[characterKey]}</span>
+                    <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.72rem' }}>Avatar option</span>
+                  </span>
+                </button>
+              ))}
               {!showSecretCharacter ? (
                 <button
                   type="button"
                   onClick={() => setShowSecretCharacter(true)}
                   style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
                     padding: '10px 12px',
-                    borderRadius: '999px',
+                    borderRadius: '18px',
                     border: '1px solid rgba(255,255,255,0.18)',
                     background: '#10131C',
                     color: '#fff',
                     cursor: 'pointer',
+                    gridColumn: '1 / span 2',
                   }}
                 >
-                  Reveal secret
+                  Reveal secret avatar
                 </button>
               ) : (
                 <button
+                  key="curto"
                   type="button"
                   onClick={() => setSelectedCharacter('curto')}
                   style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px',
                     padding: '10px 12px',
-                    borderRadius: '999px',
+                    borderRadius: '18px',
                     border: selectedCharacter === 'curto' ? '2px solid #F4D06F' : '1px solid rgba(255,255,255,0.14)',
                     background: selectedCharacter === 'curto' ? '#2A5A7A' : '#10131C',
                     color: '#fff',
                     cursor: 'pointer',
+                    textAlign: 'left',
+                    gridColumn: '1 / span 2',
                   }}
                 >
-                  Curto Maltese
+                  <img
+                    src={characterAssets['curto']}
+                    alt={characterLabels['curto']}
+                    style={{ width: '42px', height: '42px', borderRadius: '999px', objectFit: 'cover', flexShrink: 0 }}
+                  />
+                  <span style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                    <span style={{ fontWeight: 800 }}>{characterLabels['curto']}</span>
+                    <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.72rem' }}>Secret avatar</span>
+                  </span>
                 </button>
               )}
             </div>

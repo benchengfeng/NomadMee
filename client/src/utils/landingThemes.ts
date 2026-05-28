@@ -11,7 +11,7 @@ export type LandingThemePalette = {
 
 export const landingThemes: LandingThemePalette[] = [
   {
-    name: 'Classic pirate',
+    name: "Popeye's Harbor Crew",
     background: '#000000',
     surface: '#1A1A1A',
     accent: '#A70000',
@@ -21,7 +21,7 @@ export const landingThemes: LandingThemePalette[] = [
     highlight: '#FFD700',
   },
   {
-    name: 'Soft sand',
+    name: "Olive's Dream Market",
     background: '#EAE7DC',
     surface: '#FDF9F4',
     accent: '#8E8D8A',
@@ -31,7 +31,7 @@ export const landingThemes: LandingThemePalette[] = [
     highlight: '#E85A4F',
   },
   {
-    name: 'Sunset coral',
+    name: "Curto's Sunset Drift",
     background: '#E27D60',
     surface: '#F6B1A2',
     accent: '#85DCBA',
@@ -41,7 +41,7 @@ export const landingThemes: LandingThemePalette[] = [
     highlight: '#41B3A3',
   },
   {
-    name: 'Midnight pulse',
+    name: "Midnight Navigator",
     background: '#0C0032',
     surface: '#150648',
     accent: '#240090',
@@ -51,7 +51,7 @@ export const landingThemes: LandingThemePalette[] = [
     highlight: '#FFE400',
   },
   {
-    name: 'Starlight noir',
+    name: "Noir Harbor Spy",
     background: '#1A1A1D',
     surface: '#2A2A30',
     accent: '#6F2232',
@@ -61,7 +61,7 @@ export const landingThemes: LandingThemePalette[] = [
     highlight: '#FFFFFF',
   },
   {
-    name: 'Golden grain',
+    name: "Golden Trader",
     background: '#D79922',
     surface: '#F2E0A8',
     accent: '#F13C20',
@@ -71,7 +71,7 @@ export const landingThemes: LandingThemePalette[] = [
     highlight: '#FFFFFF',
   },
   {
-    name: 'Neon street',
+    name: "Neon Dockhand",
     background: '#272727',
     surface: '#383838',
     accent: '#FF652F',
@@ -81,7 +81,7 @@ export const landingThemes: LandingThemePalette[] = [
     highlight: '#FFE400',
   },
   {
-    name: 'Green route',
+    name: "Verdant Cargo Captain",
     background: '#61892F',
     surface: '#76963B',
     accent: '#222629',

@@ -14,6 +14,12 @@ const currencyRatesToUSD: Record<string, number> = {
   CNY: 0.14,
 };
 
+const avatarBadgeMap: Record<string, string> = {
+  popeye: '/assets/popeyesmall.png',
+  olive: '/assets/olive1.jpeg',
+  curto: '/assets/cortomaltese.png',
+};
+
 function money(value: number): string {
   return new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(value);
 }
@@ -30,6 +36,12 @@ function formatCurrency(amount: number, currency: string): string {
     currency,
     maximumFractionDigits: 0,
   }).format(amount);
+}
+
+function formatCurrencyWithConversion(amount: number, currency: string, convertedAmount: number, convertedCurrency: string): string {
+  const base = formatCurrency(amount, currency);
+  const converted = formatCurrency(convertedAmount, convertedCurrency);
+  return `${base} • ${converted}`;
 }
 
 function formatDate(value: string): string {
@@ -180,7 +192,8 @@ const InvestorHome: React.FC = () => {
         ) : (
           <div className="cargo-list">
             {data.cargos.map((cargo) => {
-              const convertedTotal = convertCurrency(cargo.purchasePrice + cargo.shippingPrice + cargo.otherExpenses, cargo.currency, investorCurrency);
+              const totalCost = cargo.purchasePrice + cargo.shippingPrice + cargo.otherExpenses;
+              const convertedTotal = convertCurrency(totalCost, cargo.currency, investorCurrency);
 
               return (
                 <button
@@ -192,7 +205,7 @@ const InvestorHome: React.FC = () => {
                 >
                   <div className="cargo-card-title">{cargo.productBeingShipped}</div>
                   <div className="cargo-card-meta">{cargo.purchaseLocation} → {cargo.shippingDestination}</div>
-                  <div className="cargo-card-footer">{cargo.quantity} units · {formatCurrency(convertedTotal, investorCurrency)} · ETA {formatDate(cargo.estimatedTimeOfArrival)}</div>
+                  <div className="cargo-card-footer">{cargo.quantity} units · {formatCurrencyWithConversion(totalCost, cargo.currency, convertedTotal, investorCurrency)} · ETA {formatDate(cargo.estimatedTimeOfArrival)}</div>
                 </button>
               );
             })}
@@ -219,15 +232,15 @@ const InvestorHome: React.FC = () => {
         <div className="map-details" style={{ background: theme.surface }}>
           <div>
             <span>Purchase price</span>
-            <strong>{formatCurrency(convertCurrency(selectedCargo.purchasePrice, selectedCargo.currency, investorCurrency), investorCurrency)}</strong>
+            <strong>{formatCurrencyWithConversion(selectedCargo.purchasePrice, selectedCargo.currency, convertCurrency(selectedCargo.purchasePrice, selectedCargo.currency, investorCurrency), investorCurrency)}</strong>
           </div>
           <div>
             <span>Shipping cost</span>
-            <strong>{formatCurrency(convertCurrency(selectedCargo.shippingPrice, selectedCargo.currency, investorCurrency), investorCurrency)}</strong>
+            <strong>{formatCurrencyWithConversion(selectedCargo.shippingPrice, selectedCargo.currency, convertCurrency(selectedCargo.shippingPrice, selectedCargo.currency, investorCurrency), investorCurrency)}</strong>
           </div>
           <div>
             <span>Other fees</span>
-            <strong>{formatCurrency(convertCurrency(selectedCargo.otherExpenses, selectedCargo.currency, investorCurrency), investorCurrency)}</strong>
+            <strong>{formatCurrencyWithConversion(selectedCargo.otherExpenses, selectedCargo.currency, convertCurrency(selectedCargo.otherExpenses, selectedCargo.currency, investorCurrency), investorCurrency)}</strong>
           </div>
           <div>
             <span>ETA</span>
@@ -321,6 +334,8 @@ const InvestorHome: React.FC = () => {
     );
   }
 
+  const avatarBadgeSrc = data.investor.avatar ? avatarBadgeMap[data.investor.avatar] : null;
+
   return (
     <main className="investor-dashboard-shell gamified-shell" style={{ background: theme.background, color: theme.text }}>
       <div className="investor-topbar gamified-topbar">
@@ -329,9 +344,34 @@ const InvestorHome: React.FC = () => {
           <h1>Welcome back, {data.investor.displayName || data.investor.name}</h1>
           <p className="mini-description">Tap the sections to switch your dashboard view.</p>
         </div>
-        <button type="button" className="logout-button" onClick={handleLogout} style={{ background: theme.accent, color: theme.background }}>
-          Logout
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {avatarBadgeSrc ? (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                padding: '8px 10px',
+                borderRadius: '999px',
+                background: 'rgba(255,255,255,0.08)',
+                border: `1px solid ${theme.accentSoft}`,
+              }}
+            >
+              <img
+                src={avatarBadgeSrc}
+                alt={data.investor.avatar}
+                style={{ width: '28px', height: '28px', borderRadius: '999px', objectFit: 'cover' }}
+              />
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
+                <span style={{ fontSize: '0.7rem', color: theme.secondaryText, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Avatar</span>
+                <strong style={{ fontSize: '0.78rem', color: theme.text }}>{data.investor.displayName || data.investor.name}</strong>
+              </div>
+            </div>
+          ) : null}
+          <button type="button" className="logout-button" onClick={handleLogout} style={{ background: theme.accent, color: theme.background }}>
+            Logout
+          </button>
+        </div>
       </div>
 
       <div className="gamified-grid">
