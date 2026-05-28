@@ -2,6 +2,7 @@ import { Router, Request, Response } from 'express';
 import crypto from 'crypto';
 import { CargoModel } from '../models/Cargo';
 import { InvestorModel } from '../models/Investor';
+import { InvestmentModel } from '../models/Investment';
 
 const router = Router();
 
@@ -63,6 +64,17 @@ function normalizeNumber(value: unknown, fieldName: string): number {
   return parsed;
 }
 
+function normalizeCurrency(value: unknown): string {
+  const currency = String(value || '').trim().toUpperCase();
+  const supported = ['USD', 'EUR', 'TND', 'CNY'];
+
+  if (!supported.includes(currency)) {
+    throw new Error(`Currency must be one of: ${supported.join(', ')}`);
+  }
+
+  return currency;
+}
+
 router.post('/admin/login', (req: Request, res: Response): void => {
   const { username, password } = req.body as { username?: string; password?: string };
 
@@ -110,6 +122,7 @@ router.post('/admin/cargos', async (req: Request, res: Response): Promise<void> 
       quantity,
       purchaseLocation,
       purchasePrice,
+      currency,
       shippingDestination,
       shippingPrice,
       otherExpenses,
@@ -122,6 +135,7 @@ router.post('/admin/cargos', async (req: Request, res: Response): Promise<void> 
       quantity: normalizeNumber(quantity, 'quantity'),
       purchaseLocation: String(purchaseLocation || '').trim(),
       purchasePrice: normalizeNumber(purchasePrice, 'purchasePrice'),
+      currency: normalizeCurrency(currency),
       shippingDestination: String(shippingDestination || '').trim(),
       shippingPrice: normalizeNumber(shippingPrice, 'shippingPrice'),
       otherExpenses: normalizeNumber(otherExpenses, 'otherExpenses'),
@@ -144,7 +158,13 @@ router.get('/admin/investors', (req: Request, res: Response): void => {
   }
 
   void InvestorModel.find().sort({ createdAt: -1 }).lean().then((investors) => {
-    res.status(200).json({ investors });
+    const safeInvestors = investors.map((investor) => ({
+      ...investor,
+      assignedCargoIds: [],
+      assignedInvestmentIds: investor.assignedInvestmentIds || [],
+      currency: investor.currency || 'USD',
+    }));
+    res.status(200).json({ investors: safeInvestors });
   });
 });
 
@@ -153,12 +173,20 @@ router.get('/admin/dashboard', async (req: Request, res: Response): Promise<void
     return;
   }
 
-  const [cargos, investors] = await Promise.all([
+  const [cargos, investors, investments] = await Promise.all([
     CargoModel.find().sort({ createdAt: -1 }).lean(),
     InvestorModel.find().sort({ createdAt: -1 }).lean(),
+    InvestmentModel.find().sort({ createdAt: -1 }).lean(),
   ]);
 
-  res.status(200).json({ cargos, investors });
+  const safeInvestors = investors.map((investor) => ({
+    ...investor,
+    assignedCargoIds: [],
+    assignedInvestmentIds: investor.assignedInvestmentIds || [],
+    currency: investor.currency || 'USD',
+  }));
+
+  res.status(200).json({ cargos, investors: safeInvestors, investments });
 });
 
 router.post('/admin/investors', async (req: Request, res: Response): Promise<void> => {
@@ -173,19 +201,22 @@ router.post('/admin/investors', async (req: Request, res: Response): Promise<voi
       password,
       investmentAmount,
       profitPercentageOnInvestment,
-      cargoIds,
+      currency,
+      investmentIds,
     } = req.body as {
       name?: string;
       username?: string;
       password?: string;
       investmentAmount?: unknown;
       profitPercentageOnInvestment?: unknown;
-      cargoIds?: string[];
+      currency?: unknown;
+      investmentIds?: string[];
     };
 
-    const assignedCargoIds = Array.isArray(cargoIds) ? cargoIds.filter(Boolean) : [];
+    const assignedInvestmentIds = Array.isArray(investmentIds) ? investmentIds.filter(Boolean) : [];
     const investment = normalizeNumber(investmentAmount, 'investmentAmount');
     const profitPercentage = normalizeNumber(profitPercentageOnInvestment, 'profitPercentageOnInvestment');
+    const normalizedCurrency = normalizeCurrency(currency);
     const estimatedROI = Number(((investment * profitPercentage) / 100).toFixed(2));
 
     const investor = await InvestorModel.create({
@@ -195,12 +226,14 @@ router.post('/admin/investors', async (req: Request, res: Response): Promise<voi
       investmentAmount: investment,
       profitPercentageOnInvestment: profitPercentage,
       estimatedROI,
-      assignedCargoIds,
+      currency: normalizedCurrency,
+      assignedCargoIds: [],
+      assignedInvestmentIds,
     });
 
-    if (assignedCargoIds.length > 0) {
-      await CargoModel.updateMany(
-        { _id: { $in: assignedCargoIds } },
+    if (assignedInvestmentIds.length > 0) {
+      await InvestmentModel.updateMany(
+        { _id: { $in: assignedInvestmentIds } },
         { $addToSet: { assignedInvestorIds: investor._id } }
       );
     }
@@ -209,6 +242,210 @@ router.post('/admin/investors', async (req: Request, res: Response): Promise<voi
   } catch (error) {
     res.status(400).json({
       message: error instanceof Error ? error.message : 'Failed to create investor.',
+    });
+  }
+});
+
+router.put('/admin/investors/:id', async (req: Request, res: Response): Promise<void> => {
+  if (!requireAdmin(req, res)) {
+    return;
+  }
+
+  try {
+    const { id } = req.params;
+    const {
+      name,
+      username,
+      password,
+      investmentAmount,
+      profitPercentageOnInvestment,
+      currency,
+      investmentIds,
+    } = req.body as {
+      name?: string;
+      username?: string;
+      password?: string;
+      investmentAmount?: unknown;
+      profitPercentageOnInvestment?: unknown;
+      currency?: unknown;
+      investmentIds?: string[];
+    };
+
+    const assignedInvestmentIds = Array.isArray(investmentIds) ? investmentIds.filter(Boolean) : [];
+    const investment = normalizeNumber(investmentAmount, 'investmentAmount');
+    const profitPercentage = normalizeNumber(profitPercentageOnInvestment, 'profitPercentageOnInvestment');
+    const normalizedCurrency = normalizeCurrency(currency);
+    const estimatedROI = Number(((investment * profitPercentage) / 100).toFixed(2));
+
+    const updatePayload: Record<string, unknown> = {
+      name: String(name || '').trim(),
+      username: String(username || '').trim().toLowerCase(),
+      investmentAmount: investment,
+      profitPercentageOnInvestment: profitPercentage,
+      estimatedROI,
+      currency: normalizedCurrency,
+      assignedCargoIds: [],
+      assignedInvestmentIds,
+    };
+
+    if (typeof password === 'string' && password.length > 0) {
+      updatePayload.password = password;
+    }
+
+    const investor = await InvestorModel.findByIdAndUpdate(
+      id,
+      updatePayload,
+      { new: true, runValidators: true }
+    );
+
+    if (!investor) {
+      res.status(404).json({ message: 'Investor not found.' });
+      return;
+    }
+
+    await InvestmentModel.updateMany(
+      { assignedInvestorIds: investor._id },
+      { $pull: { assignedInvestorIds: investor._id } }
+    );
+
+    if (assignedInvestmentIds.length > 0) {
+      await InvestmentModel.updateMany(
+        { _id: { $in: assignedInvestmentIds } },
+        { $addToSet: { assignedInvestorIds: investor._id } }
+      );
+    }
+
+    res.status(200).json({ investor });
+  } catch (error) {
+    res.status(400).json({
+      message: error instanceof Error ? error.message : 'Failed to update investor.',
+    });
+  }
+});
+
+router.delete('/admin/investors/:id', async (req: Request, res: Response): Promise<void> => {
+  if (!requireAdmin(req, res)) {
+    return;
+  }
+
+  try {
+    const { id } = req.params;
+    const investor = await InvestorModel.findByIdAndDelete(id);
+
+    if (!investor) {
+      res.status(404).json({ message: 'Investor not found.' });
+      return;
+    }
+
+    await InvestmentModel.updateMany(
+      { assignedInvestorIds: investor._id },
+      { $pull: { assignedInvestorIds: investor._id } }
+    );
+
+    res.status(200).json({ message: 'Investor deleted.' });
+  } catch (error) {
+    res.status(400).json({
+      message: error instanceof Error ? error.message : 'Failed to delete investor.',
+    });
+  }
+});
+
+router.post('/admin/investments', async (req: Request, res: Response): Promise<void> => {
+  if (!requireAdmin(req, res)) {
+    return;
+  }
+
+  try {
+    const { title, description, currency, minimumInvestment, cargoIds } = req.body as {
+      title?: string;
+      description?: string;
+      currency?: unknown;
+      minimumInvestment?: unknown;
+      cargoIds?: string[];
+    };
+
+    const assignedCargoIds = Array.isArray(cargoIds) ? cargoIds.filter(Boolean) : [];
+    const investment = await InvestmentModel.create({
+      title: String(title || '').trim(),
+      description: String(description || '').trim(),
+      currency: normalizeCurrency(currency),
+      minimumInvestment: normalizeNumber(minimumInvestment, 'minimumInvestment'),
+      cargoIds: assignedCargoIds,
+      assignedInvestorIds: [],
+    });
+
+    res.status(201).json({ investment });
+  } catch (error) {
+    res.status(400).json({
+      message: error instanceof Error ? error.message : 'Failed to create investment.',
+    });
+  }
+});
+
+router.put('/admin/investments/:id', async (req: Request, res: Response): Promise<void> => {
+  if (!requireAdmin(req, res)) {
+    return;
+  }
+
+  try {
+    const { id } = req.params;
+    const { title, description, currency, minimumInvestment, cargoIds } = req.body as {
+      title?: string;
+      description?: string;
+      currency?: unknown;
+      minimumInvestment?: unknown;
+      cargoIds?: string[];
+    };
+
+    const assignedCargoIds = Array.isArray(cargoIds) ? cargoIds.filter(Boolean) : [];
+    const investment = await InvestmentModel.findByIdAndUpdate(
+      id,
+      {
+        title: String(title || '').trim(),
+        description: String(description || '').trim(),
+        currency: normalizeCurrency(currency),
+        minimumInvestment: normalizeNumber(minimumInvestment, 'minimumInvestment'),
+        cargoIds: assignedCargoIds,
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (!investment) {
+      res.status(404).json({ message: 'Investment not found.' });
+      return;
+    }
+
+    res.status(200).json({ investment });
+  } catch (error) {
+    res.status(400).json({
+      message: error instanceof Error ? error.message : 'Failed to update investment.',
+    });
+  }
+});
+
+router.delete('/admin/investments/:id', async (req: Request, res: Response): Promise<void> => {
+  if (!requireAdmin(req, res)) {
+    return;
+  }
+
+  try {
+    const { id } = req.params;
+    const investment = await InvestmentModel.findByIdAndDelete(id);
+
+    if (!investment) {
+      res.status(404).json({ message: 'Investment not found.' });
+      return;
+    }
+
+    await InvestorModel.updateMany(
+      { assignedInvestmentIds: investment._id },
+      { $pull: { assignedInvestmentIds: investment._id } }
+    );
+
+    res.status(200).json({ message: 'Investment deleted.' });
+  } catch (error) {
+    res.status(400).json({
+      message: error instanceof Error ? error.message : 'Failed to delete investment.',
     });
   }
 });
@@ -257,7 +494,9 @@ router.get('/investor/home', async (req: Request, res: Response): Promise<void> 
     return;
   }
 
-  const cargos = await CargoModel.find({ _id: { $in: investor.assignedCargoIds || [] } }).sort({ createdAt: -1 }).lean();
+  const assignedInvestments = await InvestmentModel.find({ assignedInvestorIds: investor._id }).lean();
+  const cargoIds = Array.from(new Set(assignedInvestments.flatMap((investment) => investment.cargoIds || [])));
+  const cargos = await CargoModel.find({ _id: { $in: cargoIds } }).sort({ createdAt: -1 }).lean();
 
   res.status(200).json({
     investor: {

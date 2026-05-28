@@ -3,16 +3,25 @@ import { Link, useNavigate } from 'react-router-dom';
 import {
   createCargo,
   createInvestor,
+  createInvestment,
+  deleteInvestor,
+  deleteInvestment,
   getAdminDashboard,
   logoutAdmin,
+  updateInvestor,
+  updateInvestment,
   AdminDashboardResponse,
+  Investment,
 } from '../api/portalApi';
+
+const currencyOptions = ['USD', 'EUR', 'TND', 'CNY'] as const;
 
 const emptyCargoForm = {
   productBeingShipped: '',
   quantity: '',
   purchaseLocation: '',
   purchasePrice: '',
+  currency: 'USD',
   shippingDestination: '',
   shippingPrice: '',
   otherExpenses: '',
@@ -26,6 +35,15 @@ const emptyInvestorForm = {
   password: '',
   investmentAmount: '',
   profitPercentageOnInvestment: '',
+  currency: 'USD',
+  investmentIds: [] as string[],
+};
+
+const emptyInvestmentForm = {
+  title: '',
+  description: '',
+  currency: 'USD',
+  minimumInvestment: '',
   cargoIds: [] as string[],
 };
 
@@ -36,8 +54,12 @@ const AdminDashboard: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [cargoForm, setCargoForm] = useState(emptyCargoForm);
   const [investorForm, setInvestorForm] = useState(emptyInvestorForm);
+  const [investmentForm, setInvestmentForm] = useState(emptyInvestmentForm);
+  const [editingInvestorId, setEditingInvestorId] = useState<string | null>(null);
+  const [editingInvestmentId, setEditingInvestmentId] = useState<string | null>(null);
   const [savingCargo, setSavingCargo] = useState(false);
   const [savingInvestor, setSavingInvestor] = useState(false);
+  const [savingInvestment, setSavingInvestment] = useState(false);
 
   const refresh = async () => {
     const response = await getAdminDashboard();
@@ -72,10 +94,38 @@ const AdminDashboard: React.FC = () => {
   }, []);
 
   const cargoOptions = useMemo(() => data?.cargos ?? [], [data]);
+  const investmentOptions = useMemo(() => data?.investments ?? [], [data]);
+
+  const investorAssignedCargoCounts = useMemo(() => {
+    const cargoSets: Record<string, Set<string>> = {};
+
+    data?.investments.forEach((investment) => {
+      const cargoIds = investment.cargoIds || [];
+      investment.assignedInvestorIds?.forEach((investorId) => {
+        const assignedSet = cargoSets[investorId] ?? new Set<string>();
+        cargoIds.forEach((cargoId) => assignedSet.add(cargoId));
+        cargoSets[investorId] = assignedSet;
+      });
+    });
+
+    return Object.fromEntries(
+      Object.entries(cargoSets).map(([investorId, cargoSet]) => [investorId, cargoSet.size])
+    );
+  }, [data]);
 
   const handleLogout = async () => {
     await logoutAdmin();
     navigate('/admin');
+  };
+
+  const resetInvestorForm = () => {
+    setInvestorForm(emptyInvestorForm);
+    setEditingInvestorId(null);
+  };
+
+  const resetInvestmentForm = () => {
+    setInvestmentForm(emptyInvestmentForm);
+    setEditingInvestmentId(null);
   };
 
   const submitCargo = async (event: React.FormEvent) => {
@@ -89,6 +139,7 @@ const AdminDashboard: React.FC = () => {
         quantity: Number(cargoForm.quantity),
         purchaseLocation: cargoForm.purchaseLocation,
         purchasePrice: Number(cargoForm.purchasePrice),
+        currency: cargoForm.currency,
         shippingDestination: cargoForm.shippingDestination,
         shippingPrice: Number(cargoForm.shippingPrice),
         otherExpenses: Number(cargoForm.otherExpenses),
@@ -110,31 +161,136 @@ const AdminDashboard: React.FC = () => {
     setError(null);
 
     try {
-      await createInvestor({
-        name: investorForm.name,
-        username: investorForm.username,
-        password: investorForm.password,
-        investmentAmount: Number(investorForm.investmentAmount),
-        profitPercentageOnInvestment: Number(investorForm.profitPercentageOnInvestment),
-        cargoIds: investorForm.cargoIds,
-      });
-      setInvestorForm(emptyInvestorForm);
+      if (editingInvestorId) {
+        await updateInvestor(editingInvestorId, {
+          name: investorForm.name,
+          username: investorForm.username,
+          password: investorForm.password,
+          investmentAmount: Number(investorForm.investmentAmount),
+          profitPercentageOnInvestment: Number(investorForm.profitPercentageOnInvestment),
+          currency: investorForm.currency,
+          investmentIds: investorForm.investmentIds,
+        });
+      } else {
+        await createInvestor({
+          name: investorForm.name,
+          username: investorForm.username,
+          password: investorForm.password,
+          investmentAmount: Number(investorForm.investmentAmount),
+          profitPercentageOnInvestment: Number(investorForm.profitPercentageOnInvestment),
+          currency: investorForm.currency,
+          investmentIds: investorForm.investmentIds,
+        });
+      }
+      resetInvestorForm();
       await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create investor');
+      setError(err instanceof Error ? err.message : 'Failed to save investor');
     } finally {
       setSavingInvestor(false);
     }
   };
 
-  const toggleCargoSelection = (cargoId: string) => {
+  const submitInvestment = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setSavingInvestment(true);
+    setError(null);
+
+    try {
+      if (editingInvestmentId) {
+        await updateInvestment(editingInvestmentId, {
+          title: investmentForm.title,
+          description: investmentForm.description,
+          currency: investmentForm.currency,
+          minimumInvestment: Number(investmentForm.minimumInvestment),
+          cargoIds: investmentForm.cargoIds,
+        });
+      } else {
+        await createInvestment({
+          title: investmentForm.title,
+          description: investmentForm.description,
+          currency: investmentForm.currency,
+          minimumInvestment: Number(investmentForm.minimumInvestment),
+          cargoIds: investmentForm.cargoIds,
+        });
+      }
+      resetInvestmentForm();
+      await refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save investment');
+    } finally {
+      setSavingInvestment(false);
+    }
+  };
+
+  const toggleInvestmentSelection = (investmentId: string) => {
     setInvestorForm((current) => {
+      const exists = current.investmentIds.includes(investmentId);
+      return {
+        ...current,
+        investmentIds: exists ? current.investmentIds.filter((id) => id !== investmentId) : [...current.investmentIds, investmentId],
+      };
+    });
+  };
+
+  const toggleInvestmentCargoSelection = (cargoId: string) => {
+    setInvestmentForm((current) => {
       const exists = current.cargoIds.includes(cargoId);
       return {
         ...current,
         cargoIds: exists ? current.cargoIds.filter((id) => id !== cargoId) : [...current.cargoIds, cargoId],
       };
     });
+  };
+
+  const startEditInvestor = (investor: NonNullable<AdminDashboardResponse>['investors'][number]) => {
+    setEditingInvestorId(investor._id);
+    setInvestorForm({
+      name: investor.name,
+      username: investor.username,
+      password: '',
+      investmentAmount: investor.investmentAmount.toString(),
+      profitPercentageOnInvestment: investor.profitPercentageOnInvestment.toString(),
+      currency: investor.currency || 'USD',
+      investmentIds: investor.assignedInvestmentIds ?? [],
+    });
+  };
+
+  const startEditInvestment = (investment: Investment) => {
+    setEditingInvestmentId(investment._id);
+    setInvestmentForm({
+      title: investment.title,
+      description: investment.description,
+      currency: investment.currency,
+      minimumInvestment: investment.minimumInvestment.toString(),
+      cargoIds: investment.cargoIds || [],
+    });
+  };
+
+  const removeInvestor = async (investorId: string) => {
+    setError(null);
+    try {
+      await deleteInvestor(investorId);
+      if (editingInvestorId === investorId) {
+        resetInvestorForm();
+      }
+      await refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete investor');
+    }
+  };
+
+  const removeInvestment = async (investmentId: string) => {
+    setError(null);
+    try {
+      await deleteInvestment(investmentId);
+      if (editingInvestmentId === investmentId) {
+        resetInvestmentForm();
+      }
+      await refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete investment');
+    }
   };
 
   if (loading) {
@@ -155,10 +311,12 @@ const AdminDashboard: React.FC = () => {
       <header className="portal-header">
         <div>
           <h1>Admin Dashboard</h1>
-          <p>Manage cargos and assign investors.</p>
+          <p>Manage investments, investors, and cargos from one place.</p>
         </div>
         <button type="button" onClick={handleLogout}>Logout</button>
       </header>
+
+      {error && <div className="portal-error">{error}</div>}
 
       <section className="portal-grid admin-grid">
         <article className="portal-card">
@@ -172,6 +330,12 @@ const AdminDashboard: React.FC = () => {
             <input value={cargoForm.purchaseLocation} onChange={(e) => setCargoForm({ ...cargoForm, purchaseLocation: e.target.value })} required />
             <label>Purchase price</label>
             <input type="number" value={cargoForm.purchasePrice} onChange={(e) => setCargoForm({ ...cargoForm, purchasePrice: e.target.value })} required />
+            <label>Currency</label>
+            <select value={cargoForm.currency} onChange={(e) => setCargoForm({ ...cargoForm, currency: e.target.value })}>
+              {currencyOptions.map((currency) => (
+                <option key={currency} value={currency}>{currency}</option>
+              ))}
+            </select>
             <label>Shipping destination</label>
             <input value={cargoForm.shippingDestination} onChange={(e) => setCargoForm({ ...cargoForm, shippingDestination: e.target.value })} required />
             <label>Shipping price</label>
@@ -187,21 +351,22 @@ const AdminDashboard: React.FC = () => {
         </article>
 
         <article className="portal-card">
-          <h2>Add Investor</h2>
-          <form className="portal-form" onSubmit={submitInvestor}>
-            <label>Name</label>
-            <input value={investorForm.name} onChange={(e) => setInvestorForm({ ...investorForm, name: e.target.value })} required />
-            <label>Username</label>
-            <input value={investorForm.username} onChange={(e) => setInvestorForm({ ...investorForm, username: e.target.value })} required />
-            <label>Password</label>
-            <input type="password" value={investorForm.password} onChange={(e) => setInvestorForm({ ...investorForm, password: e.target.value })} required />
-            <label>Investment amount</label>
-            <input type="number" value={investorForm.investmentAmount} onChange={(e) => setInvestorForm({ ...investorForm, investmentAmount: e.target.value })} required />
-            <label>Profit percentage on investment</label>
-            <input type="number" value={investorForm.profitPercentageOnInvestment} onChange={(e) => setInvestorForm({ ...investorForm, profitPercentageOnInvestment: e.target.value })} required />
-
+          <h2>{editingInvestmentId ? 'Edit Investment' : 'Add Investment'}</h2>
+          <form className="portal-form" onSubmit={submitInvestment}>
+            <label>Title</label>
+            <input value={investmentForm.title} onChange={(e) => setInvestmentForm({ ...investmentForm, title: e.target.value })} required />
+            <label>Description</label>
+            <textarea value={investmentForm.description} onChange={(e) => setInvestmentForm({ ...investmentForm, description: e.target.value })} required />
+            <label>Currency</label>
+            <select value={investmentForm.currency} onChange={(e) => setInvestmentForm({ ...investmentForm, currency: e.target.value })}>
+              {currencyOptions.map((currency) => (
+                <option key={currency} value={currency}>{currency}</option>
+              ))}
+            </select>
+            <label>Minimum investment</label>
+            <input type="number" value={investmentForm.minimumInvestment} onChange={(e) => setInvestmentForm({ ...investmentForm, minimumInvestment: e.target.value })} required />
             <div className="portal-multiselect">
-              <span>Assign cargos</span>
+              <span>Assign cargos to investment</span>
               {cargoOptions.length === 0 ? (
                 <p>No cargos available yet.</p>
               ) : (
@@ -209,30 +374,84 @@ const AdminDashboard: React.FC = () => {
                   <label key={cargo._id} className="portal-checkbox">
                     <input
                       type="checkbox"
-                      checked={investorForm.cargoIds.includes(cargo._id)}
-                      onChange={() => toggleCargoSelection(cargo._id)}
+                      checked={investmentForm.cargoIds.includes(cargo._id)}
+                      onChange={() => toggleInvestmentCargoSelection(cargo._id)}
                     />
-                    {cargo.productBeingShipped} → {cargo.shippingDestination}
+                    {cargo.productBeingShipped} → {cargo.shippingDestination} ({cargo.currency})
+                  </label>
+                ))
+              )}
+            </div>
+            <div className="portal-form-actions">
+              <button type="submit" disabled={savingInvestment}>{savingInvestment ? 'Saving...' : editingInvestmentId ? 'Update Investment' : 'Create Investment'}</button>
+              {editingInvestmentId && <button type="button" onClick={resetInvestmentForm}>Cancel</button>}
+            </div>
+          </form>
+        </article>
+
+        <article className="portal-card">
+          <h2>{editingInvestorId ? 'Edit Investor' : 'Add Investor'}</h2>
+          <form className="portal-form" onSubmit={submitInvestor}>
+            <label>Name</label>
+            <input value={investorForm.name} onChange={(e) => setInvestorForm({ ...investorForm, name: e.target.value })} required />
+            <label>Username</label>
+            <input value={investorForm.username} onChange={(e) => setInvestorForm({ ...investorForm, username: e.target.value })} required />
+            <label>Password {editingInvestorId ? '(leave blank to keep current)' : ''}</label>
+            <input type="password" value={investorForm.password} onChange={(e) => setInvestorForm({ ...investorForm, password: e.target.value })} {...(editingInvestorId ? {} : { required: true })} />
+            <label>Investment amount</label>
+            <input type="number" value={investorForm.investmentAmount} onChange={(e) => setInvestorForm({ ...investorForm, investmentAmount: e.target.value })} required />
+            <label>Profit percentage on investment</label>
+            <input type="number" value={investorForm.profitPercentageOnInvestment} onChange={(e) => setInvestorForm({ ...investorForm, profitPercentageOnInvestment: e.target.value })} required />
+            <label>Currency</label>
+            <select value={investorForm.currency} onChange={(e) => setInvestorForm({ ...investorForm, currency: e.target.value })}>
+              {currencyOptions.map((currency) => (
+                <option key={currency} value={currency}>{currency}</option>
+              ))}
+            </select>
+
+            <div className="portal-multiselect">
+              <span>Assign investments</span>
+              {investmentOptions.length === 0 ? (
+                <p>No investments available yet.</p>
+              ) : (
+                investmentOptions.map((investment) => (
+                  <label key={investment._id} className="portal-checkbox">
+                    <input
+                      type="checkbox"
+                      checked={investorForm.investmentIds.includes(investment._id)}
+                      onChange={() => toggleInvestmentSelection(investment._id)}
+                    />
+                    {investment.title} ({investment.currency})
                   </label>
                 ))
               )}
             </div>
 
-            <button type="submit" disabled={savingInvestor}>{savingInvestor ? 'Saving...' : 'Save Investor'}</button>
+            <div className="portal-form-actions">
+              <button type="submit" disabled={savingInvestor}>{savingInvestor ? 'Saving...' : editingInvestorId ? 'Update Investor' : 'Create Investor'}</button>
+              {editingInvestorId && <button type="button" onClick={resetInvestorForm}>Cancel</button>}
+            </div>
           </form>
         </article>
       </section>
 
       <section className="portal-grid admin-grid secondary">
         <article className="portal-card">
-          <h2>Cargos</h2>
+          <h2>Investments</h2>
           <div className="portal-stack">
-            {data.cargos.length === 0 ? <p>No cargos saved yet.</p> : data.cargos.map((cargo) => (
-              <div className="portal-item" key={cargo._id}>
-                <h3>{cargo.productBeingShipped}</h3>
-                <p>{cargo.quantity} units</p>
-                <p>{cargo.purchaseLocation} → {cargo.shippingDestination}</p>
-                <p>Assigned investors: {cargo.assignedInvestorIds.length}</p>
+            {data.investments.length === 0 ? <p>No investments saved yet.</p> : data.investments.map((investment) => (
+              <div className="portal-item" key={investment._id}>
+                <div className="portal-item-head">
+                  <h3>{investment.title}</h3>
+                  <div>
+                    <button type="button" onClick={() => startEditInvestment(investment)}>Edit</button>
+                    <button type="button" onClick={() => removeInvestment(investment._id)}>Delete</button>
+                  </div>
+                </div>
+                <p>{investment.description}</p>
+                <p>{investment.currency} - Min {investment.minimumInvestment}</p>
+                <p>Assigned cargos: {investment.cargoIds?.length ?? 0}</p>
+                <p>Assigned investors: {investment.assignedInvestorIds.length}</p>
               </div>
             ))}
           </div>
@@ -243,11 +462,18 @@ const AdminDashboard: React.FC = () => {
           <div className="portal-stack">
             {data.investors.length === 0 ? <p>No investors saved yet.</p> : data.investors.map((investor) => (
               <div className="portal-item" key={investor._id}>
-                <h3>{investor.name}</h3>
+                <div className="portal-item-head">
+                  <h3>{investor.name}</h3>
+                  <div>
+                    <button type="button" onClick={() => startEditInvestor(investor)}>Edit</button>
+                    <button type="button" onClick={() => removeInvestor(investor._id)}>Delete</button>
+                  </div>
+                </div>
                 <p>@{investor.username}</p>
-                <p>Investment: {investor.investmentAmount}</p>
+                <p>Investment: {investor.investmentAmount} {investor.currency}</p>
                 <p>ROI: {investor.estimatedROI}</p>
-                <p>Assigned cargos: {investor.assignedCargoIds.length}</p>
+                <p>Assigned cargos: {investorAssignedCargoCounts[investor._id] ?? 0}</p>
+                <p>Assigned investments: {investor.assignedInvestmentIds?.length ?? 0}</p>
               </div>
             ))}
           </div>

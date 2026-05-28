@@ -1,19 +1,7 @@
 import { Router, Request, Response } from 'express';
 import crypto from 'crypto';
 import { getLatestTrackedShips } from '../services/aisStreamSnapshotJob';
-
-type InvestorCurrency = 'YUAN' | 'TND' | 'EURO';
-
-type Investor = {
-  id: string;
-  firstName: string;
-  lastName: string;
-  username: string;
-  password: string;
-  initialInvestment: number;
-  currency: InvestorCurrency;
-  expectedProfitRate: number;
-};
+import { InvestorModel } from '../models/Investor';
 
 const router = Router();
 const authTokens = new Map<string, string>();
@@ -29,59 +17,6 @@ function getTrackingConfig(): {
   return { mmsiList: mmsiList.filter((value) => /^\d+$/.test(value)) };
 }
 
-const investors: Investor[] = [
-  {
-    id: 'inv-1',
-    firstName: 'Xueping',
-    lastName: '',
-    username: 'baq',
-    password: 'Nomad2026!',
-    initialInvestment: 17000,
-    currency: 'YUAN',
-    expectedProfitRate: 0.3,
-  },
-  {
-    id: 'inv-2',
-    firstName: 'Kais',
-    lastName: 'Ben Abdallah',
-    username: 'digitalkaiser',
-    password: 'Nomad2026!',
-    initialInvestment: 7000,
-    currency: 'TND',
-    expectedProfitRate: 0.3,
-  },
-  {
-    id: 'inv-3',
-    firstName: 'Houssem',
-    lastName: 'Turki',
-    username: 'mligshen',
-    password: 'Nomad2026!',
-    initialInvestment: 1500,
-    currency: 'YUAN',
-    expectedProfitRate: 0.3,
-  },
-  {
-    id: 'inv-4',
-    firstName: 'Mohamed Firass',
-    lastName: 'Ben Hiba',
-    username: 'Mrplane',
-    password: 'Nomad2026!',
-    initialInvestment: 400,
-    currency: 'TND',
-    expectedProfitRate: 0.3,
-  },
-  {
-    id: 'inv-5',
-    firstName: 'Mohamed Malek',
-    lastName: 'Ben Hiba',
-    username: 'bro123',
-    password: 'Nomad2026!',
-    initialInvestment: 280,
-    currency: 'EURO',
-    expectedProfitRate: 0.3,
-  },
-];
-
 function readBearerToken(req: Request): string | null {
   const authHeader = req.header('Authorization');
   if (!authHeader) {
@@ -96,7 +31,7 @@ function readBearerToken(req: Request): string | null {
   return token;
 }
 
-router.post('/login', (req: Request, res: Response): void => {
+router.post('/login', async (req: Request, res: Response): Promise<void> => {
   const { username, password } = req.body as { username?: string; password?: string };
 
   if (!username || !password) {
@@ -104,9 +39,10 @@ router.post('/login', (req: Request, res: Response): void => {
     return;
   }
 
-  const investor = investors.find(
-    (item) => item.username.toLowerCase() === username.toLowerCase() && item.password === password
-  );
+  const investor = await InvestorModel.findOne({
+    username: username.trim().toLowerCase(),
+    password,
+  }).lean();
 
   if (!investor) {
     res.status(401).json({ message: 'Invalid credentials.' });
@@ -114,19 +50,22 @@ router.post('/login', (req: Request, res: Response): void => {
   }
 
   const token = crypto.randomBytes(24).toString('hex');
-  authTokens.set(token, investor.id);
+  authTokens.set(token, String(investor._id));
+
+  const nameParts = String(investor.name || '').trim().split(' ');
+  const firstName = nameParts[0] || '';
+  const lastName = nameParts.slice(1).join(' ');
 
   res.status(200).json({
     token,
     user: {
-      firstName: investor.firstName,
-      lastName: investor.lastName,
+      firstName,
+      lastName,
     },
   });
 });
 
 router.get('/home', async (req: Request, res: Response): Promise<void> => {
-
   const token = readBearerToken(req);
 
   if (!token) {
@@ -135,27 +74,36 @@ router.get('/home', async (req: Request, res: Response): Promise<void> => {
   }
 
   const investorId = authTokens.get(token);
-  const investor = investors.find((item) => item.id === investorId);
+  if (!investorId) {
+    res.status(401).json({ message: 'Invalid auth token.' });
+    return;
+  }
 
+  const investor = await InvestorModel.findById(investorId).lean();
   if (!investor) {
     res.status(401).json({ message: 'Invalid auth token.' });
     return;
   }
 
-  const projectedProfit = Math.round(investor.initialInvestment * investor.expectedProfitRate);
-  const projectedPayout = investor.initialInvestment + projectedProfit;
+  const profitRate = investor.profitPercentageOnInvestment / 100;
+  const projectedProfit = Math.round(investor.investmentAmount * profitRate);
+  const projectedPayout = investor.investmentAmount + projectedProfit;
   const { mmsiList } = getTrackingConfig();
   const latestShips = await getLatestTrackedShips(mmsiList);
 
+  const nameParts = String(investor.name || '').trim().split(' ');
+  const firstName = nameParts[0] || '';
+  const lastName = nameParts.slice(1).join(' ');
+
   res.status(200).json({
     investor: {
-      firstName: investor.firstName,
-      lastName: investor.lastName,
-      initialInvestment: investor.initialInvestment,
-      currency: investor.currency,
+      firstName,
+      lastName,
+      initialInvestment: investor.investmentAmount,
+      currency: investor.currency || 'USD',
       projectedProfit,
       projectedPayout,
-      expectedProfitRate: investor.expectedProfitRate,
+      expectedProfitRate: profitRate,
     },
     aisstream: {
       receivedAt: latestShips[0]?.collectedAt?.toISOString?.() || null,

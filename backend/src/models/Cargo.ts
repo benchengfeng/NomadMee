@@ -5,6 +5,7 @@ export type CargoDocument = {
   quantity: number;
   purchaseLocation: string;
   purchasePrice: number;
+  currency: string;
   shippingDestination: string;
   shippingPrice: number;
   otherExpenses: number;

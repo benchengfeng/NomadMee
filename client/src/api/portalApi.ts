@@ -15,6 +15,7 @@ export type Cargo = {
   quantity: number;
   purchaseLocation: string;
   purchasePrice: number;
+  currency: string;
   shippingDestination: string;
   shippingPrice: number;
   otherExpenses: number;
@@ -32,7 +33,21 @@ export type InvestorRecord = {
   investmentAmount: number;
   profitPercentageOnInvestment: number;
   estimatedROI: number;
+  currency: string;
   assignedCargoIds: string[];
+  assignedInvestmentIds: string[];
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export type Investment = {
+  _id: string;
+  title: string;
+  description: string;
+  currency: string;
+  minimumInvestment: number;
+  cargoIds: string[];
+  assignedInvestorIds: string[];
   createdAt?: string;
   updatedAt?: string;
 };
@@ -40,6 +55,7 @@ export type InvestorRecord = {
 export type AdminDashboardResponse = {
   cargos: Cargo[];
   investors: InvestorRecord[];
+  investments: Investment[];
 };
 
 export type InvestorHomeResponse = {
@@ -107,7 +123,8 @@ export async function createInvestor(payload: {
   password: string;
   investmentAmount: number;
   profitPercentageOnInvestment: number;
-  cargoIds: string[];
+  currency: string;
+  investmentIds: string[];
 }): Promise<InvestorRecord> {
   const response = await request<{ investor: InvestorRecord }>('/admin/investors', {
     method: 'POST',
@@ -115,6 +132,65 @@ export async function createInvestor(payload: {
   }, getAdminToken());
 
   return response.investor;
+}
+
+export async function updateInvestor(id: string, payload: {
+  name: string;
+  username: string;
+  password: string;
+  investmentAmount: number;
+  profitPercentageOnInvestment: number;
+  currency: string;
+  investmentIds: string[];
+}): Promise<InvestorRecord> {
+  const response = await request<{ investor: InvestorRecord }>(`/admin/investors/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  }, getAdminToken());
+
+  return response.investor;
+}
+
+export async function deleteInvestor(id: string): Promise<void> {
+  await request<{ message: string }>(`/admin/investors/${id}`, {
+    method: 'DELETE',
+  }, getAdminToken());
+}
+
+export async function createInvestment(payload: {
+  title: string;
+  description: string;
+  currency: string;
+  minimumInvestment: number;
+  cargoIds: string[];
+}): Promise<Investment> {
+  const response = await request<{ investment: Investment }>('/admin/investments', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  }, getAdminToken());
+
+  return response.investment;
+}
+
+export async function updateInvestment(id: string, payload: {
+  title: string;
+  description: string;
+  currency: string;
+  minimumInvestment: number;
+  cargoIds: string[];
+}): Promise<Investment> {
+  const response = await request<{ investment: Investment }>(`/admin/investments/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  }, getAdminToken());
+
+  return response.investment;
+}
+
+export async function deleteInvestment(id: string): Promise<void> {
+  await request<{ message: string }>(`/admin/investments/${id}`, {
+    method: 'DELETE',
+  }, getAdminToken());
 }
 
 export async function loginInvestor(username: string, password: string): Promise<{ token: string }> {

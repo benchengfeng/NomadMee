@@ -65,6 +65,17 @@
   - gamified selection buttons with color themes
   - mobile-first tab reflow
 
+## Database relation architecture
+- `Cargo` now includes a `currency` field and represents a shipment item.
+- `Investment` stores its `cargoIds` explicitly and tracks which investors are assigned via `assignedInvestorIds`.
+- `Investor` keeps assigned investments in `assignedInvestmentIds` and derives assigned cargos through those investments.
+- This means cargo assignment is moved to the investment layer instead of directly assigning cargos to investors.
+- Admin flows now:
+  - create cargos with currency
+  - create investments and attach cargos to those investments
+  - assign investors to investments
+  - investor-facing cargo lists are derived from the investor’s assigned investments
+
 ## Next step
 - I can implement a new Redux-powered investor dashboard in `NomadMee/client/src/views/investorHome.tsx`.
 - I can also add a `theme.ts` palette and a small UI state slice to switch between panels.
