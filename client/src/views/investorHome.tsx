@@ -7,8 +7,29 @@ import { PanelId, setActivePanel, setSelectedCargoId } from '../redux/slices/das
 import type { DashboardTheme } from '../theme';
 import { dashboardThemes } from '../theme';
 
+const currencyRatesToUSD: Record<string, number> = {
+  USD: 1,
+  EUR: 1.09,
+  TND: 0.33,
+  CNY: 0.14,
+};
+
 function money(value: number): string {
   return new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(value);
+}
+
+function convertCurrency(amount: number, sourceCurrency: string, targetCurrency: string): number {
+  const sourceRate = currencyRatesToUSD[sourceCurrency.toUpperCase()] ?? 1;
+  const targetRate = currencyRatesToUSD[targetCurrency.toUpperCase()] ?? 1;
+  return (amount * sourceRate) / targetRate;
+}
+
+function formatCurrency(amount: number, currency: string): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency,
+    maximumFractionDigits: 0,
+  }).format(amount);
 }
 
 function formatDate(value: string): string {
@@ -100,6 +121,7 @@ const InvestorHome: React.FC = () => {
   const renderSummary = () => {
     if (!data) return null;
 
+    const investorCurrency = data.investor.currency || 'USD';
     const expectedProfit = Number(((data.investor.investmentAmount * data.investor.profitPercentageOnInvestment) / 100).toFixed(0));
     const projectedPayout = data.investor.investmentAmount + expectedProfit;
 
@@ -108,8 +130,8 @@ const InvestorHome: React.FC = () => {
         <div className="dashboard-section hero-card" style={{ background: theme.surface, color: theme.text, boxShadow: `0 24px 70px ${theme.panelGlow}` }}>
           <div>
             <p className="hero-label">Investor companion</p>
-            <h2>{data.investor.name}</h2>
-            <p className="hero-subtitle">Welcome back. Your cargo portfolio is ready for review.</p>
+            <h2>{data.investor.displayName || data.investor.name}</h2>
+            <p className="hero-subtitle">Welcome back. Your portfolio is now viewing amounts in {investorCurrency}.</p>
           </div>
           <div className="hero-metric" style={{ borderColor: theme.accent }}>
             <span>Your tier</span>
@@ -120,15 +142,15 @@ const InvestorHome: React.FC = () => {
         <div className="dashboard-grid-stats">
           <div className="stat-card" style={{ background: theme.surface, color: theme.text }}>
             <span>Invested</span>
-            <strong>${money(data.investor.investmentAmount)}</strong>
+            <strong>{formatCurrency(data.investor.investmentAmount, investorCurrency)}</strong>
           </div>
           <div className="stat-card" style={{ background: theme.surface, color: theme.text }}>
             <span>Projected profit</span>
-            <strong>${money(expectedProfit)}</strong>
+            <strong>{formatCurrency(expectedProfit, investorCurrency)}</strong>
           </div>
           <div className="stat-card" style={{ background: theme.surface, color: theme.text }}>
             <span>Reloaded ROI</span>
-            <strong>${money(data.investor.estimatedROI)}</strong>
+            <strong>{money(data.investor.estimatedROI)}%</strong>
           </div>
           <div className="stat-card" style={{ background: theme.surface, color: theme.text }}>
             <span>Active cargos</span>
@@ -136,7 +158,7 @@ const InvestorHome: React.FC = () => {
           </div>
           <div className="stat-card" style={{ background: theme.surface, color: theme.text }}>
             <span>Expected payout</span>
-            <strong>${money(projectedPayout)}</strong>
+            <strong>{formatCurrency(projectedPayout, investorCurrency)}</strong>
           </div>
         </div>
       </>
@@ -145,6 +167,9 @@ const InvestorHome: React.FC = () => {
 
   const renderCargos = () => {
     if (!data) return null;
+
+    const investorCurrency = data.investor.currency || 'USD';
+
     return (
       <div className="cargo-panel" style={{ color: theme.text }}>
         {data.cargos.length === 0 ? (
@@ -154,19 +179,23 @@ const InvestorHome: React.FC = () => {
           </div>
         ) : (
           <div className="cargo-list">
-            {data.cargos.map((cargo) => (
-              <button
-                key={cargo._id}
-                type="button"
-                className={`cargo-card ${selectedCargo?._id === cargo._id ? 'cargo-card-selected' : ''}`}
-                style={{ background: selectedCargo?._id === cargo._id ? theme.accent : theme.surface, color: selectedCargo?._id === cargo._id ? theme.background : theme.text }}
-                onClick={() => dispatch(setSelectedCargoId(cargo._id))}
-              >
-                <div className="cargo-card-title">{cargo.productBeingShipped}</div>
-                <div className="cargo-card-meta">{cargo.purchaseLocation} → {cargo.shippingDestination}</div>
-                <div className="cargo-card-footer">{cargo.quantity} units · ETA {formatDate(cargo.estimatedTimeOfArrival)}</div>
-              </button>
-            ))}
+            {data.cargos.map((cargo) => {
+              const convertedTotal = convertCurrency(cargo.purchasePrice + cargo.shippingPrice + cargo.otherExpenses, cargo.currency, investorCurrency);
+
+              return (
+                <button
+                  key={cargo._id}
+                  type="button"
+                  className={`cargo-card ${selectedCargo?._id === cargo._id ? 'cargo-card-selected' : ''}`}
+                  style={{ background: selectedCargo?._id === cargo._id ? theme.accent : theme.surface, color: selectedCargo?._id === cargo._id ? theme.background : theme.text }}
+                  onClick={() => dispatch(setSelectedCargoId(cargo._id))}
+                >
+                  <div className="cargo-card-title">{cargo.productBeingShipped}</div>
+                  <div className="cargo-card-meta">{cargo.purchaseLocation} → {cargo.shippingDestination}</div>
+                  <div className="cargo-card-footer">{cargo.quantity} units · {formatCurrency(convertedTotal, investorCurrency)} · ETA {formatDate(cargo.estimatedTimeOfArrival)}</div>
+                </button>
+              );
+            })}
           </div>
         )}
       </div>
@@ -178,6 +207,8 @@ const InvestorHome: React.FC = () => {
       return <p>Select a cargo to explore its route and status.</p>;
     }
 
+    const investorCurrency = data?.investor.currency || 'USD';
+
     return (
       <div className="map-panel" style={{ color: theme.text }}>
         <div className="map-summary" style={{ background: theme.surface }}>
@@ -188,15 +219,15 @@ const InvestorHome: React.FC = () => {
         <div className="map-details" style={{ background: theme.surface }}>
           <div>
             <span>Purchase price</span>
-            <strong>${money(selectedCargo.purchasePrice)}</strong>
+            <strong>{formatCurrency(convertCurrency(selectedCargo.purchasePrice, selectedCargo.currency, investorCurrency), investorCurrency)}</strong>
           </div>
           <div>
             <span>Shipping cost</span>
-            <strong>${money(selectedCargo.shippingPrice)}</strong>
+            <strong>{formatCurrency(convertCurrency(selectedCargo.shippingPrice, selectedCargo.currency, investorCurrency), investorCurrency)}</strong>
           </div>
           <div>
             <span>Other fees</span>
-            <strong>${money(selectedCargo.otherExpenses)}</strong>
+            <strong>{formatCurrency(convertCurrency(selectedCargo.otherExpenses, selectedCargo.currency, investorCurrency), investorCurrency)}</strong>
           </div>
           <div>
             <span>ETA</span>
@@ -295,7 +326,7 @@ const InvestorHome: React.FC = () => {
       <div className="investor-topbar gamified-topbar">
         <div>
           <p className="mini-label">NomadMee for modern investors</p>
-          <h1>Welcome back, {data.investor.name}</h1>
+          <h1>Welcome back, {data.investor.displayName || data.investor.name}</h1>
           <p className="mini-description">Tap the sections to switch your dashboard view.</p>
         </div>
         <button type="button" className="logout-button" onClick={handleLogout} style={{ background: theme.accent, color: theme.background }}>

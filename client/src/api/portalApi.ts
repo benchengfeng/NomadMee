@@ -58,14 +58,20 @@ export type AdminDashboardResponse = {
   investments: Investment[];
 };
 
+export type InvestorProfile = {
+  name: string;
+  displayName: string;
+  username: string;
+  investmentAmount: number;
+  profitPercentageOnInvestment: number;
+  estimatedROI: number;
+  currency: string;
+  avatar?: string;
+  kycCompleted: boolean;
+};
+
 export type InvestorHomeResponse = {
-  investor: {
-    name: string;
-    username: string;
-    investmentAmount: number;
-    profitPercentageOnInvestment: number;
-    estimatedROI: number;
-  };
+  investor: InvestorProfile;
   cargos: Cargo[];
 };
 
@@ -207,4 +213,13 @@ export async function logoutInvestor(): Promise<void> {
 
 export async function getInvestorHome(): Promise<InvestorHomeResponse> {
   return request<InvestorHomeResponse>('/investor/home', { method: 'GET' }, getInvestorToken());
+}
+
+export async function completeInvestorKyc(payload: { avatar: string; displayName: string }): Promise<InvestorProfile> {
+  const response = await request<{ investor: InvestorProfile }>('/investor/kyc', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  }, getInvestorToken());
+
+  return response.investor;
 }

@@ -75,6 +75,17 @@ function normalizeCurrency(value: unknown): string {
   return currency;
 }
 
+function normalizeAvatar(value: unknown): string {
+  const avatar = String(value || '').trim().toLowerCase();
+  const supported = ['popeye', 'olive', 'curto'];
+
+  if (!supported.includes(avatar)) {
+    throw new Error(`Avatar must be one of: ${supported.join(', ')}`);
+  }
+
+  return avatar;
+}
+
 router.post('/admin/login', (req: Request, res: Response): void => {
   const { username, password } = req.body as { username?: string; password?: string };
 
@@ -221,12 +232,14 @@ router.post('/admin/investors', async (req: Request, res: Response): Promise<voi
 
     const investor = await InvestorModel.create({
       name: String(name || '').trim(),
+      displayName: String(name || '').trim(),
       username: String(username || '').trim().toLowerCase(),
       password: String(password || ''),
       investmentAmount: investment,
       profitPercentageOnInvestment: profitPercentage,
       estimatedROI,
       currency: normalizedCurrency,
+      kycCompleted: false,
       assignedCargoIds: [],
       assignedInvestmentIds,
     });
@@ -279,6 +292,7 @@ router.put('/admin/investors/:id', async (req: Request, res: Response): Promise<
 
     const updatePayload: Record<string, unknown> = {
       name: String(name || '').trim(),
+      displayName: String(name || '').trim(),
       username: String(username || '').trim().toLowerCase(),
       investmentAmount: investment,
       profitPercentageOnInvestment: profitPercentage,
@@ -501,13 +515,68 @@ router.get('/investor/home', async (req: Request, res: Response): Promise<void> 
   res.status(200).json({
     investor: {
       name: investor.name,
+      displayName: investor.displayName || investor.name,
       username: investor.username,
       investmentAmount: investor.investmentAmount,
       profitPercentageOnInvestment: investor.profitPercentageOnInvestment,
       estimatedROI: investor.estimatedROI,
+      currency: investor.currency || 'USD',
+      avatar: investor.avatar,
+      kycCompleted: investor.kycCompleted === true,
     },
     cargos,
   });
+});
+
+router.post('/investor/kyc', async (req: Request, res: Response): Promise<void> => {
+  const token = requireInvestor(req, res);
+  if (!token) {
+    return;
+  }
+
+  try {
+    const investorId = investorTokens.get(token);
+    const { avatar, displayName } = req.body as { avatar?: unknown; displayName?: unknown };
+
+    const normalizedAvatar = normalizeAvatar(avatar);
+    const normalizedDisplayName = String(displayName || '').trim() || 'Future investor';
+
+    const investor = await InvestorModel.findByIdAndUpdate(
+      investorId,
+      {
+        $set: {
+          avatar: normalizedAvatar,
+          displayName: normalizedDisplayName,
+          kycCompleted: true,
+        },
+      },
+      { new: true, runValidators: true }
+    ).lean();
+
+    if (!investor) {
+      res.status(401).json({ message: 'Invalid investor token.' });
+      return;
+    }
+
+    res.status(200).json({
+      investor: {
+        _id: investor._id,
+        name: investor.name,
+        displayName: investor.displayName || investor.name,
+        username: investor.username,
+        investmentAmount: investor.investmentAmount,
+        profitPercentageOnInvestment: investor.profitPercentageOnInvestment,
+        estimatedROI: investor.estimatedROI,
+        currency: investor.currency || 'USD',
+        avatar: investor.avatar,
+        kycCompleted: investor.kycCompleted === true,
+      },
+    });
+  } catch (error) {
+    res.status(400).json({
+      message: error instanceof Error ? error.message : 'Failed to complete KYC.',
+    });
+  }
 });
 
 router.post('/investor/logout', (req: Request, res: Response): void => {

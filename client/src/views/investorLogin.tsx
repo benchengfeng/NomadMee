@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { loginInvestor } from '../api/portalApi';
+import { getInvestorHome, loginInvestor } from '../api/portalApi';
 import { saveInvestorToken } from '../utils/auth';
 
 const InvestorLogin: React.FC = () => {
@@ -18,7 +18,8 @@ const InvestorLogin: React.FC = () => {
 		try {
 			const response = await loginInvestor(username.trim(), password);
 			saveInvestorToken(response.token);
-			navigate('/home');
+			const profile = await getInvestorHome();
+			navigate(profile.investor.kycCompleted ? '/home' : '/onboarding');
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'Login failed');
 		} finally {

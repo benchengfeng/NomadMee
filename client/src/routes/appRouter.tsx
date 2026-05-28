@@ -8,6 +8,7 @@ import AboutUs from "../components/home/aboutUs";
 import AppContact from "../components/home/contact";
 import InvestorLogin from "../views/investorLogin";
 import InvestorHome from "../views/investorHome";
+import KycOnboarding from "../views/kycOnboarding";
 import AdminLogin from "../views/adminLogin";
 import AdminDashboard from "../views/adminDashboard";
 import { getAdminToken, getSessionToken } from "../utils/auth";
@@ -15,7 +16,7 @@ import { getAdminToken, getSessionToken } from "../utils/auth";
 const InvestorProtectedRoute: React.FC<{ children: JSX.Element }> = ({ children }) => {
   const token = getSessionToken();
   if (!token) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/login" replace />;
   }
 
   return children;
@@ -34,8 +35,17 @@ const AppRouter = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<InvestorLogin />} />
+        <Route path="/" element={<AppHome />} />
+        <Route path="/login" element={<InvestorLogin />} />
         <Route path="/admin" element={<AdminLogin />} />
+        <Route
+          path="/onboarding"
+          element={
+            <InvestorProtectedRoute>
+              <KycOnboarding />
+            </InvestorProtectedRoute>
+          }
+        />
         <Route
           path="/home"
           element={
