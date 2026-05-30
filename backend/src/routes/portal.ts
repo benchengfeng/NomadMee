@@ -139,7 +139,14 @@ router.post('/admin/cargos', async (req: Request, res: Response): Promise<void> 
       otherExpenses,
       estimatedTimeOfArrival,
       estimatedTimeOfSelling,
+      shippingType,
+      cargoDescription,
     } = req.body as Record<string, unknown>;
+
+    const validShippingTypes = ['sea', 'air', 'land'];
+    const normalizedShippingType = validShippingTypes.includes(String(shippingType || ''))
+      ? (String(shippingType) as 'sea' | 'air' | 'land')
+      : 'sea';
 
     const cargo = await CargoModel.create({
       productBeingShipped: String(productBeingShipped || '').trim(),
@@ -152,6 +159,8 @@ router.post('/admin/cargos', async (req: Request, res: Response): Promise<void> 
       otherExpenses: normalizeNumber(otherExpenses, 'otherExpenses'),
       estimatedTimeOfArrival: normalizeDate(estimatedTimeOfArrival),
       estimatedTimeOfSelling: normalizeDate(estimatedTimeOfSelling),
+      shippingType: normalizedShippingType,
+      cargoDescription: String(cargoDescription || '').trim(),
       assignedInvestorIds: [],
     });
 

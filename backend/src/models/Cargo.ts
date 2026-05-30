@@ -12,6 +12,8 @@ export type CargoDocument = {
   estimatedTimeOfArrival: Date;
   estimatedTimeOfSelling: Date;
   assignedInvestorIds: mongoose.Types.ObjectId[];
+  shippingType?: 'sea' | 'air' | 'land';
+  cargoDescription?: string;
   createdAt?: Date;
   updatedAt?: Date;
 };
@@ -28,6 +30,8 @@ const CargoSchema = new Schema<CargoDocument>(
     estimatedTimeOfArrival: { type: Date, required: true },
     estimatedTimeOfSelling: { type: Date, required: true },
     assignedInvestorIds: [{ type: Schema.Types.ObjectId, ref: 'Investor', default: [] }],
+    shippingType: { type: String, enum: ['sea', 'air', 'land'], default: 'sea' },
+    cargoDescription: { type: String, default: '', trim: true },
   },
   { timestamps: true }
 );

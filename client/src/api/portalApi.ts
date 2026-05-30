@@ -22,6 +22,8 @@ export type Cargo = {
   estimatedTimeOfArrival: string;
   estimatedTimeOfSelling: string;
   assignedInvestorIds: string[];
+  shippingType?: 'sea' | 'air' | 'land';
+  cargoDescription?: string;
   createdAt?: string;
   updatedAt?: string;
 };

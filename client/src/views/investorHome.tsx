@@ -1,11 +1,14 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { FiHome, FiPackage, FiMap, FiTrendingUp, FiHeadphones } from 'react-icons/fi';
+import type { IconType } from 'react-icons';
 import { getInvestorHome, logoutInvestor, InvestorHomeResponse } from '../api/portalApi';
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { setTheme } from '../redux/slices/themeSlice';
 import { PanelId, setActivePanel, setSelectedCargoId } from '../redux/slices/dashboardUiSlice';
 import type { DashboardTheme } from '../theme';
 import { dashboardThemes } from '../theme';
+import CargoMap from '../components/cargo/CargoMap';
 
 const currencyRatesToUSD: Record<string, number> = {
   USD: 1,
@@ -24,37 +27,43 @@ function money(value: number): string {
   return new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(value);
 }
 
-function convertCurrency(amount: number, sourceCurrency: string, targetCurrency: string): number {
-  const sourceRate = currencyRatesToUSD[sourceCurrency.toUpperCase()] ?? 1;
-  const targetRate = currencyRatesToUSD[targetCurrency.toUpperCase()] ?? 1;
+function safeCurrency(currency: string | null | undefined): string {
+  return (currency ?? 'USD').toUpperCase();
+}
+
+function convertCurrency(amount: number, sourceCurrency: string | null | undefined, targetCurrency: string | null | undefined): number {
+  const sourceRate = currencyRatesToUSD[safeCurrency(sourceCurrency)] ?? 1;
+  const targetRate = currencyRatesToUSD[safeCurrency(targetCurrency)] ?? 1;
   return (amount * sourceRate) / targetRate;
 }
 
-function formatCurrency(amount: number, currency: string): string {
+function formatCurrency(amount: number, currency: string | null | undefined): string {
+  const safeAmount = Number.isFinite(amount) ? amount : 0;
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency,
+    currency: safeCurrency(currency),
     maximumFractionDigits: 0,
-  }).format(amount);
+  }).format(safeAmount);
 }
 
-function formatCurrencyWithConversion(amount: number, currency: string, convertedAmount: number, convertedCurrency: string): string {
+function formatCurrencyWithConversion(amount: number, currency: string | null | undefined, convertedAmount: number, convertedCurrency: string | null | undefined): string {
   const base = formatCurrency(amount, currency);
   const converted = formatCurrency(convertedAmount, convertedCurrency);
   return `${base} • ${converted}`;
 }
 
-function formatDate(value: string): string {
+function formatDate(value: string | null | undefined): string {
+  if (!value) return 'N/A';
   const date = new Date(value);
   return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString();
 }
 
-const panelButtons: Array<{ id: PanelId; label: string }> = [
-  { id: 'summary', label: 'Summary' },
-  { id: 'cargos', label: 'Cargos' },
-  { id: 'map', label: 'Cargo map' },
-  { id: 'story', label: 'Investment story' },
-  { id: 'support', label: 'Support' },
+const panelButtons: Array<{ id: PanelId; label: string; Icon: IconType }> = [
+  { id: 'summary', label: 'Summary', Icon: FiHome },
+  { id: 'cargos', label: 'Cargos', Icon: FiPackage },
+  { id: 'map', label: 'Cargo map', Icon: FiMap },
+  { id: 'story', label: 'Investment story', Icon: FiTrendingUp },
+  { id: 'support', label: 'Support', Icon: FiHeadphones },
 ];
 
 const InvestorHome: React.FC = () => {
@@ -122,7 +131,7 @@ const InvestorHome: React.FC = () => {
     [data, selectedCargoId]
   );
 
-  const handlePanelChange = (panelId: 'summary' | 'cargos' | 'map' | 'story' | 'support') => {
+  const handlePanelChange = (panelId: PanelId) => {
     dispatch(setActivePanel(panelId));
   };
 
@@ -134,16 +143,18 @@ const InvestorHome: React.FC = () => {
     if (!data) return null;
 
     const investorCurrency = data.investor.currency || 'USD';
-    const expectedProfit = Number(((data.investor.investmentAmount * data.investor.profitPercentageOnInvestment) / 100).toFixed(0));
-    const projectedPayout = data.investor.investmentAmount + expectedProfit;
+    const investedAmount = data.investor.investmentAmount || 0;
+    const profitPct = data.investor.profitPercentageOnInvestment || 0;
+    const expectedProfit = Number(((investedAmount * profitPct) / 100).toFixed(0));
+    const projectedPayout = investedAmount + expectedProfit;
 
     return (
-      <>
+      <div className="summary-panel">
         <div className="dashboard-section hero-card" style={{ background: theme.surface, color: theme.text, boxShadow: `0 24px 70px ${theme.panelGlow}` }}>
           <div>
             <p className="hero-label">Investor companion</p>
             <h2>{data.investor.displayName || data.investor.name}</h2>
-            <p className="hero-subtitle">Welcome back. Your portfolio is now viewing amounts in {investorCurrency}.</p>
+            <p className="hero-subtitle">Welcome back. Portfolio amounts shown in {investorCurrency}.</p>
           </div>
           <div className="hero-metric" style={{ borderColor: theme.accent }}>
             <span>Your tier</span>
@@ -154,26 +165,26 @@ const InvestorHome: React.FC = () => {
         <div className="dashboard-grid-stats">
           <div className="stat-card" style={{ background: theme.surface, color: theme.text }}>
             <span>Invested</span>
-            <strong>{formatCurrency(data.investor.investmentAmount, investorCurrency)}</strong>
+            <strong>{formatCurrency(investedAmount, investorCurrency)}</strong>
           </div>
           <div className="stat-card" style={{ background: theme.surface, color: theme.text }}>
             <span>Projected profit</span>
             <strong>{formatCurrency(expectedProfit, investorCurrency)}</strong>
           </div>
           <div className="stat-card" style={{ background: theme.surface, color: theme.text }}>
-            <span>Reloaded ROI</span>
-            <strong>{money(data.investor.estimatedROI)}%</strong>
+            <span>Estimated ROI</span>
+            <strong>{money(data.investor.estimatedROI ?? 0)}%</strong>
           </div>
           <div className="stat-card" style={{ background: theme.surface, color: theme.text }}>
             <span>Active cargos</span>
             <strong>{data.cargos.length}</strong>
           </div>
-          <div className="stat-card" style={{ background: theme.surface, color: theme.text }}>
+          <div className="stat-card stat-card-wide" style={{ background: theme.surface, color: theme.text }}>
             <span>Expected payout</span>
             <strong>{formatCurrency(projectedPayout, investorCurrency)}</strong>
           </div>
         </div>
-      </>
+      </div>
     );
   };
 
@@ -192,21 +203,48 @@ const InvestorHome: React.FC = () => {
         ) : (
           <div className="cargo-list">
             {data.cargos.map((cargo) => {
-              const totalCost = cargo.purchasePrice + cargo.shippingPrice + cargo.otherExpenses;
+              const totalCost = (cargo.purchasePrice || 0) + (cargo.shippingPrice || 0) + (cargo.otherExpenses || 0);
               const convertedTotal = convertCurrency(totalCost, cargo.currency, investorCurrency);
+              const isSelected = selectedCargo?._id === cargo._id;
 
               return (
-                <button
+                <div
                   key={cargo._id}
-                  type="button"
-                  className={`cargo-card ${selectedCargo?._id === cargo._id ? 'cargo-card-selected' : ''}`}
-                  style={{ background: selectedCargo?._id === cargo._id ? theme.accent : theme.surface, color: selectedCargo?._id === cargo._id ? theme.background : theme.text }}
+                  role="button"
+                  tabIndex={0}
+                  className={`cargo-card ${isSelected ? 'cargo-card-selected' : ''}`}
+                  style={{
+                    background: isSelected ? theme.accent : theme.surface,
+                    color: isSelected ? theme.background : theme.text,
+                  }}
                   onClick={() => dispatch(setSelectedCargoId(cargo._id))}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') dispatch(setSelectedCargoId(cargo._id));
+                  }}
                 >
                   <div className="cargo-card-title">{cargo.productBeingShipped}</div>
                   <div className="cargo-card-meta">{cargo.purchaseLocation} → {cargo.shippingDestination}</div>
-                  <div className="cargo-card-footer">{cargo.quantity} units · {formatCurrencyWithConversion(totalCost, cargo.currency, convertedTotal, investorCurrency)} · ETA {formatDate(cargo.estimatedTimeOfArrival)}</div>
-                </button>
+                  <div className="cargo-card-footer">
+                    {cargo.quantity} units · {formatCurrencyWithConversion(totalCost, cargo.currency, convertedTotal, investorCurrency)} · ETA {formatDate(cargo.estimatedTimeOfArrival)}
+                  </div>
+                  <div className="cargo-card-actions">
+                    <button
+                      type="button"
+                      className="cargo-card-route-hint"
+                      style={{
+                        color: isSelected ? theme.background : theme.accent,
+                        borderColor: isSelected ? theme.background : theme.accent,
+                      }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        dispatch(setSelectedCargoId(cargo._id));
+                        dispatch(setActivePanel('map'));
+                      }}
+                    >
+                      View route →
+                    </button>
+                  </div>
+                </div>
               );
             })}
           </div>
@@ -217,18 +255,35 @@ const InvestorHome: React.FC = () => {
 
   const renderMap = () => {
     if (!selectedCargo) {
-      return <p>Select a cargo to explore its route and status.</p>;
+      return (
+        <div className="map-panel" style={{ color: theme.text }}>
+          <div className="empty-state" style={{ borderColor: theme.accent }}>
+            <p>Select a cargo from the Cargos tab to see its live route map and journey animation.</p>
+          </div>
+        </div>
+      );
     }
 
     const investorCurrency = data?.investor.currency || 'USD';
 
     return (
       <div className="map-panel" style={{ color: theme.text }}>
-        <div className="map-summary" style={{ background: theme.surface }}>
-          <p className="map-label">Cargo route</p>
-          <h3>{selectedCargo.productBeingShipped}</h3>
-          <p>{selectedCargo.purchaseLocation} → {selectedCargo.shippingDestination}</p>
-        </div>
+        {/* Admin-set cargo description */}
+        {selectedCargo.cargoDescription && (
+          <div className="cargo-desc-card" style={{ background: theme.surface }}>
+            <p className="cargo-desc-label">About this cargo</p>
+            <p className="cargo-desc-text">{selectedCargo.cargoDescription}</p>
+          </div>
+        )}
+
+        {/* MapLibre map with journey animation */}
+        <CargoMap
+          cargo={selectedCargo}
+          avatar={data?.investor.avatar}
+          theme={theme}
+        />
+
+        {/* Cost breakdown */}
         <div className="map-details" style={{ background: theme.surface }}>
           <div>
             <span>Purchase price</span>
@@ -250,19 +305,51 @@ const InvestorHome: React.FC = () => {
             <span>Sell window</span>
             <strong>{formatDate(selectedCargo.estimatedTimeOfSelling)}</strong>
           </div>
-        </div>
-        <div className="route-visual" style={{ borderColor: theme.accent }}>
-          <span className="route-dot" style={{ background: theme.accent }} />
-          <span>China: {selectedCargo.purchaseLocation}</span>
-          <div className="route-line" style={{ background: theme.accentSoft }} />
-          <span className="route-dot" style={{ background: theme.accent }} />
-          <span>Côte d'Ivoire: {selectedCargo.shippingDestination}</span>
+          <div>
+            <span>Quantity</span>
+            <strong>{selectedCargo.quantity} units</strong>
+          </div>
         </div>
       </div>
     );
   };
 
   const renderStory = () => {
+    if (!data) return null;
+
+    const cargoSteps = data.cargos;
+
+    if (cargoSteps.length > 0) {
+      return (
+        <div className="story-panel" style={{ color: theme.text }}>
+          <p className="story-intro">Each cargo below is a step in your investment journey from sourcing to payout.</p>
+          <div className="story-timeline">
+            {cargoSteps.map((cargo, index) => (
+              <div key={cargo._id} className="story-step" style={{ background: theme.surface }}>
+                <div className="story-step-number" style={{ background: theme.accent }}>{index + 1}</div>
+                <div>
+                  <strong>{cargo.productBeingShipped}</strong>
+                  <p className="story-step-eta">{cargo.purchaseLocation} → {cargo.shippingDestination}</p>
+                  <p className="story-step-eta">ETA {formatDate(cargo.estimatedTimeOfArrival)}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="story-status" style={{ background: theme.surface }}>
+            <h3>Current mission</h3>
+            <p>
+              Monitor your {cargoSteps.length} active cargo{cargoSteps.length !== 1 ? 's' : ''} through the supply chain and track expected returns.
+            </p>
+            <div className="story-badges">
+              <span style={{ borderColor: theme.accent }}>Active route</span>
+              <span style={{ borderColor: theme.accent }}>Profit tracking</span>
+              <span style={{ borderColor: theme.accent }}>Real-time ETA</span>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
     const steps = [
       'Investment funded',
       'Products sourced',
@@ -272,25 +359,25 @@ const InvestorHome: React.FC = () => {
 
     return (
       <div className="story-panel" style={{ color: theme.text }}>
-        <p className="story-intro">Track your portfolio progress in a friendly game layer.</p>
+        <p className="story-intro">Track your portfolio progress through the supply chain.</p>
         <div className="story-timeline">
           {steps.map((stepLabel, index) => (
             <div key={stepLabel} className="story-step" style={{ background: theme.surface }}>
               <div className="story-step-number" style={{ background: theme.accent }}>{index + 1}</div>
               <div>
                 <strong>{stepLabel}</strong>
-                <p>Stage {index + 1} of {steps.length}</p>
+                <p className="story-step-eta">Stage {index + 1} of {steps.length}</p>
               </div>
             </div>
           ))}
         </div>
         <div className="story-status" style={{ background: theme.surface }}>
-          <h3>Current mission</h3>
-          <p>Keep your cargos moving and watch your investment progress through the supply chain.</p>
+          <h3>Your journey begins here</h3>
+          <p>Once cargos are assigned, each shipment will appear as a step in your investment journey.</p>
           <div className="story-badges">
-            <span style={{ borderColor: theme.accent }}>Ready to move</span>
-            <span style={{ borderColor: theme.accent }}>Shipment tracking</span>
-            <span style={{ borderColor: theme.accent }}>Profit visibility</span>
+            <span style={{ borderColor: theme.accent }}>Ready</span>
+            <span style={{ borderColor: theme.accent }}>Tracking</span>
+            <span style={{ borderColor: theme.accent }}>Profit</span>
           </div>
         </div>
       </div>
@@ -308,21 +395,36 @@ const InvestorHome: React.FC = () => {
           </Link>
         </div>
         <div className="support-actions" style={{ background: theme.surface }}>
-          <div>
-            <span>Quick action</span>
-            <p>Review next cargo</p>
-          </div>
-          <div>
-            <span>Reminder</span>
-            <p>Check shipment ETA</p>
-          </div>
+          <button
+            type="button"
+            className="support-action-item"
+            onClick={() => dispatch(setActivePanel('cargos'))}
+          >
+            <span style={{ fontSize: '11px', color: theme.secondaryText, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>Quick action</span>
+            <p style={{ color: theme.text }}>View your cargos →</p>
+          </button>
+          <button
+            type="button"
+            className="support-action-item"
+            onClick={() => dispatch(setActivePanel('map'))}
+          >
+            <span style={{ fontSize: '11px', color: theme.secondaryText, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>Reminder</span>
+            <p style={{ color: theme.text }}>Explore shipment route →</p>
+          </button>
         </div>
       </div>
     );
   };
 
   if (loading) {
-    return <div className="investor-loading">Loading investor dashboard...</div>;
+    return (
+      <div className="investor-loading" style={{ background: '#06131F' }}>
+        <div className="investor-loading-inner">
+          <div className="investor-loading-spinner" />
+          <p>Loading your dashboard...</p>
+        </div>
+      </div>
+    );
   }
 
   if (error || !data) {
@@ -340,9 +442,9 @@ const InvestorHome: React.FC = () => {
     <main className="investor-dashboard-shell gamified-shell" style={{ background: theme.background, color: theme.text }}>
       <div className="investor-topbar gamified-topbar">
         <div>
-          <p className="mini-label">NomadMee for modern investors</p>
+          <p className="mini-label">NomadMee — investor portal</p>
           <h1>Welcome back, {data.investor.displayName || data.investor.name}</h1>
-          <p className="mini-description">Tap the sections to switch your dashboard view.</p>
+          <p className="mini-description">Select a section below to explore your portfolio.</p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           {avatarBadgeSrc ? (
@@ -351,7 +453,7 @@ const InvestorHome: React.FC = () => {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '10px',
-                padding: '8px 10px',
+                padding: '8px 12px',
                 borderRadius: '999px',
                 background: 'rgba(255,255,255,0.08)',
                 border: `1px solid ${theme.accentSoft}`,
@@ -363,8 +465,8 @@ const InvestorHome: React.FC = () => {
                 style={{ width: '28px', height: '28px', borderRadius: '999px', objectFit: 'cover' }}
               />
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                <span style={{ fontSize: '0.7rem', color: theme.secondaryText, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Avatar</span>
-                <strong style={{ fontSize: '0.78rem', color: theme.text }}>{data.investor.displayName || data.investor.name}</strong>
+                <span style={{ fontSize: '0.68rem', color: theme.secondaryText, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Investor</span>
+                <strong style={{ fontSize: '0.8rem', color: theme.text }}>{data.investor.displayName || data.investor.name}</strong>
               </div>
             </div>
           ) : null}
@@ -389,8 +491,12 @@ const InvestorHome: React.FC = () => {
                     borderColor: panel.id === activePanel ? theme.accent : 'transparent',
                     color: panel.id === activePanel ? theme.background : theme.text,
                     background: panel.id === activePanel ? theme.accent : 'transparent',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
                   }}
                 >
+                  <panel.Icon size={15} />
                   {panel.label}
                 </button>
               ))}
@@ -404,21 +510,21 @@ const InvestorHome: React.FC = () => {
                 <button
                   key={index}
                   type="button"
+                  aria-label={`Theme ${index + 1}`}
+                  title={`Theme ${index + 1}`}
                   className={`theme-chip ${activeTheme === index ? 'theme-chip-active' : ''}`}
                   style={{
                     background: themeOption.accent,
-                    boxShadow: activeTheme === index ? `0 0 0 3px ${themeOption.panelGlow}` : 'none',
+                    boxShadow: activeTheme === index ? `0 0 0 3px ${themeOption.panelGlow}, 0 0 0 1px ${themeOption.accent}` : 'none',
                   }}
                   onClick={() => handleThemeChange(index)}
-                >
-                  {index + 1}
-                </button>
+                />
               ))}
             </div>
           </div>
 
           <div className="sidebar-note" style={{ borderColor: theme.accentSoft }}>
-            <p>Use this dashboard to monitor your China → Côte d'Ivoire shipments, projected ROI, and cargo details in one game-style view.</p>
+            <p>Monitor your China → Côte d'Ivoire shipments, projected ROI, and cargo details in one place.</p>
           </div>
         </aside>
 
@@ -435,4 +541,3 @@ const InvestorHome: React.FC = () => {
 };
 
 export default InvestorHome;
-

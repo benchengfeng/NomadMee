@@ -16,6 +16,12 @@ import {
 
 const currencyOptions = ['USD', 'EUR', 'TND', 'CNY'] as const;
 
+const shippingTypeOptions = [
+  { value: 'sea', label: '🚢 Sea freight' },
+  { value: 'air', label: '✈️ Air freight' },
+  { value: 'land', label: '🚛 Land freight' },
+] as const;
+
 const emptyCargoForm = {
   productBeingShipped: '',
   quantity: '',
@@ -27,6 +33,8 @@ const emptyCargoForm = {
   otherExpenses: '',
   estimatedTimeOfArrival: '',
   estimatedTimeOfSelling: '',
+  shippingType: 'sea' as 'sea' | 'air' | 'land',
+  cargoDescription: '',
 };
 
 const emptyInvestorForm = {
@@ -145,6 +153,8 @@ const AdminDashboard: React.FC = () => {
         otherExpenses: Number(cargoForm.otherExpenses),
         estimatedTimeOfArrival: cargoForm.estimatedTimeOfArrival,
         estimatedTimeOfSelling: cargoForm.estimatedTimeOfSelling,
+        shippingType: cargoForm.shippingType,
+        cargoDescription: cargoForm.cargoDescription,
       });
       setCargoForm(emptyCargoForm);
       await refresh();
@@ -268,6 +278,7 @@ const AdminDashboard: React.FC = () => {
   };
 
   const removeInvestor = async (investorId: string) => {
+    if (!window.confirm('Delete this investor? This action cannot be undone.')) return;
     setError(null);
     try {
       await deleteInvestor(investorId);
@@ -281,6 +292,7 @@ const AdminDashboard: React.FC = () => {
   };
 
   const removeInvestment = async (investmentId: string) => {
+    if (!window.confirm('Delete this investment? This action cannot be undone.')) return;
     setError(null);
     try {
       await deleteInvestment(investmentId);
@@ -318,7 +330,7 @@ const AdminDashboard: React.FC = () => {
 
       {error && <div className="portal-error">{error}</div>}
 
-      <section className="portal-grid admin-grid">
+      <section className="admin-forms-grid">
         <article className="portal-card">
           <h2>Add Cargo</h2>
           <form className="portal-form" onSubmit={submitCargo}>
@@ -346,6 +358,19 @@ const AdminDashboard: React.FC = () => {
             <input type="date" value={cargoForm.estimatedTimeOfArrival} onChange={(e) => setCargoForm({ ...cargoForm, estimatedTimeOfArrival: e.target.value })} required />
             <label>Estimated time of selling</label>
             <input type="date" value={cargoForm.estimatedTimeOfSelling} onChange={(e) => setCargoForm({ ...cargoForm, estimatedTimeOfSelling: e.target.value })} required />
+            <label>Shipping type</label>
+            <select value={cargoForm.shippingType} onChange={(e) => setCargoForm({ ...cargoForm, shippingType: e.target.value as 'sea' | 'air' | 'land' })}>
+              {shippingTypeOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ))}
+            </select>
+            <label>Cargo description (shown to investor)</label>
+            <textarea
+              value={cargoForm.cargoDescription}
+              onChange={(e) => setCargoForm({ ...cargoForm, cargoDescription: e.target.value })}
+              placeholder="Optional: describe this cargo for investors — product origin, quality, expected demand..."
+              rows={3}
+            />
             <button type="submit" disabled={savingCargo}>{savingCargo ? 'Saving...' : 'Save Cargo'}</button>
           </form>
         </article>
@@ -443,15 +468,17 @@ const AdminDashboard: React.FC = () => {
               <div className="portal-item" key={investment._id}>
                 <div className="portal-item-head">
                   <h3>{investment.title}</h3>
-                  <div>
-                    <button type="button" onClick={() => startEditInvestment(investment)}>Edit</button>
-                    <button type="button" onClick={() => removeInvestment(investment._id)}>Delete</button>
+                  <div className="portal-item-actions">
+                    <button type="button" className="portal-btn-edit" onClick={() => startEditInvestment(investment)}>Edit</button>
+                    <button type="button" className="portal-btn-delete" onClick={() => removeInvestment(investment._id)}>Delete</button>
                   </div>
                 </div>
-                <p>{investment.description}</p>
-                <p>{investment.currency} - Min {investment.minimumInvestment}</p>
-                <p>Assigned cargos: {investment.cargoIds?.length ?? 0}</p>
-                <p>Assigned investors: {investment.assignedInvestorIds.length}</p>
+                <p className="portal-item-meta">{investment.description}</p>
+                <p className="portal-item-meta">
+                  {investment.currency} · Min {investment.minimumInvestment}
+                  <span className="portal-item-badge">{investment.cargoIds?.length ?? 0} cargos</span>
+                  <span className="portal-item-badge">{investment.assignedInvestorIds.length} investors</span>
+                </p>
               </div>
             ))}
           </div>
@@ -464,16 +491,17 @@ const AdminDashboard: React.FC = () => {
               <div className="portal-item" key={investor._id}>
                 <div className="portal-item-head">
                   <h3>{investor.name}</h3>
-                  <div>
-                    <button type="button" onClick={() => startEditInvestor(investor)}>Edit</button>
-                    <button type="button" onClick={() => removeInvestor(investor._id)}>Delete</button>
+                  <div className="portal-item-actions">
+                    <button type="button" className="portal-btn-edit" onClick={() => startEditInvestor(investor)}>Edit</button>
+                    <button type="button" className="portal-btn-delete" onClick={() => removeInvestor(investor._id)}>Delete</button>
                   </div>
                 </div>
-                <p>@{investor.username}</p>
-                <p>Investment: {investor.investmentAmount} {investor.currency}</p>
-                <p>ROI: {investor.estimatedROI}</p>
-                <p>Assigned cargos: {investorAssignedCargoCounts[investor._id] ?? 0}</p>
-                <p>Assigned investments: {investor.assignedInvestmentIds?.length ?? 0}</p>
+                <p className="portal-item-meta">@{investor.username}</p>
+                <p className="portal-item-meta">
+                  {investor.investmentAmount} {investor.currency} · ROI {investor.estimatedROI}%
+                  <span className="portal-item-badge">{investorAssignedCargoCounts[investor._id] ?? 0} cargos</span>
+                  <span className="portal-item-badge">{investor.assignedInvestmentIds?.length ?? 0} investments</span>
+                </p>
               </div>
             ))}
           </div>
