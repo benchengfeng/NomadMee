@@ -58,8 +58,7 @@ jobs:
           tar -czf backend.tar.gz \
             backend/dist \
             backend/package.json \
-            backend/package-lock.json \
-            backend/ecosystem.config.js
+            backend/package-lock.json
 
       - name: Package frontend
         run: |
@@ -114,16 +113,13 @@ jobs:
             cp -r /tmp/backend/dist/. "$APP/backend/dist/"
             cp /tmp/backend/package.json "$APP/backend/"
             cp /tmp/backend/package-lock.json "$APP/backend/"
-            cp /tmp/backend/ecosystem.config.js "$APP/backend/"
             rm -rf /tmp/backend /tmp/backend.tar.gz
 
             cd "$APP/backend"
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
             npm ci --omit=dev
-            pm2 restart ecosystem.config.js --env production \
-              || pm2 start ecosystem.config.js --env production
-            pm2 save
+            sudo systemctl restart nomadme-backend
 
             # ---- Deploy frontend ----
             mkdir -p "$APP/frontend"
