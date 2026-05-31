@@ -1,205 +1,306 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { landingThemes } from '../utils/landingThemes';
 import WorldMap from '../components/WorldMap';
-import type { PublicMapData } from '../api/portalApi';
+import { getPublicInvestments, getPublicSiteContent, PublicInvestment, SiteContent } from '../api/portalApi';
 
-function formatCompact(n: number): string {
-  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `$${(n / 1_000).toFixed(0)}K`;
-  return `$${n}`;
+type LandingSection = 'globe' | 'investments' | 'who';
+
+const STATUS_STYLE: Record<string, { label: string; color: string; bg: string }> = {
+  active:      { label: 'Active',      color: '#22c55e', bg: 'rgba(34,197,94,0.1)' },
+  in_progress: { label: 'In Progress', color: '#38bdf8', bg: 'rgba(56,189,248,0.1)' },
+  waiting:     { label: 'Waiting',     color: '#fbbf24', bg: 'rgba(251,191,36,0.1)' },
+};
+
+function isYouTube(url: string) {
+  return url.includes('youtube.com') || url.includes('youtu.be');
 }
 
-interface StatRowProps {
-  label: string;
-  value: string;
-  sub?: string;
-  accent?: string;
+function isVideo(url: string) {
+  return /\.(mp4|webm|ogg)$/i.test(url);
 }
 
-const StatRow: React.FC<StatRowProps> = ({ label, value, sub, accent = '#fff' }) => (
-  <div style={{ padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-    <p style={{ margin: 0, fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.14em', color: '#475569', fontWeight: 700 }}>
-      {label}
-    </p>
-    <p style={{ margin: '4px 0 0', fontSize: '1.35rem', fontWeight: 800, color: accent, lineHeight: 1.1 }}>
-      {value}
-    </p>
-    {sub && <p style={{ margin: '2px 0 0', fontSize: '0.7rem', color: '#64748b' }}>{sub}</p>}
-  </div>
-);
+function isImage(url: string) {
+  return /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(url);
+}
+
+function youtubeEmbedUrl(url: string): string {
+  const match = url.match(/(?:v=|youtu\.be\/)([A-Za-z0-9_-]{11})/);
+  return match ? `https://www.youtube.com/embed/${match[1]}` : url;
+}
+
+const MediaItem: React.FC<{ url: string }> = ({ url }) => {
+  if (isYouTube(url)) {
+    return (
+      <iframe
+        title="Video"
+        src={youtubeEmbedUrl(url)}
+        style={{ width: '100%', aspectRatio: '16/9', borderRadius: 14, border: 'none' }}
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen
+      />
+    );
+  }
+  if (isVideo(url)) {
+    return <video src={url} controls style={{ width: '100%', borderRadius: 14 }} />;
+  }
+  if (isImage(url)) {
+    return <img src={url} alt="" style={{ width: '100%', borderRadius: 14, objectFit: 'cover', maxHeight: 400 }} />;
+  }
+  return <a href={url} target="_blank" rel="noreferrer" style={{ color: '#38bdf8', fontSize: '0.85rem' }}>{url}</a>;
+};
+
+const NAV_H = 64;
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
+  const [section, setSection] = useState<LandingSection>('globe');
   const [selectedTheme, setSelectedTheme] = useState(0);
-  const [stats, setStats] = useState<PublicMapData['stats'] | null>(null);
+
+  const [investments, setInvestments] = useState<PublicInvestment[]>([]);
+  const [siteContent, setSiteContent] = useState<SiteContent | null>(null);
 
   const idx = Math.min(Math.max(selectedTheme, 0), landingThemes.length - 1);
   const palette = landingThemes[idx] as (typeof landingThemes)[number];
 
-  const handleDataLoaded = (data: PublicMapData) => {
-    setStats(data.stats);
-  };
+  useEffect(() => {
+    if (section === 'investments' && investments.length === 0) {
+      getPublicInvestments().then((r) => setInvestments(r.investments)).catch(() => {});
+    }
+    if (section === 'who' && !siteContent) {
+      getPublicSiteContent('who_are_we').then((r) => setSiteContent(r.content)).catch(() => {});
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [section]);
+
+  const navItems: Array<{ id: LandingSection; label: string }> = [
+    { id: 'globe', label: 'The Globe' },
+    { id: 'investments', label: 'Investments' },
+    { id: 'who', label: 'Who Are We?' },
+  ];
 
   return (
-    <main style={{
-      height: '100vh',
-      display: 'flex',
-      flexDirection: 'column',
-      background: '#0a0c14',
-      overflow: 'hidden',
-      position: 'relative',
-    }}>
-      {/* Floating header */}
-      <header style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 10,
+    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: '#0a0c14', overflow: 'hidden' }}>
+      {/* ── Nav bar ── */}
+      <nav style={{
+        height: NAV_H,
+        flexShrink: 0,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '16px 28px',
-        background: 'linear-gradient(180deg, rgba(10,12,20,0.92) 0%, rgba(10,12,20,0.0) 100%)',
+        padding: '0 28px',
+        borderBottom: '1px solid rgba(255,255,255,0.07)',
+        background: 'rgba(10,12,20,0.95)',
+        backdropFilter: 'blur(12px)',
+        zIndex: 20,
         gap: 16,
       }}>
-        <div>
-          <p style={{ margin: 0, color: palette.highlight, textTransform: 'uppercase', letterSpacing: '0.2em', fontWeight: 700, fontSize: '0.65rem' }}>
-            NomadMee
-          </p>
-          <h1 style={{ margin: '2px 0 0', fontSize: 'clamp(1.1rem, 2.5vw, 1.6rem)', fontWeight: 800, color: '#fff', lineHeight: 1.2 }}>
-            Your investments,<br />tracked across the globe.
-          </h1>
+        {/* Brand */}
+        <span style={{ fontWeight: 800, color: palette.accent, letterSpacing: '0.12em', fontSize: '0.9rem', textTransform: 'uppercase', flexShrink: 0 }}>
+          NomadMee
+        </span>
+
+        {/* Section links */}
+        <div style={{ display: 'flex', gap: 4, flex: 1, justifyContent: 'center' }}>
+          {navItems.map((item) => (
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => setSection(item.id)}
+              style={{
+                padding: '7px 18px',
+                borderRadius: 999,
+                border: 'none',
+                background: section === item.id ? palette.accent : 'transparent',
+                color: section === item.id ? '#000' : '#94a3b8',
+                fontWeight: 700,
+                fontSize: '0.8rem',
+                cursor: 'pointer',
+                transition: 'all 0.18s',
+                letterSpacing: '0.01em',
+              }}
+            >
+              {item.label}
+            </button>
+          ))}
         </div>
 
+        {/* Right side: theme + CTA */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
-          {/* Theme chips */}
-          <div style={{ display: 'flex', gap: 6 }}>
+          <div style={{ display: 'flex', gap: 5 }}>
             {landingThemes.map((t, i) => (
               <button
                 key={t.name}
                 type="button"
                 onClick={() => setSelectedTheme(i)}
                 aria-label={t.name}
-                title={t.name}
                 style={{
-                  width: 22,
-                  height: 22,
+                  width: 18,
+                  height: 18,
                   borderRadius: '50%',
-                  border: `2px solid ${i === selectedTheme ? palette.highlight : 'transparent'}`,
+                  border: `2px solid ${i === selectedTheme ? '#fff' : 'transparent'}`,
                   background: t.accent,
                   cursor: 'pointer',
                   padding: 0,
-                  boxShadow: i === selectedTheme ? `0 0 0 3px ${t.highlight}33` : 'none',
-                  transition: 'box-shadow 0.2s',
                 }}
               />
             ))}
           </div>
-
-          {/* CTA */}
           <button
             type="button"
             onClick={() => navigate('/login')}
             style={{
               border: 'none',
               borderRadius: 999,
-              padding: '10px 20px',
+              padding: '8px 18px',
               fontWeight: 800,
-              fontSize: '0.82rem',
+              fontSize: '0.78rem',
               cursor: 'pointer',
               background: `linear-gradient(90deg, ${palette.accent}, ${palette.highlight})`,
               color: '#000',
-              boxShadow: `0 8px 24px ${palette.accent}55`,
               whiteSpace: 'nowrap',
             }}
           >
-            Start journey →
+            Login →
           </button>
         </div>
-      </header>
+      </nav>
 
-      {/* Live stats panel — bottom-left overlay */}
-      {stats && (
-        <div style={{
-          position: 'absolute',
-          bottom: 32,
-          left: 28,
-          zIndex: 10,
-          width: 220,
-          background: 'rgba(10,12,20,0.82)',
-          backdropFilter: 'blur(18px)',
-          WebkitBackdropFilter: 'blur(18px)',
-          border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: 20,
-          padding: '16px 20px',
-          boxShadow: '0 24px 60px rgba(0,0,0,0.6)',
-        }}>
-          {/* Live indicator */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-            <div style={{ position: 'relative', width: 10, height: 10 }}>
-              <div style={{
-                position: 'absolute',
-                inset: 0,
-                borderRadius: '50%',
-                background: '#22c55e',
-                animation: 'livePing 1.8s ease-out infinite',
-              }} />
-              <div style={{
-                position: 'absolute',
-                inset: '2px',
-                borderRadius: '50%',
-                background: '#22c55e',
-                boxShadow: '0 0 6px #22c55e',
-              }} />
-            </div>
-            <span style={{ fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.18em', color: '#22c55e', textTransform: 'uppercase' }}>
-              Live
-            </span>
-          </div>
+      {/* ── Content area ── */}
+      <div style={{ flex: 1, minHeight: 0, display: section === 'globe' ? 'flex' : 'block', overflow: section === 'globe' ? 'hidden' : 'auto' }}>
 
-          <StatRow
-            label="Total invested"
-            value={formatCompact(stats.totalInvested)}
-            sub="across all active deals"
-            accent={palette.accent}
-          />
-          <StatRow
-            label="Expected profits"
-            value={formatCompact(stats.totalExpectedProfit)}
-            sub="projected returns"
-            accent="#22c55e"
-          />
-          <StatRow
-            label="Active investments"
-            value={stats.activeInvestments.toString()}
-            sub="open investment rounds"
-            accent="#f1f5f9"
-          />
-          <div style={{ padding: '12px 0 0' }}>
-            <p style={{ margin: 0, fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.14em', color: '#475569', fontWeight: 700 }}>
-              Shipments in transit
+        {/* Globe */}
+        {section === 'globe' && (
+          <WorldMap accentColor={palette.accent} />
+        )}
+
+        {/* Investments */}
+        {section === 'investments' && (
+          <div style={{ maxWidth: 1100, margin: '0 auto', padding: '48px 28px' }}>
+            <p style={{ color: palette.accent, textTransform: 'uppercase', letterSpacing: '0.2em', fontWeight: 700, fontSize: '0.65rem', marginBottom: 8 }}>
+              Open rounds
             </p>
-            <p style={{ margin: '4px 0 0', fontSize: '1.35rem', fontWeight: 800, color: '#f1f5f9', lineHeight: 1.1 }}>
-              {stats.activeShipments}
+            <h2 style={{ color: '#fff', fontSize: 'clamp(1.4rem,3vw,2rem)', fontWeight: 800, margin: '0 0 8px' }}>
+              Active investments
+            </h2>
+            <p style={{ color: '#475569', fontSize: '0.88rem', margin: '0 0 36px' }}>
+              Join an active investment round and start tracking your cargo across the globe.
             </p>
-            <p style={{ margin: '2px 0 0', fontSize: '0.7rem', color: '#64748b' }}>cargo routes active now</p>
+
+            {investments.length === 0 ? (
+              <p style={{ color: '#334155', textAlign: 'center', marginTop: 60, fontSize: '0.9rem' }}>No active investments at the moment.</p>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: 20 }}>
+                {investments.map((inv) => {
+                  const st = STATUS_STYLE[inv.status] ?? STATUS_STYLE['active']!;
+                  return (
+                    <div
+                      key={inv._id}
+                      style={{
+                        background: 'rgba(255,255,255,0.04)',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        borderRadius: 20,
+                        padding: '24px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 12,
+                        transition: 'border-color 0.2s',
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.borderColor = `${palette.accent}55`)}
+                      onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)')}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
+                        <h3 style={{ margin: 0, color: '#f1f5f9', fontSize: '1rem', fontWeight: 700, lineHeight: 1.3 }}>{inv.title}</h3>
+                        <span style={{
+                          padding: '3px 10px',
+                          borderRadius: 999,
+                          fontSize: '0.68rem',
+                          fontWeight: 700,
+                          color: st.color,
+                          background: st.bg,
+                          whiteSpace: 'nowrap',
+                          flexShrink: 0,
+                        }}>
+                          {st.label}
+                        </span>
+                      </div>
+
+                      <p style={{ color: '#64748b', fontSize: '0.82rem', margin: 0, lineHeight: 1.6 }}>{inv.description}</p>
+
+                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 'auto' }}>
+                        <span style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 8, padding: '4px 10px', fontSize: '0.72rem', color: '#94a3b8' }}>
+                          Min {inv.minimumInvestment.toLocaleString()} {inv.currency}
+                        </span>
+                        <span style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 8, padding: '4px 10px', fontSize: '0.72rem', color: '#94a3b8' }}>
+                          {inv.cargoCount} cargo{inv.cargoCount !== 1 ? 's' : ''}
+                        </span>
+                        <span style={{ background: 'rgba(255,255,255,0.06)', borderRadius: 8, padding: '4px 10px', fontSize: '0.72rem', color: '#94a3b8' }}>
+                          {inv.investorCount} investor{inv.investorCount !== 1 ? 's' : ''}
+                        </span>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => navigate('/login')}
+                        style={{
+                          border: `1px solid ${palette.accent}55`,
+                          borderRadius: 10,
+                          padding: '10px',
+                          background: 'transparent',
+                          color: palette.accent,
+                          fontWeight: 700,
+                          fontSize: '0.82rem',
+                          cursor: 'pointer',
+                          transition: 'all 0.16s',
+                        }}
+                        onMouseEnter={(e) => { e.currentTarget.style.background = `${palette.accent}18`; }}
+                        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                      >
+                        Join this round →
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
+        )}
 
-          <style>{`
-            @keyframes livePing {
-              0%   { transform: scale(1);   opacity: 0.9; }
-              70%  { transform: scale(2.6); opacity: 0; }
-              100% { transform: scale(1);   opacity: 0; }
-            }
-          `}</style>
-        </div>
-      )}
+        {/* Who Are We */}
+        {section === 'who' && (
+          <div style={{ maxWidth: 860, margin: '0 auto', padding: '48px 28px' }}>
+            <p style={{ color: palette.accent, textTransform: 'uppercase', letterSpacing: '0.2em', fontWeight: 700, fontSize: '0.65rem', marginBottom: 8 }}>
+              Our story
+            </p>
+            {siteContent?.title ? (
+              <h2 style={{ color: '#fff', fontSize: 'clamp(1.4rem,3vw,2rem)', fontWeight: 800, margin: '0 0 32px' }}>
+                {siteContent.title}
+              </h2>
+            ) : (
+              <h2 style={{ color: '#fff', fontSize: 'clamp(1.4rem,3vw,2rem)', fontWeight: 800, margin: '0 0 32px' }}>
+                Who Are We?
+              </h2>
+            )}
 
-      {/* World map — fills remaining space */}
-      <WorldMap accentColor={palette.accent} onDataLoaded={handleDataLoaded} />
-    </main>
+            {siteContent?.body ? (
+              <p style={{ color: '#94a3b8', whiteSpace: 'pre-wrap', lineHeight: 1.85, fontSize: '0.95rem', margin: '0 0 40px' }}>
+                {siteContent.body}
+              </p>
+            ) : (
+              <p style={{ color: '#334155', fontSize: '0.9rem' }}>Content coming soon.</p>
+            )}
+
+            {(siteContent?.mediaUrls ?? []).length > 0 && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                {(siteContent!.mediaUrls ?? []).map((url) => (
+                  <MediaItem key={url} url={url} />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
   );
 };
 

@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { CargoModel } from '../models/Cargo';
 import { InvestorModel } from '../models/Investor';
 import { InvestmentModel } from '../models/Investment';
+import { SiteContentModel } from '../models/SiteContent';
 
 const router = Router();
 
@@ -106,7 +107,12 @@ router.get('/public/map-data', async (_req: Request, res: Response): Promise<voi
       (sum, inv) => sum + ((inv.investmentAmount || 0) * (inv.profitPercentageOnInvestment || 0)) / 100,
       0
     );
-    const activeShipments = cargos.filter(
+    // Only show cargos linked to non-successful investments
+    const activeInvestments = await InvestmentModel.find({ status: { $ne: 'successful' } }).select('cargoIds').lean();
+    const activeCargoIds = new Set(activeInvestments.flatMap((inv) => inv.cargoIds.map(String)));
+    const activeCargos = cargos.filter((c) => activeCargoIds.has(String(c._id)));
+
+    const activeShipments = activeCargos.filter(
       (c) => c.createdAt != null && c.createdAt <= now && new Date(c.estimatedTimeOfArrival) >= now
     ).length;
 
@@ -116,7 +122,7 @@ router.get('/public/map-data', async (_req: Request, res: Response): Promise<voi
         avatar: inv.avatar || 'popeye',
         location: inv.location || '',
       })),
-      cargos: cargos.map((c) => ({
+      cargos: activeCargos.map((c) => ({
         _id: c._id,
         productBeingShipped: c.productBeingShipped,
         shippingType: c.shippingType || 'sea',
@@ -134,6 +140,38 @@ router.get('/public/map-data', async (_req: Request, res: Response): Promise<voi
     });
   } catch {
     res.status(500).json({ message: 'Failed to load map data.' });
+  }
+});
+
+router.get('/public/investments', async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const investments = await InvestmentModel.find({ status: { $ne: 'successful' } })
+      .sort({ createdAt: -1 })
+      .lean();
+
+    res.status(200).json({
+      investments: investments.map((inv) => ({
+        _id: inv._id,
+        title: inv.title,
+        description: inv.description,
+        currency: inv.currency,
+        minimumInvestment: inv.minimumInvestment,
+        status: inv.status || 'active',
+        cargoCount: inv.cargoIds?.length ?? 0,
+        investorCount: inv.assignedInvestorIds?.length ?? 0,
+      })),
+    });
+  } catch {
+    res.status(500).json({ message: 'Failed to load investments.' });
+  }
+});
+
+router.get('/public/site-content/:key', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const content = await SiteContentModel.findOne({ key: req.params.key }).lean();
+    res.status(200).json({ content: content ?? { key: req.params.key, title: '', body: '', mediaUrls: [] } });
+  } catch {
+    res.status(500).json({ message: 'Failed to load content.' });
   }
 });
 
@@ -199,6 +237,8 @@ router.post('/admin/cargos', async (req: Request, res: Response): Promise<void> 
       ? (String(shippingType) as 'sea' | 'air' | 'land')
       : 'sea';
 
+    const { storyText, storyMediaUrls } = req.body as { storyText?: string; storyMediaUrls?: string[] };
+
     const cargo = await CargoModel.create({
       productBeingShipped: String(productBeingShipped || '').trim(),
       quantity: normalizeNumber(quantity, 'quantity'),
@@ -212,6 +252,10 @@ router.post('/admin/cargos', async (req: Request, res: Response): Promise<void> 
       estimatedTimeOfSelling: normalizeDate(estimatedTimeOfSelling),
       shippingType: normalizedShippingType,
       cargoDescription: String(cargoDescription || '').trim(),
+      story: {
+        text: String(storyText || '').trim(),
+        mediaUrls: Array.isArray(storyMediaUrls) ? storyMediaUrls.filter(Boolean) : [],
+      },
       assignedInvestorIds: [],
     });
 
@@ -248,6 +292,8 @@ router.put('/admin/cargos/:id', async (req: Request, res: Response): Promise<voi
       ? (String(shippingType) as 'sea' | 'air' | 'land')
       : 'sea';
 
+    const { storyText, storyMediaUrls } = req.body as { storyText?: string; storyMediaUrls?: string[] };
+
     const cargo = await CargoModel.findByIdAndUpdate(
       id,
       {
@@ -263,6 +309,10 @@ router.put('/admin/cargos/:id', async (req: Request, res: Response): Promise<voi
         estimatedTimeOfSelling: normalizeDate(estimatedTimeOfSelling),
         shippingType: normalizedShippingType,
         cargoDescription: String(cargoDescription || '').trim(),
+        story: {
+          text: String(storyText || '').trim(),
+          mediaUrls: Array.isArray(storyMediaUrls) ? storyMediaUrls.filter(Boolean) : [],
+        },
       },
       { new: true, runValidators: true }
     );
@@ -509,14 +559,16 @@ router.post('/admin/investments', async (req: Request, res: Response): Promise<v
   }
 
   try {
-    const { title, description, currency, minimumInvestment, cargoIds } = req.body as {
+    const { title, description, currency, minimumInvestment, cargoIds, status } = req.body as {
       title?: string;
       description?: string;
       currency?: unknown;
       minimumInvestment?: unknown;
       cargoIds?: string[];
+      status?: string;
     };
 
+    const validStatuses = ['active', 'in_progress', 'waiting', 'successful'];
     const assignedCargoIds = Array.isArray(cargoIds) ? cargoIds.filter(Boolean) : [];
     const investment = await InvestmentModel.create({
       title: String(title || '').trim(),
@@ -525,6 +577,7 @@ router.post('/admin/investments', async (req: Request, res: Response): Promise<v
       minimumInvestment: normalizeNumber(minimumInvestment, 'minimumInvestment'),
       cargoIds: assignedCargoIds,
       assignedInvestorIds: [],
+      status: validStatuses.includes(String(status || '')) ? status : 'active',
     });
 
     res.status(201).json({ investment });
@@ -542,14 +595,16 @@ router.put('/admin/investments/:id', async (req: Request, res: Response): Promis
 
   try {
     const { id } = req.params;
-    const { title, description, currency, minimumInvestment, cargoIds } = req.body as {
+    const { title, description, currency, minimumInvestment, cargoIds, status } = req.body as {
       title?: string;
       description?: string;
       currency?: unknown;
       minimumInvestment?: unknown;
       cargoIds?: string[];
+      status?: string;
     };
 
+    const validStatuses = ['active', 'in_progress', 'waiting', 'successful'];
     const assignedCargoIds = Array.isArray(cargoIds) ? cargoIds.filter(Boolean) : [];
     const investment = await InvestmentModel.findByIdAndUpdate(
       id,
@@ -559,6 +614,7 @@ router.put('/admin/investments/:id', async (req: Request, res: Response): Promis
         currency: normalizeCurrency(currency),
         minimumInvestment: normalizeNumber(minimumInvestment, 'minimumInvestment'),
         cargoIds: assignedCargoIds,
+        ...(validStatuses.includes(String(status || '')) && { status }),
       },
       { new: true, runValidators: true }
     );
@@ -600,6 +656,30 @@ router.delete('/admin/investments/:id', async (req: Request, res: Response): Pro
     res.status(400).json({
       message: error instanceof Error ? error.message : 'Failed to delete investment.',
     });
+  }
+});
+
+router.put('/admin/site-content/:key', async (req: Request, res: Response): Promise<void> => {
+  if (!requireAdmin(req, res)) return;
+
+  try {
+    const { key } = req.params;
+    const { title, body, mediaUrls } = req.body as { title?: string; body?: string; mediaUrls?: string[] };
+
+    const content = await SiteContentModel.findOneAndUpdate(
+      { key },
+      {
+        key,
+        title: String(title || '').trim(),
+        body: String(body || '').trim(),
+        mediaUrls: Array.isArray(mediaUrls) ? mediaUrls.filter(Boolean) : [],
+      },
+      { new: true, upsert: true, runValidators: true }
+    );
+
+    res.status(200).json({ content });
+  } catch (error) {
+    res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to save content.' });
   }
 });
 

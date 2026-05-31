@@ -9,11 +9,15 @@ import {
   deleteInvestor,
   deleteInvestment,
   getAdminDashboard,
+  getPublicSiteContent,
+  updateSiteContent,
   logoutAdmin,
   updateInvestor,
   updateInvestment,
   AdminDashboardResponse,
   Investment,
+  InvestmentStatus,
+  SiteContent,
 } from '../api/portalApi';
 import { COUNTRIES } from '../utils/countries';
 
@@ -25,13 +29,21 @@ const shippingTypeOptions = [
   { value: 'land', label: '🚛 Land freight' },
 ] as const;
 
-type AdminSection = 'cargos' | 'investments' | 'investors' | 'relations';
+type AdminSection = 'cargos' | 'investments' | 'investors' | 'relations' | 'content';
 
 const SECTIONS: Array<{ id: AdminSection; label: string }> = [
   { id: 'cargos', label: '📦 Cargos' },
   { id: 'investments', label: '💼 Investments' },
   { id: 'investors', label: '👤 Investors' },
   { id: 'relations', label: '🔗 Relations' },
+  { id: 'content', label: '✏️ Site Content' },
+];
+
+const STATUS_OPTIONS: Array<{ value: InvestmentStatus; label: string }> = [
+  { value: 'active', label: '🟢 Active' },
+  { value: 'in_progress', label: '🔵 In Progress' },
+  { value: 'waiting', label: '🟡 Waiting' },
+  { value: 'successful', label: '✅ Successful' },
 ];
 
 const emptyCargoForm = {
@@ -47,6 +59,9 @@ const emptyCargoForm = {
   estimatedTimeOfSelling: '',
   shippingType: 'sea' as 'sea' | 'air' | 'land',
   cargoDescription: '',
+  storyText: '',
+  storyMediaInput: '',
+  storyMediaUrls: [] as string[],
 };
 
 const emptyInvestorForm = {
@@ -66,6 +81,7 @@ const emptyInvestmentForm = {
   currency: 'USD',
   minimumInvestment: '',
   cargoIds: [] as string[],
+  status: 'active' as InvestmentStatus,
 };
 
 const AdminDashboard: React.FC = () => {
@@ -84,6 +100,9 @@ const AdminDashboard: React.FC = () => {
   const [savingCargo, setSavingCargo] = useState(false);
   const [savingInvestor, setSavingInvestor] = useState(false);
   const [savingInvestment, setSavingInvestment] = useState(false);
+  const [siteContent, setSiteContent] = useState<SiteContent>({ key: 'who_are_we', title: '', body: '', mediaUrls: [] });
+  const [siteContentMediaInput, setSiteContentMediaInput] = useState('');
+  const [savingSiteContent, setSavingSiteContent] = useState(false);
 
   const refresh = async () => {
     const response = await getAdminDashboard();
@@ -96,8 +115,15 @@ const AdminDashboard: React.FC = () => {
     let mounted = true;
     const load = async () => {
       try {
-        const response = await getAdminDashboard();
-        if (mounted) { setData(response); setError(null); }
+        const [response, contentRes] = await Promise.all([
+          getAdminDashboard(),
+          getPublicSiteContent('who_are_we'),
+        ]);
+        if (mounted) {
+          setData(response);
+          setSiteContent(contentRes.content);
+          setError(null);
+        }
       } catch (err) {
         if (mounted) setError(err instanceof Error ? err.message : 'Unable to load admin dashboard');
       } finally {
@@ -129,7 +155,20 @@ const AdminDashboard: React.FC = () => {
     estimatedTimeOfSelling: cargoForm.estimatedTimeOfSelling,
     shippingType: cargoForm.shippingType,
     cargoDescription: cargoForm.cargoDescription,
+    storyText: cargoForm.storyText,
+    storyMediaUrls: cargoForm.storyMediaUrls,
   });
+
+  const addStoryMedia = () => {
+    const url = cargoForm.storyMediaInput.trim();
+    if (url && !cargoForm.storyMediaUrls.includes(url)) {
+      setCargoForm((f) => ({ ...f, storyMediaUrls: [...f.storyMediaUrls, url], storyMediaInput: '' }));
+    }
+  };
+
+  const removeStoryMedia = (url: string) => {
+    setCargoForm((f) => ({ ...f, storyMediaUrls: f.storyMediaUrls.filter((u) => u !== url) }));
+  };
 
   const submitCargo = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -162,6 +201,9 @@ const AdminDashboard: React.FC = () => {
       estimatedTimeOfSelling: cargo.estimatedTimeOfSelling.split('T')[0] ?? '',
       shippingType: cargo.shippingType ?? 'sea',
       cargoDescription: cargo.cargoDescription ?? '',
+      storyText: cargo.story?.text ?? '',
+      storyMediaInput: '',
+      storyMediaUrls: cargo.story?.mediaUrls ?? [],
     });
   };
 
@@ -222,6 +264,7 @@ const AdminDashboard: React.FC = () => {
           currency: investmentForm.currency,
           minimumInvestment: Number(investmentForm.minimumInvestment),
           cargoIds: investmentForm.cargoIds,
+          status: investmentForm.status,
         });
       } else {
         await createInvestment({
@@ -230,6 +273,7 @@ const AdminDashboard: React.FC = () => {
           currency: investmentForm.currency,
           minimumInvestment: Number(investmentForm.minimumInvestment),
           cargoIds: investmentForm.cargoIds,
+          status: investmentForm.status,
         });
       }
       resetInvestmentForm();
@@ -281,6 +325,7 @@ const AdminDashboard: React.FC = () => {
       currency: investment.currency,
       minimumInvestment: investment.minimumInvestment.toString(),
       cargoIds: investment.cargoIds || [],
+      status: investment.status || 'active',
     });
   };
 
@@ -383,6 +428,34 @@ const AdminDashboard: React.FC = () => {
                 placeholder="Optional: describe this cargo for investors..."
                 rows={3}
               />
+              <label style={{ marginTop: 8, borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 12 }}>Story text</label>
+              <textarea
+                value={cargoForm.storyText}
+                onChange={(e) => setCargoForm({ ...cargoForm, storyText: e.target.value })}
+                placeholder="Write the cargo story — origin, sourcing process, quality notes..."
+                rows={5}
+              />
+              <label>Add photo / video URL</label>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <input
+                  value={cargoForm.storyMediaInput}
+                  onChange={(e) => setCargoForm({ ...cargoForm, storyMediaInput: e.target.value })}
+                  placeholder="https://... image or YouTube URL"
+                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addStoryMedia(); } }}
+                  style={{ flex: 1 }}
+                />
+                <button type="button" onClick={addStoryMedia} style={{ whiteSpace: 'nowrap' }}>Add</button>
+              </div>
+              {cargoForm.storyMediaUrls.length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 4 }}>
+                  {cargoForm.storyMediaUrls.map((url) => (
+                    <div key={url} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.78rem', color: '#94a3b8' }}>
+                      <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{url}</span>
+                      <button type="button" className="portal-btn-delete" onClick={() => removeStoryMedia(url)} style={{ padding: '2px 8px', fontSize: '0.72rem' }}>✕</button>
+                    </div>
+                  ))}
+                </div>
+              )}
               <div className="portal-form-actions">
                 <button type="submit" disabled={savingCargo}>{savingCargo ? 'Saving...' : editingCargoId ? 'Update Cargo' : 'Save Cargo'}</button>
                 {editingCargoId && <button type="button" onClick={resetCargoForm}>Cancel</button>}
@@ -435,6 +508,10 @@ const AdminDashboard: React.FC = () => {
               </select>
               <label>Minimum investment</label>
               <input type="number" value={investmentForm.minimumInvestment} onChange={(e) => setInvestmentForm({ ...investmentForm, minimumInvestment: e.target.value })} required />
+              <label>Status</label>
+              <select value={investmentForm.status} onChange={(e) => setInvestmentForm({ ...investmentForm, status: e.target.value as InvestmentStatus })}>
+                {STATUS_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+              </select>
               <div className="portal-multiselect">
                 <span>Assign cargos</span>
                 {cargoOptions.length === 0 ? (
@@ -474,6 +551,7 @@ const AdminDashboard: React.FC = () => {
                     {inv.currency} · Min {inv.minimumInvestment}
                     <span className="portal-item-badge">{inv.cargoIds?.length ?? 0} cargos</span>
                     <span className="portal-item-badge">{inv.assignedInvestorIds.length} investors</span>
+                    <span className="portal-item-badge">{STATUS_OPTIONS.find((s) => s.value === inv.status)?.label ?? '🟢 Active'}</span>
                   </p>
                 </div>
               ))}
@@ -558,6 +636,100 @@ const AdminDashboard: React.FC = () => {
           </article>
         </div>
       )}
+
+      {/* ── SITE CONTENT ── */}
+      {activeSection === 'content' && (() => {
+        const submitSiteContent = async (e: React.FormEvent) => {
+          e.preventDefault();
+          setSavingSiteContent(true);
+          try {
+            const res = await updateSiteContent('who_are_we', {
+              title: siteContent.title,
+              body: siteContent.body,
+              mediaUrls: siteContent.mediaUrls,
+            });
+            setSiteContent(res.content);
+          } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to save content');
+          } finally { setSavingSiteContent(false); }
+        };
+
+        const addContentMedia = () => {
+          const url = siteContentMediaInput.trim();
+          if (url && !siteContent.mediaUrls?.includes(url)) {
+            setSiteContent((c) => ({ ...c, mediaUrls: [...(c.mediaUrls ?? []), url] }));
+            setSiteContentMediaInput('');
+          }
+        };
+
+        const removeContentMedia = (url: string) => {
+          setSiteContent((c) => ({ ...c, mediaUrls: c.mediaUrls?.filter((u) => u !== url) }));
+        };
+
+        return (
+          <div className="admin-section-grid">
+            <article className="portal-card">
+              <h2>Who Are We?</h2>
+              <p style={{ color: '#64748b', fontSize: '0.82rem', marginBottom: 16 }}>
+                This content is displayed on the landing page "Who Are We?" section.
+              </p>
+              <form className="portal-form" onSubmit={submitSiteContent}>
+                <label>Page title</label>
+                <input
+                  value={siteContent.title ?? ''}
+                  onChange={(e) => setSiteContent((c) => ({ ...c, title: e.target.value }))}
+                  placeholder="e.g. Our Story"
+                />
+                <label>Body text</label>
+                <textarea
+                  value={siteContent.body ?? ''}
+                  onChange={(e) => setSiteContent((c) => ({ ...c, body: e.target.value }))}
+                  placeholder="Tell your story — who you are, your mission, your values..."
+                  rows={10}
+                />
+                <label>Add photo / video URL</label>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <input
+                    value={siteContentMediaInput}
+                    onChange={(e) => setSiteContentMediaInput(e.target.value)}
+                    placeholder="https://... image or YouTube URL"
+                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addContentMedia(); } }}
+                    style={{ flex: 1 }}
+                  />
+                  <button type="button" onClick={addContentMedia} style={{ whiteSpace: 'nowrap' }}>Add</button>
+                </div>
+                {(siteContent.mediaUrls ?? []).length > 0 && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 4 }}>
+                    {(siteContent.mediaUrls ?? []).map((url) => (
+                      <div key={url} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.78rem', color: '#94a3b8' }}>
+                        <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{url}</span>
+                        <button type="button" className="portal-btn-delete" onClick={() => removeContentMedia(url)} style={{ padding: '2px 8px', fontSize: '0.72rem' }}>✕</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <button type="submit" disabled={savingSiteContent}>{savingSiteContent ? 'Saving...' : 'Save Content'}</button>
+              </form>
+            </article>
+            <article className="portal-card">
+              <h2>Preview</h2>
+              {siteContent.title && <h3 style={{ color: '#f1f5f9', marginTop: 0 }}>{siteContent.title}</h3>}
+              {siteContent.body ? (
+                <p style={{ color: '#94a3b8', whiteSpace: 'pre-wrap', lineHeight: 1.7, fontSize: '0.88rem' }}>{siteContent.body}</p>
+              ) : (
+                <p className="relation-empty">No body text yet.</p>
+              )}
+              {(siteContent.mediaUrls ?? []).length > 0 && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginTop: 12 }}>
+                  {(siteContent.mediaUrls ?? []).map((url) => (
+                    <span key={url} className="relation-chip relation-chip--cargo" style={{ fontSize: '0.72rem', wordBreak: 'break-all' }}>🖼 {url}</span>
+                  ))}
+                </div>
+              )}
+            </article>
+          </div>
+        );
+      })()}
 
       {/* ── RELATIONS ── */}
       {activeSection === 'relations' && (

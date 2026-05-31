@@ -9,6 +9,8 @@ const API_BASE = process.env['REACT_APP_API_URL'] || 'http://localhost:8000/api/
 
 type ApiMessage = { message?: string };
 
+export type CargoStory = { text?: string; mediaUrls?: string[] };
+
 export type Cargo = {
   _id: string;
   productBeingShipped: string;
@@ -24,6 +26,7 @@ export type Cargo = {
   assignedInvestorIds: string[];
   shippingType?: 'sea' | 'air' | 'land';
   cargoDescription?: string;
+  story?: CargoStory;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -72,6 +75,8 @@ export type PublicMapData = {
   stats: PublicMapStats;
 };
 
+export type InvestmentStatus = 'active' | 'in_progress' | 'waiting' | 'successful';
+
 export type Investment = {
   _id: string;
   title: string;
@@ -80,8 +85,27 @@ export type Investment = {
   minimumInvestment: number;
   cargoIds: string[];
   assignedInvestorIds: string[];
+  status?: InvestmentStatus;
   createdAt?: string;
   updatedAt?: string;
+};
+
+export type PublicInvestment = {
+  _id: string;
+  title: string;
+  description: string;
+  currency: string;
+  minimumInvestment: number;
+  status: InvestmentStatus;
+  cargoCount: number;
+  investorCount: number;
+};
+
+export type SiteContent = {
+  key: string;
+  title?: string;
+  body?: string;
+  mediaUrls?: string[];
 };
 
 export type AdminDashboardResponse = {
@@ -146,7 +170,7 @@ export async function getAdminDashboard(): Promise<AdminDashboardResponse> {
   return request<AdminDashboardResponse>('/admin/dashboard', { method: 'GET' }, getAdminToken());
 }
 
-export async function createCargo(payload: Omit<Cargo, '_id' | 'assignedInvestorIds' | 'createdAt' | 'updatedAt'>): Promise<Cargo> {
+export async function createCargo(payload: Omit<Cargo, '_id' | 'assignedInvestorIds' | 'createdAt' | 'updatedAt'> & { storyText?: string; storyMediaUrls?: string[] }): Promise<Cargo> {
   const response = await request<{ cargo: Cargo }>('/admin/cargos', {
     method: 'POST',
     body: JSON.stringify(payload),
@@ -155,7 +179,7 @@ export async function createCargo(payload: Omit<Cargo, '_id' | 'assignedInvestor
   return response.cargo;
 }
 
-export async function updateCargo(id: string, payload: Omit<Cargo, '_id' | 'assignedInvestorIds' | 'createdAt' | 'updatedAt'>): Promise<Cargo> {
+export async function updateCargo(id: string, payload: Omit<Cargo, '_id' | 'assignedInvestorIds' | 'createdAt' | 'updatedAt'> & { storyText?: string; storyMediaUrls?: string[] }): Promise<Cargo> {
   const response = await request<{ cargo: Cargo }>(`/admin/cargos/${id}`, {
     method: 'PUT',
     body: JSON.stringify(payload),
@@ -172,6 +196,21 @@ export async function deleteCargo(id: string): Promise<void> {
 
 export async function getPublicMapData(): Promise<PublicMapData> {
   return request<PublicMapData>('/public/map-data', { method: 'GET' });
+}
+
+export async function getPublicInvestments(): Promise<{ investments: PublicInvestment[] }> {
+  return request<{ investments: PublicInvestment[] }>('/public/investments', { method: 'GET' });
+}
+
+export async function getPublicSiteContent(key: string): Promise<{ content: SiteContent }> {
+  return request<{ content: SiteContent }>(`/public/site-content/${key}`, { method: 'GET' });
+}
+
+export async function updateSiteContent(key: string, payload: Omit<SiteContent, 'key'>): Promise<{ content: SiteContent }> {
+  return request<{ content: SiteContent }>(`/admin/site-content/${key}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  }, getAdminToken());
 }
 
 export async function createInvestor(payload: {
@@ -222,6 +261,7 @@ export async function createInvestment(payload: {
   currency: string;
   minimumInvestment: number;
   cargoIds: string[];
+  status?: InvestmentStatus;
 }): Promise<Investment> {
   const response = await request<{ investment: Investment }>('/admin/investments', {
     method: 'POST',
@@ -237,6 +277,7 @@ export async function updateInvestment(id: string, payload: {
   currency: string;
   minimumInvestment: number;
   cargoIds: string[];
+  status?: InvestmentStatus;
 }): Promise<Investment> {
   const response = await request<{ investment: Investment }>(`/admin/investments/${id}`, {
     method: 'PUT',

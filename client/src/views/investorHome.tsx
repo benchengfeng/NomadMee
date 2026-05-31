@@ -324,18 +324,50 @@ const InvestorHome: React.FC = () => {
     if (cargoSteps.length > 0) {
       return (
         <div className="story-panel" style={{ color: theme.text }}>
-          <p className="story-intro">Each cargo below is a step in your investment journey from sourcing to payout.</p>
+          <p className="story-intro">Each cargo below is a chapter in your investment journey.</p>
           <div className="story-timeline">
-            {cargoSteps.map((cargo, index) => (
-              <div key={cargo._id} className="story-step" style={{ background: theme.surface }}>
-                <div className="story-step-number" style={{ background: theme.accent }}>{index + 1}</div>
-                <div>
-                  <strong>{cargo.productBeingShipped}</strong>
-                  <p className="story-step-eta">{cargo.purchaseLocation} → {cargo.shippingDestination}</p>
-                  <p className="story-step-eta">ETA {formatDate(cargo.estimatedTimeOfArrival)}</p>
+            {cargoSteps.map((cargo, index) => {
+              const hasStory = cargo.story?.text || (cargo.story?.mediaUrls?.length ?? 0) > 0;
+              return (
+                <div key={cargo._id} className="story-step" style={{ background: theme.surface }}>
+                  <div className="story-step-number" style={{ background: theme.accent }}>{index + 1}</div>
+                  <div style={{ flex: 1 }}>
+                    <strong>{cargo.productBeingShipped}</strong>
+                    <p className="story-step-eta">{cargo.purchaseLocation} → {cargo.shippingDestination}</p>
+                    <p className="story-step-eta">ETA {formatDate(cargo.estimatedTimeOfArrival)}</p>
+                    {hasStory && (
+                      <div style={{ marginTop: 12 }}>
+                        {cargo.story?.text && (
+                          <p style={{ fontSize: '0.85rem', color: theme.secondaryText, lineHeight: 1.7, margin: '0 0 12px', whiteSpace: 'pre-wrap' }}>
+                            {cargo.story.text}
+                          </p>
+                        )}
+                        {(cargo.story?.mediaUrls ?? []).map((url) => {
+                          const isYT = url.includes('youtube.com') || url.includes('youtu.be');
+                          const isImg = /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(url);
+                          const isVid = /\.(mp4|webm|ogg)$/i.test(url);
+                          const ytId = isYT ? (url.match(/(?:v=|youtu\.be\/)([A-Za-z0-9_-]{11})/)?.[1] ?? '') : '';
+                          return isYT ? (
+                            <iframe
+                              key={url}
+                              title="Cargo story video"
+                              src={`https://www.youtube.com/embed/${ytId}`}
+                              style={{ width: '100%', aspectRatio: '16/9', borderRadius: 12, border: 'none', marginBottom: 8 }}
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                              allowFullScreen
+                            />
+                          ) : isImg ? (
+                            <img key={url} src={url} alt="" style={{ width: '100%', borderRadius: 12, objectFit: 'cover', maxHeight: 280, marginBottom: 8 }} />
+                          ) : isVid ? (
+                            <video key={url} src={url} controls style={{ width: '100%', borderRadius: 12, marginBottom: 8 }} />
+                          ) : null;
+                        })}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
           <div className="story-status" style={{ background: theme.surface }}>
             <h3>Current mission</h3>
