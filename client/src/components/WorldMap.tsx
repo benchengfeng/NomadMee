@@ -89,29 +89,72 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor = '#38bdf8', onDataLoad
           coords[1] + (Math.random() - 0.5) * 2,
         ];
 
-        const el = document.createElement('div');
+        // Wrapper — MapLibre owns this element's transform for positioning
+        const wrapper = document.createElement('div');
+        wrapper.style.cssText = `
+          position:relative;
+          width:36px;height:36px;
+          cursor:pointer;
+        `;
+
+        // Inner avatar — we apply hover scale here, NOT on wrapper
+        const inner = document.createElement('div');
         const src = AVATAR_URLS[inv.avatar] ?? AVATAR_URLS['popeye']!;
-        el.style.cssText = `
+        inner.style.cssText = `
           width:36px;height:36px;border-radius:50%;
           background-image:url(${src});
           background-size:cover;background-position:center;
           border:2.5px solid ${accentColor};
           box-shadow:0 0 0 3px ${accentColor}44,0 4px 14px rgba(0,0,0,0.8);
-          cursor:pointer;
-          transition:transform 0.15s;
+          transition:transform 0.15s, box-shadow 0.15s;
         `;
-        el.addEventListener('mouseenter', () => { el.style.transform = 'scale(1.15)'; });
-        el.addEventListener('mouseleave', () => { el.style.transform = 'scale(1)'; });
+        wrapper.appendChild(inner);
 
-        const popup = new maplibregl.Popup({
-          closeButton: false,
-          offset: 20,
-          className: 'world-map-popup',
-        }).setHTML(`<strong>${inv.name}</strong><br/><span>${inv.location}</span>`);
+        // Tooltip div — shown on hover
+        const investCount = inv.investmentCount ?? 0;
+        const tooltip = document.createElement('div');
+        tooltip.style.cssText = `
+          position:absolute;
+          bottom:calc(100% + 10px);
+          left:50%;
+          transform:translateX(-50%);
+          background:rgba(10,12,20,0.96);
+          border:1px solid rgba(255,255,255,0.12);
+          border-radius:12px;
+          padding:10px 14px;
+          white-space:nowrap;
+          pointer-events:none;
+          opacity:0;
+          transition:opacity 0.18s;
+          box-shadow:0 8px 24px rgba(0,0,0,0.7);
+          z-index:100;
+        `;
+        tooltip.innerHTML = `
+          <div style="font-weight:800;color:#f1f5f9;font-size:0.82rem;margin-bottom:3px;">${inv.name}</div>
+          <div style="color:#64748b;font-size:0.72rem;margin-bottom:6px;">📍 ${inv.location}</div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <span style="color:#94a3b8;font-size:0.7rem;">💼 ${investCount} investment${investCount !== 1 ? 's' : ''}</span>
+            <span style="display:flex;align-items:center;gap:4px;font-size:0.7rem;">
+              <span style="width:7px;height:7px;border-radius:50%;background:#22c55e;display:inline-block;box-shadow:0 0 4px #22c55e;"></span>
+              <span style="color:#22c55e;font-weight:700;">Active</span>
+            </span>
+          </div>
+        `;
+        wrapper.appendChild(tooltip);
 
-        new maplibregl.Marker({ element: el, anchor: 'center' })
+        wrapper.addEventListener('mouseenter', () => {
+          inner.style.transform = 'scale(1.18)';
+          inner.style.boxShadow = `0 0 0 4px ${accentColor}66, 0 6px 18px rgba(0,0,0,0.9)`;
+          tooltip.style.opacity = '1';
+        });
+        wrapper.addEventListener('mouseleave', () => {
+          inner.style.transform = 'scale(1)';
+          inner.style.boxShadow = `0 0 0 3px ${accentColor}44, 0 4px 14px rgba(0,0,0,0.8)`;
+          tooltip.style.opacity = '0';
+        });
+
+        new maplibregl.Marker({ element: wrapper, anchor: 'center' })
           .setLngLat(jitter)
-          .setPopup(popup)
           .addTo(map);
       }
       setInvestorCount(visibleInvestors);

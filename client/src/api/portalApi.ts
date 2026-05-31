@@ -50,6 +50,7 @@ export type PublicMapInvestor = {
   name: string;
   avatar: string;
   location: string;
+  investmentCount: number;
 };
 
 export type PublicMapCargo = {

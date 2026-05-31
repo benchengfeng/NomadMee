@@ -120,11 +120,15 @@ router.get('/public/map-data', async (_req: Request, res: Response): Promise<voi
   try {
     const now = new Date();
 
-    const [investors, cargos, investmentCount, allInvestors] = await Promise.all([
+    const [investors, cargos, investmentCount, allInvestors, investorInvestmentCounts] = await Promise.all([
       InvestorModel.find({ kycCompleted: true }).select('displayName name avatar location').lean(),
       CargoModel.find().select('productBeingShipped shippingType purchaseLocation shippingDestination estimatedTimeOfArrival createdAt').lean(),
       InvestmentModel.countDocuments(),
       InvestorModel.find().select('investmentAmount profitPercentageOnInvestment').lean(),
+      InvestmentModel.aggregate<{ _id: string; count: number }>([
+        { $unwind: '$assignedInvestorIds' },
+        { $group: { _id: { $toString: '$assignedInvestorIds' }, count: { $sum: 1 } } },
+      ]),
     ]);
 
     const totalInvested = allInvestors.reduce((sum, inv) => sum + (inv.investmentAmount || 0), 0);
@@ -141,11 +145,16 @@ router.get('/public/map-data', async (_req: Request, res: Response): Promise<voi
       (c) => c.createdAt != null && c.createdAt <= now && new Date(c.estimatedTimeOfArrival) >= now
     ).length;
 
+    const investmentCountMap = Object.fromEntries(
+      investorInvestmentCounts.map((r) => [r._id, r.count])
+    );
+
     res.status(200).json({
       investors: investors.map((inv) => ({
         name: inv.displayName || inv.name,
         avatar: inv.avatar || 'popeye',
         location: inv.location || '',
+        investmentCount: investmentCountMap[String(inv._id)] ?? 0,
       })),
       cargos: activeCargos.map((c) => ({
         _id: c._id,

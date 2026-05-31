@@ -258,6 +258,32 @@ const CargoMap: React.FC<CargoMapProps> = ({ cargo, avatar, theme }) => {
     pausedAtRef.current = 0;
   }, [route]);
 
+  const jumpToCurrentLocation = useCallback(() => {
+    const start = cargo.createdAt ? new Date(cargo.createdAt).getTime() : 0;
+    const end = new Date(cargo.estimatedTimeOfArrival).getTime();
+    const now = Date.now();
+    const realProgress = start > 0 && end > start
+      ? Math.max(0, Math.min(1, (now - start) / (end - start)))
+      : 0;
+
+    const pos = getPositionAtProgress(route, realProgress);
+
+    // Stop any animation and jump avatar to real-world position
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    setIsPlaying(false);
+    setProgress(realProgress);
+    pausedAtRef.current = realProgress;
+    markerRef.current?.setLngLat(pos as [number, number]);
+
+    // Fly the map to that position
+    mapRef.current?.flyTo({
+      center: pos as [number, number],
+      zoom: 4,
+      duration: 1200,
+      essential: true,
+    });
+  }, [cargo.createdAt, cargo.estimatedTimeOfArrival, route]);
+
   // ------------------------------------------------------------------
   // Render
   // ------------------------------------------------------------------
@@ -307,6 +333,17 @@ const CargoMap: React.FC<CargoMapProps> = ({ cargo, avatar, theme }) => {
               onClick={pauseJourney}
             >
               ⏸ Pause
+            </button>
+          )}
+          {mapReady && (
+            <button
+              type="button"
+              className="cargo-map-btn cargo-map-btn--outline"
+              style={{ borderColor: theme.accentSoft, color: theme.secondaryText }}
+              onClick={jumpToCurrentLocation}
+              title="Jump to estimated real-world position based on ETA"
+            >
+              📍 Current location
             </button>
           )}
           {progress > 0 && !isPlaying && (

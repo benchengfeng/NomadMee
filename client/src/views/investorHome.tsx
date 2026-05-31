@@ -25,9 +25,6 @@ const avatarBadgeMap: Record<string, string> = {
   curto: '/assets/cortomaltese.png',
 };
 
-function money(value: number): string {
-  return new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(value);
-}
 
 function safeCurrency(currency: string | null | undefined): string {
   return (currency ?? 'USD').toUpperCase();
@@ -194,8 +191,8 @@ const InvestorHome: React.FC = () => {
             <strong>{formatCurrency(expectedProfit, displayCurrency)}</strong>
           </div>
           <div className="stat-card" style={{ background: theme.surface, color: theme.text }}>
-            <span>Estimated ROI</span>
-            <strong>{money(data.investor.estimatedROI ?? 0)}%</strong>
+            <span>Profit rate</span>
+            <strong>{data.investor.profitPercentageOnInvestment ?? 0}%</strong>
           </div>
           <div className="stat-card" style={{ background: theme.surface, color: theme.text }}>
             <span>Active cargos</span>
@@ -641,7 +638,7 @@ const InvestorHome: React.FC = () => {
         <div style={{ marginTop: 28, paddingTop: 20, borderTop: `1px solid rgba(255,255,255,0.08)`, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12 }}>
           {[
             { label: 'Username', value: `@${data?.investor.username ?? '—'}` },
-            { label: 'Investment', value: data ? `${data.investor.investmentAmount ?? 0} ${data.investor.currency}` : '—' },
+            { label: 'Investment', value: data ? formatCurrency(convertCurrency(data.investor.investmentAmount ?? 0, data.investor.currency, settingsCurrency || data.investor.preferredCurrency || 'USD'), settingsCurrency || data.investor.preferredCurrency || 'USD') : '—' },
             { label: 'Profit rate', value: data ? `${data.investor.profitPercentageOnInvestment ?? 0}%` : '—' },
           ].map(({ label, value }) => (
             <div key={label} style={{ background: theme.surface, borderRadius: 12, padding: '12px 14px' }}>
