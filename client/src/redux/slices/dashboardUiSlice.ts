@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-export type PanelId = 'summary' | 'cargos' | 'map' | 'story' | 'support';
+export type PanelId = 'summary' | 'cargos' | 'map' | 'story' | 'support' | 'settings';
 
 export type DashboardUiState = {
   activePanel: PanelId;

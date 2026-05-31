@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { FiHome, FiPackage, FiMap, FiTrendingUp, FiHeadphones } from 'react-icons/fi';
+import { FiHome, FiPackage, FiMap, FiTrendingUp, FiHeadphones, FiSettings } from 'react-icons/fi';
 import type { IconType } from 'react-icons';
-import { getInvestorHome, logoutInvestor, InvestorHomeResponse } from '../api/portalApi';
+import { getInvestorHome, logoutInvestor, completeInvestorKyc, InvestorHomeResponse } from '../api/portalApi';
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { setTheme } from '../redux/slices/themeSlice';
 import { PanelId, setActivePanel, setSelectedCargoId } from '../redux/slices/dashboardUiSlice';
@@ -60,12 +60,19 @@ function formatDate(value: string | null | undefined): string {
   return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString();
 }
 
+const AVATAR_OPTIONS = [
+  { key: 'popeye' as const, label: 'Popeye', src: '/assets/popeyesmall.png' },
+  { key: 'olive' as const, label: 'Olive Oyl', src: '/assets/olive1.jpeg' },
+  { key: 'curto' as const, label: 'Corto Maltese', src: '/assets/cortomaltese.png', secret: true },
+];
+
 const panelButtons: Array<{ id: PanelId; label: string; Icon: IconType }> = [
   { id: 'summary', label: 'Summary', Icon: FiHome },
   { id: 'cargos', label: 'Cargos', Icon: FiPackage },
   { id: 'map', label: 'Cargo map', Icon: FiMap },
   { id: 'story', label: 'Investment story', Icon: FiTrendingUp },
   { id: 'support', label: 'Support', Icon: FiHeadphones },
+  { id: 'settings', label: 'Settings', Icon: FiSettings },
 ];
 
 const InvestorHome: React.FC = () => {
@@ -79,6 +86,14 @@ const InvestorHome: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'me' | 'globe'>('me');
+
+  // Settings panel state
+  const [settingsName, setSettingsName] = useState('');
+  const [settingsAvatar, setSettingsAvatar] = useState<'popeye' | 'olive' | 'curto'>('popeye');
+  const [showSecretAvatar, setShowSecretAvatar] = useState(false);
+  const [settingsSaving, setSettingsSaving] = useState(false);
+  const [settingsSaved, setSettingsSaved] = useState(false);
+  const [settingsError, setSettingsError] = useState('');
 
   const theme: DashboardTheme = dashboardThemes[activeTheme] || dashboardThemes[0] || {
     background: '#091422',
@@ -99,6 +114,12 @@ const InvestorHome: React.FC = () => {
         if (isMounted) {
           setData(response);
           setError(null);
+          setSettingsName(response.investor.displayName || response.investor.name || '');
+          const av = response.investor.avatar;
+          if (av === 'popeye' || av === 'olive' || av === 'curto') {
+            setSettingsAvatar(av);
+            if (av === 'curto') setShowSecretAvatar(true);
+          }
         }
       } catch (err) {
         if (isMounted) {
@@ -435,6 +456,175 @@ const InvestorHome: React.FC = () => {
     );
   };
 
+  const renderSettings = () => {
+    const handleSave = async (e: React.FormEvent) => {
+      e.preventDefault();
+      setSettingsSaving(true);
+      setSettingsError('');
+      setSettingsSaved(false);
+      try {
+        const updatedInvestor = await completeInvestorKyc({
+          avatar: settingsAvatar,
+          displayName: settingsName.trim() || data?.investor.name || 'Investor',
+        });
+        setData((prev) => prev ? { ...prev, investor: { ...prev.investor, ...updatedInvestor } } : prev);
+        setSettingsSaved(true);
+        setTimeout(() => setSettingsSaved(false), 3000);
+      } catch (err) {
+        setSettingsError(err instanceof Error ? err.message : 'Failed to save settings.');
+      } finally {
+        setSettingsSaving(false);
+      }
+    };
+
+    const currentAvatarSrc = avatarBadgeMap[settingsAvatar];
+
+    return (
+      <div className="story-panel" style={{ color: theme.text }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 24, alignItems: 'start' }}>
+          <div>
+            <h2 style={{ margin: '0 0 4px', fontSize: '1.2rem', fontWeight: 800 }}>Profile settings</h2>
+            <p style={{ margin: '0 0 24px', color: theme.secondaryText, fontSize: '0.85rem' }}>
+              Update your display name and avatar anytime.
+            </p>
+
+            <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              {/* Display name */}
+              <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: theme.secondaryText }}>Display name</span>
+                <input
+                  value={settingsName}
+                  onChange={(e) => setSettingsName(e.target.value)}
+                  placeholder="Your investor name"
+                  style={{
+                    padding: '12px 14px',
+                    borderRadius: 12,
+                    border: `1px solid ${theme.accentSoft}`,
+                    background: theme.surface,
+                    color: theme.text,
+                    fontSize: '0.95rem',
+                    width: '100%',
+                    boxSizing: 'border-box',
+                  }}
+                />
+              </label>
+
+              {/* Avatar picker */}
+              <div>
+                <p style={{ margin: '0 0 10px', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: theme.secondaryText }}>
+                  Choose avatar
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
+                  {AVATAR_OPTIONS.filter((a) => !a.secret || showSecretAvatar).map((av) => (
+                    <button
+                      key={av.key}
+                      type="button"
+                      onClick={() => setSettingsAvatar(av.key)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        padding: '10px 12px',
+                        borderRadius: 16,
+                        border: settingsAvatar === av.key ? `2px solid ${theme.accent}` : `1px solid rgba(255,255,255,0.1)`,
+                        background: settingsAvatar === av.key ? `${theme.accent}22` : theme.surface,
+                        color: theme.text,
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        gridColumn: av.secret ? '1 / -1' : undefined,
+                        transition: 'all 0.18s',
+                      }}
+                    >
+                      <img src={av.src} alt={av.label} style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: `2px solid ${settingsAvatar === av.key ? theme.accent : 'transparent'}` }} />
+                      <span style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        <span style={{ fontWeight: 700, fontSize: '0.88rem' }}>{av.label}</span>
+                        {av.secret && <span style={{ fontSize: '0.68rem', color: theme.secondaryText }}>Secret avatar</span>}
+                      </span>
+                      {settingsAvatar === av.key && (
+                        <span style={{ marginLeft: 'auto', color: theme.accent, fontSize: '1rem' }}>✓</span>
+                      )}
+                    </button>
+                  ))}
+                  {!showSecretAvatar && (
+                    <button
+                      type="button"
+                      onClick={() => setShowSecretAvatar(true)}
+                      style={{
+                        padding: '10px 12px',
+                        borderRadius: 16,
+                        border: '1px dashed rgba(255,255,255,0.2)',
+                        background: 'transparent',
+                        color: theme.secondaryText,
+                        cursor: 'pointer',
+                        fontSize: '0.82rem',
+                        gridColumn: '1 / -1',
+                      }}
+                    >
+                      🔒 Reveal secret avatar
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {settingsError && (
+                <p style={{ margin: 0, color: '#f87171', fontSize: '0.82rem' }}>{settingsError}</p>
+              )}
+
+              <button
+                type="submit"
+                disabled={settingsSaving}
+                style={{
+                  padding: '13px',
+                  borderRadius: 12,
+                  border: 'none',
+                  background: settingsSaved ? '#22c55e' : `linear-gradient(90deg, ${theme.accent}, ${theme.accentSoft})`,
+                  color: '#000',
+                  fontWeight: 800,
+                  fontSize: '0.9rem',
+                  cursor: settingsSaving ? 'wait' : 'pointer',
+                  transition: 'background 0.3s',
+                }}
+              >
+                {settingsSaving ? 'Saving...' : settingsSaved ? '✓ Saved!' : 'Save changes'}
+              </button>
+            </form>
+          </div>
+
+          {/* Live avatar preview */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
+            <div style={{
+              width: 100,
+              height: 100,
+              borderRadius: '50%',
+              overflow: 'hidden',
+              border: `3px solid ${theme.accent}`,
+              boxShadow: `0 0 0 4px ${theme.accent}33, 0 8px 24px rgba(0,0,0,0.5)`,
+            }}>
+              <img src={currentAvatarSrc} alt={settingsAvatar} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            </div>
+            <p style={{ margin: 0, fontSize: '0.78rem', color: theme.secondaryText, textAlign: 'center', maxWidth: 110, lineHeight: 1.4 }}>
+              {settingsName || data?.investor.name || 'Investor'}
+            </p>
+          </div>
+        </div>
+
+        {/* Read-only account info */}
+        <div style={{ marginTop: 28, paddingTop: 20, borderTop: `1px solid rgba(255,255,255,0.08)`, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12 }}>
+          {[
+            { label: 'Username', value: `@${data?.investor.username ?? '—'}` },
+            { label: 'Investment', value: data ? `${data.investor.investmentAmount ?? 0} ${data.investor.currency}` : '—' },
+            { label: 'Profit rate', value: data ? `${data.investor.profitPercentageOnInvestment ?? 0}%` : '—' },
+          ].map(({ label, value }) => (
+            <div key={label} style={{ background: theme.surface, borderRadius: 12, padding: '12px 14px' }}>
+              <p style={{ margin: 0, fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: theme.secondaryText, fontWeight: 700 }}>{label}</p>
+              <p style={{ margin: '4px 0 0', fontWeight: 700, fontSize: '0.95rem' }}>{value}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   if (loading) {
     return (
       <div className="investor-loading" style={{ background: '#06131F' }}>
@@ -576,6 +766,7 @@ const InvestorHome: React.FC = () => {
           {activePanel === 'map' && renderMap()}
           {activePanel === 'story' && renderStory()}
           {activePanel === 'support' && renderSupport()}
+          {activePanel === 'settings' && renderSettings()}
         </section>
       </div>}
     </main>
