@@ -1765,3 +1765,112 @@ responsive
   background: rgba(255,255,255,0.14);
   color: #f1f5f9;
 }
+
+/* ============================================================
+   Mobile responsive — admin + portal + global
+   ============================================================ */
+
+@media (max-width: 768px) {
+  /* Admin shell */
+  .admin-shell {
+    padding: 12px !important;
+  }
+
+  .admin-shell .portal-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  .admin-shell .portal-header button {
+    align-self: flex-end;
+    margin-top: 0;
+  }
+
+  /* Admin tabs: horizontal scroll */
+  .admin-nav {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 16px;
+    gap: 6px;
+    margin-bottom: 20px;
+  }
+
+  .admin-nav::-webkit-scrollbar { display: none; }
+
+  .admin-nav-tab {
+    flex-shrink: 0;
+    padding: 8px 16px;
+    font-size: 0.76rem;
+  }
+
+  /* Section grid: single column */
+  .admin-section-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Portal card */
+  .portal-card {
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  .portal-card h2 {
+    font-size: 1rem;
+    margin-bottom: 14px;
+  }
+
+  /* Relations */
+  .relation-card {
+    padding: 14px 16px;
+  }
+
+  .relation-columns {
+    grid-template-columns: 1fr;
+  }
+
+  /* Portal form */
+  .portal-form input,
+  .portal-form select,
+  .portal-form textarea {
+    font-size: 16px; /* prevent iOS zoom on focus */
+  }
+}
+
+@media (max-width: 480px) {
+  .portal-header h1 {
+    font-size: 1.1rem;
+  }
+
+  .portal-item-head h3 {
+    font-size: 0.88rem;
+  }
+
+  .admin-nav-tab {
+    padding: 6px 12px;
+    font-size: 0.72rem;
+  }
+
+  /* Portal grid single column */
+  .portal-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Auth cards (login) ── */
+@media (max-width: 480px) {
+  .auth-card {
+    margin: 0 12px;
+    padding: 20px;
+    border-radius: 16px;
+  }
+
+  .investor-auth-shell,
+  .investor-auth-card {
+    padding: 16px;
+  }
+}

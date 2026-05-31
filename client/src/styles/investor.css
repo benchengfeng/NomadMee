@@ -834,3 +834,159 @@
     font-size: clamp(20px, 5vw, 28px);
   }
 }
+
+/* ============================================================
+   Mobile responsive — investor dashboard
+   ============================================================ */
+
+@media (max-width: 768px) {
+  /* Shell */
+  .gamified-shell {
+    padding: 12px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    height: auto;
+    min-height: 100vh;
+  }
+
+  /* Topbar */
+  .gamified-topbar {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 16px;
+    gap: 12px;
+    border-radius: 18px;
+    margin-bottom: 14px;
+  }
+
+  .gamified-topbar h1 {
+    font-size: clamp(18px, 5vw, 24px);
+    margin-bottom: 2px;
+  }
+
+  /* Right side controls: wrap tightly */
+  .gamified-topbar > div:last-child {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  /* Avatar badge: compact */
+  .gamified-topbar > div:last-child > div {
+    padding: 6px 10px !important;
+  }
+
+  /* View toggle */
+  .view-mode-toggle {
+    flex: 1;
+  }
+
+  .view-mode-btn {
+    flex: 1;
+    text-align: center;
+    font-size: 0.74rem;
+    padding: 6px 10px;
+  }
+
+  /* Logout button */
+  .logout-button {
+    padding: 10px 14px !important;
+    font-size: 0.78rem;
+    border-radius: 12px;
+  }
+
+  /* Gamified grid: single column */
+  .gamified-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  /* Sidebar: compact */
+  .dashboard-sidebar {
+    padding: 14px;
+    gap: 14px;
+    border-radius: 18px;
+    order: 2;
+  }
+
+  .sidebar-section h2 {
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+
+  /* Content */
+  .dashboard-content {
+    order: 1;
+  }
+
+  /* Summary panel stats */
+  .summary-panel {
+    gap: 14px;
+  }
+
+  /* Cargo panel */
+  .cargo-panel {
+    padding: 14px;
+    border-radius: 18px;
+  }
+
+  /* Map canvas */
+  .cargo-map-canvas {
+    height: 220px !important;
+  }
+
+  /* Support panel */
+  .support-panel {
+    gap: 14px;
+  }
+
+  .support-card,
+  .support-action-item {
+    padding: 14px;
+    border-radius: 16px;
+  }
+
+  /* Story panel */
+  .story-panel {
+    padding: 14px;
+    border-radius: 18px;
+  }
+
+  .story-step {
+    padding: 14px;
+    border-radius: 14px;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .gamified-shell {
+    padding: 8px;
+  }
+
+  .gamified-topbar {
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  .gamified-topbar h1 {
+    font-size: 18px;
+  }
+
+  .mini-label {
+    font-size: 0.6rem;
+  }
+
+  /* Theme dots: smaller */
+  .theme-chip {
+    width: 20px !important;
+    height: 20px !important;
+  }
+
+  /* Tab buttons */
+  .dashboard-tab {
+    font-size: 13px;
+    padding: 10px 14px;
+  }
+}
