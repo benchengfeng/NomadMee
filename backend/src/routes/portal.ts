@@ -86,6 +86,38 @@ function normalizeAvatar(value: unknown): string {
   return avatar;
 }
 
+// ---------------------------------------------------------------------------
+// Public — no auth required (landing page map data)
+// ---------------------------------------------------------------------------
+
+router.get('/public/map-data', async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const [investors, cargos] = await Promise.all([
+      InvestorModel.find({ kycCompleted: true }).select('displayName name avatar location').lean(),
+      CargoModel.find().select('productBeingShipped shippingType purchaseLocation shippingDestination estimatedTimeOfArrival createdAt').lean(),
+    ]);
+
+    res.status(200).json({
+      investors: investors.map((inv) => ({
+        name: inv.displayName || inv.name,
+        avatar: inv.avatar || 'popeye',
+        location: inv.location || '',
+      })),
+      cargos: cargos.map((c) => ({
+        _id: c._id,
+        productBeingShipped: c.productBeingShipped,
+        shippingType: c.shippingType || 'sea',
+        purchaseLocation: c.purchaseLocation,
+        shippingDestination: c.shippingDestination,
+        estimatedTimeOfArrival: c.estimatedTimeOfArrival,
+        createdAt: c.createdAt,
+      })),
+    });
+  } catch {
+    res.status(500).json({ message: 'Failed to load map data.' });
+  }
+});
+
 router.post('/admin/login', (req: Request, res: Response): void => {
   const { username, password } = req.body as { username?: string; password?: string };
 
@@ -223,6 +255,7 @@ router.post('/admin/investors', async (req: Request, res: Response): Promise<voi
       profitPercentageOnInvestment,
       currency,
       investmentIds,
+      location,
     } = req.body as {
       name?: string;
       username?: string;
@@ -231,6 +264,7 @@ router.post('/admin/investors', async (req: Request, res: Response): Promise<voi
       profitPercentageOnInvestment?: unknown;
       currency?: unknown;
       investmentIds?: string[];
+      location?: string;
     };
 
     const assignedInvestmentIds = Array.isArray(investmentIds) ? investmentIds.filter(Boolean) : [];
@@ -248,6 +282,7 @@ router.post('/admin/investors', async (req: Request, res: Response): Promise<voi
       profitPercentageOnInvestment: profitPercentage,
       estimatedROI,
       currency: normalizedCurrency,
+      location: String(location || '').trim() || undefined,
       kycCompleted: false,
       assignedCargoIds: [],
       assignedInvestmentIds,
@@ -283,6 +318,7 @@ router.put('/admin/investors/:id', async (req: Request, res: Response): Promise<
       profitPercentageOnInvestment,
       currency,
       investmentIds,
+      location,
     } = req.body as {
       name?: string;
       username?: string;
@@ -291,6 +327,7 @@ router.put('/admin/investors/:id', async (req: Request, res: Response): Promise<
       profitPercentageOnInvestment?: unknown;
       currency?: unknown;
       investmentIds?: string[];
+      location?: string;
     };
 
     const assignedInvestmentIds = Array.isArray(investmentIds) ? investmentIds.filter(Boolean) : [];
@@ -307,6 +344,7 @@ router.put('/admin/investors/:id', async (req: Request, res: Response): Promise<
       profitPercentageOnInvestment: profitPercentage,
       estimatedROI,
       currency: normalizedCurrency,
+      location: String(location || '').trim() || undefined,
       assignedCargoIds: [],
       assignedInvestmentIds,
     };

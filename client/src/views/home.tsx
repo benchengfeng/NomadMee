@@ -1,131 +1,98 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { landingThemes } from '../utils/landingThemes';
-
-const popeyeHero = '/assets/popeyesmall.png';
+import WorldMap from '../components/WorldMap';
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const [selectedTheme, setSelectedTheme] = useState(0);
 
-  const safeThemeIndex = Math.min(Math.max(selectedTheme, 0), landingThemes.length - 1);
-  const palette = landingThemes[safeThemeIndex] as (typeof landingThemes)[number];
+  const idx = Math.min(Math.max(selectedTheme, 0), landingThemes.length - 1);
+  const palette = landingThemes[idx] as (typeof landingThemes)[number];
 
   return (
-    <main
-      style={{
-        minHeight: '100vh',
+    <main style={{
+      height: '100vh',
+      display: 'flex',
+      flexDirection: 'column',
+      background: '#0a0c14',
+      overflow: 'hidden',
+      position: 'relative',
+    }}>
+      {/* Floating header */}
+      <header style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 10,
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center',
-        padding: '20px',
-        background: `radial-gradient(circle at top, ${palette.surface}, ${palette.background})`,
-        color: palette.text,
-      }}
-    >
-      <section
-        style={{
-          width: 'min(1120px, 100%)',
-          borderRadius: '30px',
-          border: `1px solid ${palette.border}`,
-          overflow: 'hidden',
-          boxShadow: `0 30px 80px ${palette.accentSoft}44`,
-          display: 'grid',
-          gridTemplateColumns: '1.1fr 0.9fr',
-          background: `linear-gradient(180deg, ${palette.surface}, ${palette.background})`,
-        }}
-      >
-        <div style={{ padding: '28px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
-            <div>
-              <p style={{ margin: 0, color: palette.highlight, textTransform: 'uppercase', letterSpacing: '0.18em', fontWeight: 700, fontSize: '0.68rem' }}>NomadMee</p>
-              <h1 style={{ margin: '10px 0 0', fontSize: 'clamp(2.6rem, 5vw, 4.25rem)', lineHeight: 0.95 }}>Welcome futur investor</h1>
-            </div>
-            <div style={{ padding: '10px 12px', borderRadius: '999px', background: `${palette.accent}22`, border: `1px solid ${palette.border}`, color: palette.highlight, fontSize: '0.72rem', fontWeight: 700 }}>Adventure Ready</div>
-          </div>
-
-          <p style={{ margin: 0, maxWidth: '760px', color: `${palette.text}cc`, lineHeight: 1.55, fontSize: '1.05rem' }}>
-            Step into the NomadMee journey: choose your style, explore cargo adventures, and enter the investor world with the same playful energy as PopeyeBalluta.
+        justifyContent: 'space-between',
+        padding: '16px 28px',
+        background: 'linear-gradient(180deg, rgba(10,12,20,0.92) 0%, rgba(10,12,20,0.0) 100%)',
+        gap: 16,
+      }}>
+        {/* Brand + tagline */}
+        <div>
+          <p style={{ margin: 0, color: palette.highlight, textTransform: 'uppercase', letterSpacing: '0.2em', fontWeight: 700, fontSize: '0.65rem' }}>
+            NomadMee
           </p>
+          <h1 style={{ margin: '2px 0 0', fontSize: 'clamp(1.1rem, 2.5vw, 1.6rem)', fontWeight: 800, color: '#fff', lineHeight: 1.2 }}>
+            Your investments,<br />tracked across the globe.
+          </h1>
+        </div>
 
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '8px' }}>
-            {landingThemes.map((themeOption, index) => (
+        {/* Controls */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
+          {/* Theme chips */}
+          <div style={{ display: 'flex', gap: 6 }}>
+            {landingThemes.map((t, i) => (
               <button
-                key={themeOption.name}
+                key={t.name}
                 type="button"
-                onClick={() => setSelectedTheme(index)}
+                onClick={() => setSelectedTheme(i)}
+                aria-label={t.name}
+                title={t.name}
                 style={{
-                  minWidth: '44px',
-                  height: '44px',
-                  borderRadius: '999px',
-                  border: `2px solid ${selectedTheme === index ? palette.highlight : themeOption.border}`,
-                  background: themeOption.accent,
+                  width: 22,
+                  height: 22,
+                  borderRadius: '50%',
+                  border: `2px solid ${i === selectedTheme ? palette.highlight : 'transparent'}`,
+                  background: t.accent,
                   cursor: 'pointer',
-                  boxShadow: selectedTheme === index ? `0 0 0 4px ${themeOption.highlight}44` : 'none',
+                  padding: 0,
+                  boxShadow: i === selectedTheme ? `0 0 0 3px ${t.highlight}33` : 'none',
+                  transition: 'box-shadow 0.2s',
                 }}
-                aria-label={`Theme ${index + 1}`}
               />
             ))}
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '10px' }}>
-            <button
-              type="button"
-              onClick={() => navigate('/login')}
-              style={{
-                border: 'none',
-                borderRadius: '999px',
-                padding: '15px 18px',
-                fontWeight: 800,
-                cursor: 'pointer',
-                background: `linear-gradient(90deg, ${palette.accent}, ${palette.highlight})`,
-                color: '#000',
-                boxShadow: `0 12px 30px ${palette.accent}44`,
-              }}
-            >
-              Start journey
-            </button>
-            <div style={{ background: `${palette.surface}cc`, padding: '10px 12px', borderRadius: '999px', border: `1px solid ${palette.border}`, color: palette.text, fontSize: '0.78rem' }}>
-              {palette.name}
-            </div>
-          </div>
+          {/* CTA */}
+          <button
+            type="button"
+            onClick={() => navigate('/login')}
+            style={{
+              border: 'none',
+              borderRadius: 999,
+              padding: '10px 20px',
+              fontWeight: 800,
+              fontSize: '0.82rem',
+              cursor: 'pointer',
+              background: `linear-gradient(90deg, ${palette.accent}, ${palette.highlight})`,
+              color: '#000',
+              boxShadow: `0 8px 24px ${palette.accent}55`,
+              whiteSpace: 'nowrap',
+            }}
+          >
+            Start journey →
+          </button>
         </div>
+      </header>
 
-        <div style={{
-          padding: '24px',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: '16px',
-          background: `linear-gradient(180deg, ${palette.surface}cc, ${palette.background})`,
-        }}>
-          <div style={{
-            borderRadius: '28px',
-            border: `1px solid ${palette.border}`,
-            background: `${palette.background}cc`,
-            padding: '14px',
-            boxShadow: `0 20px 50px ${palette.accentSoft}44`,
-          }}>
-            <img src={popeyeHero} alt="Popeye hero" style={{ width: '100%', maxWidth: '420px', borderRadius: '24px', objectFit: 'contain', display: 'block' }} />
-          </div>
-          <div style={{
-            width: '100%',
-            maxWidth: '420px',
-            borderRadius: '20px',
-            padding: '14px 16px',
-            background: `${palette.surface}dd`,
-            border: `1px solid ${palette.border}`,
-            color: palette.text,
-          }}>
-            <p style={{ margin: '0 0 8px', fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.12em', color: palette.highlight }}>Character preview</p>
-            <p style={{ margin: 0, fontWeight: 800, fontSize: '1.1rem' }}>Popeye</p>
-            <p style={{ margin: '6px 0 0', color: `${palette.text}cc`, lineHeight: 1.4 }}>
-              The playful mascot is ready. Pick a theme, start your journey, and enter the investor playground.
-            </p>
-          </div>
-        </div>
-      </section>
+      {/* World map — fills remaining space */}
+      <WorldMap accentColor={palette.accent} />
     </main>
   );
 };

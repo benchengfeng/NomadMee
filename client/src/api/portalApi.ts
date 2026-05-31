@@ -36,10 +36,32 @@ export type InvestorRecord = {
   profitPercentageOnInvestment: number;
   estimatedROI: number;
   currency: string;
+  location?: string;
   assignedCargoIds: string[];
   assignedInvestmentIds: string[];
   createdAt?: string;
   updatedAt?: string;
+};
+
+export type PublicMapInvestor = {
+  name: string;
+  avatar: string;
+  location: string;
+};
+
+export type PublicMapCargo = {
+  _id: string;
+  productBeingShipped: string;
+  shippingType: 'sea' | 'air' | 'land';
+  purchaseLocation: string;
+  shippingDestination: string;
+  estimatedTimeOfArrival: string;
+  createdAt: string;
+};
+
+export type PublicMapData = {
+  investors: PublicMapInvestor[];
+  cargos: PublicMapCargo[];
 };
 
 export type Investment = {
@@ -125,6 +147,10 @@ export async function createCargo(payload: Omit<Cargo, '_id' | 'assignedInvestor
   return response.cargo;
 }
 
+export async function getPublicMapData(): Promise<PublicMapData> {
+  return request<PublicMapData>('/public/map-data', { method: 'GET' });
+}
+
 export async function createInvestor(payload: {
   name: string;
   username: string;
@@ -132,6 +158,7 @@ export async function createInvestor(payload: {
   investmentAmount: number;
   profitPercentageOnInvestment: number;
   currency: string;
+  location?: string;
   investmentIds: string[];
 }): Promise<InvestorRecord> {
   const response = await request<{ investor: InvestorRecord }>('/admin/investors', {
@@ -149,6 +176,7 @@ export async function updateInvestor(id: string, payload: {
   investmentAmount: number;
   profitPercentageOnInvestment: number;
   currency: string;
+  location?: string;
   investmentIds: string[];
 }): Promise<InvestorRecord> {
   const response = await request<{ investor: InvestorRecord }>(`/admin/investors/${id}`, {

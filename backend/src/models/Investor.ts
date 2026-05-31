@@ -10,6 +10,7 @@ export type InvestorDocument = {
   profitPercentageOnInvestment: number;
   estimatedROI: number;
   currency: string;
+  location?: string;
   kycCompleted: boolean;
   assignedCargoIds: mongoose.Types.ObjectId[];
   assignedInvestmentIds: mongoose.Types.ObjectId[];
@@ -28,6 +29,7 @@ const InvestorSchema = new Schema<InvestorDocument>(
     profitPercentageOnInvestment: { type: Number, required: true, min: 0 },
     estimatedROI: { type: Number, required: true, min: 0 },
     currency: { type: String, required: true, trim: true },
+    location: { type: String, trim: true },
     kycCompleted: { type: Boolean, default: false },
     assignedCargoIds: [{ type: Schema.Types.ObjectId, ref: 'Cargo', default: [] }],
     assignedInvestmentIds: [{ type: Schema.Types.ObjectId, ref: 'Investment', default: [] }],

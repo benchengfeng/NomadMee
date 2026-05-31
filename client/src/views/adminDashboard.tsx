@@ -13,6 +13,7 @@ import {
   AdminDashboardResponse,
   Investment,
 } from '../api/portalApi';
+import { COUNTRIES } from '../utils/countries';
 
 const currencyOptions = ['USD', 'EUR', 'TND', 'CNY'] as const;
 
@@ -44,6 +45,7 @@ const emptyInvestorForm = {
   investmentAmount: '',
   profitPercentageOnInvestment: '',
   currency: 'USD',
+  location: '',
   investmentIds: [] as string[],
 };
 
@@ -179,6 +181,7 @@ const AdminDashboard: React.FC = () => {
           investmentAmount: Number(investorForm.investmentAmount),
           profitPercentageOnInvestment: Number(investorForm.profitPercentageOnInvestment),
           currency: investorForm.currency,
+          location: investorForm.location || undefined,
           investmentIds: investorForm.investmentIds,
         });
       } else {
@@ -189,6 +192,7 @@ const AdminDashboard: React.FC = () => {
           investmentAmount: Number(investorForm.investmentAmount),
           profitPercentageOnInvestment: Number(investorForm.profitPercentageOnInvestment),
           currency: investorForm.currency,
+          location: investorForm.location || undefined,
           investmentIds: investorForm.investmentIds,
         });
       }
@@ -262,6 +266,7 @@ const AdminDashboard: React.FC = () => {
       investmentAmount: investor.investmentAmount.toString(),
       profitPercentageOnInvestment: investor.profitPercentageOnInvestment.toString(),
       currency: investor.currency || 'USD',
+      location: investor.location || '',
       investmentIds: investor.assignedInvestmentIds ?? [],
     });
   };
@@ -433,6 +438,19 @@ const AdminDashboard: React.FC = () => {
                 <option key={currency} value={currency}>{currency}</option>
               ))}
             </select>
+            <label>Location (country)</label>
+            <input
+              list="country-list"
+              value={investorForm.location}
+              onChange={(e) => setInvestorForm({ ...investorForm, location: e.target.value })}
+              placeholder="Search country..."
+              autoComplete="off"
+            />
+            <datalist id="country-list">
+              {COUNTRIES.map((c) => (
+                <option key={c.code} value={c.name} />
+              ))}
+            </datalist>
 
             <div className="portal-multiselect">
               <span>Assign investments</span>
