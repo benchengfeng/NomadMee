@@ -9,6 +9,7 @@ import { PanelId, setActivePanel, setSelectedCargoId } from '../redux/slices/das
 import type { DashboardTheme } from '../theme';
 import { dashboardThemes } from '../theme';
 import CargoMap from '../components/cargo/CargoMap';
+import WorldMap from '../components/WorldMap';
 
 const currencyRatesToUSD: Record<string, number> = {
   USD: 1,
@@ -76,6 +77,7 @@ const InvestorHome: React.FC = () => {
   const [data, setData] = useState<InvestorHomeResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [viewMode, setViewMode] = useState<'me' | 'globe'>('me');
 
   const theme: DashboardTheme = dashboardThemes[activeTheme] || dashboardThemes[0] || {
     background: '#091422',
@@ -447,6 +449,23 @@ const InvestorHome: React.FC = () => {
           <p className="mini-description">Select a section below to explore your portfolio.</p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {/* View toggle */}
+          <div className="view-mode-toggle">
+            <button
+              type="button"
+              className={`view-mode-btn${viewMode === 'me' ? ' view-mode-btn--active' : ''}`}
+              onClick={() => setViewMode('me')}
+            >
+              Me
+            </button>
+            <button
+              type="button"
+              className={`view-mode-btn${viewMode === 'globe' ? ' view-mode-btn--active' : ''}`}
+              onClick={() => setViewMode('globe')}
+            >
+              The Globe
+            </button>
+          </div>
           {avatarBadgeSrc ? (
             <div
               style={{
@@ -476,7 +495,13 @@ const InvestorHome: React.FC = () => {
         </div>
       </div>
 
-      <div className="gamified-grid">
+      {viewMode === 'globe' && (
+        <div style={{ flex: 1, display: 'flex', minHeight: 0 }}>
+          <WorldMap accentColor={theme.accent} />
+        </div>
+      )}
+
+      {viewMode === 'me' && <div className="gamified-grid">
         <aside className="dashboard-sidebar" style={{ background: theme.surface }}>
           <div className="sidebar-section">
             <h2>Explore</h2>
@@ -535,7 +560,7 @@ const InvestorHome: React.FC = () => {
           {activePanel === 'story' && renderStory()}
           {activePanel === 'support' && renderSupport()}
         </section>
-      </div>
+      </div>}
     </main>
   );
 };

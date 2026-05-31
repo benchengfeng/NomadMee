@@ -204,6 +204,79 @@ router.post('/admin/cargos', async (req: Request, res: Response): Promise<void> 
   }
 });
 
+router.put('/admin/cargos/:id', async (req: Request, res: Response): Promise<void> => {
+  if (!requireAdmin(req, res)) return;
+
+  try {
+    const { id } = req.params;
+    const {
+      productBeingShipped,
+      quantity,
+      purchaseLocation,
+      purchasePrice,
+      currency,
+      shippingDestination,
+      shippingPrice,
+      otherExpenses,
+      estimatedTimeOfArrival,
+      estimatedTimeOfSelling,
+      shippingType,
+      cargoDescription,
+    } = req.body as Record<string, unknown>;
+
+    const validShippingTypes = ['sea', 'air', 'land'];
+    const normalizedShippingType = validShippingTypes.includes(String(shippingType || ''))
+      ? (String(shippingType) as 'sea' | 'air' | 'land')
+      : 'sea';
+
+    const cargo = await CargoModel.findByIdAndUpdate(
+      id,
+      {
+        productBeingShipped: String(productBeingShipped || '').trim(),
+        quantity: normalizeNumber(quantity, 'quantity'),
+        purchaseLocation: String(purchaseLocation || '').trim(),
+        purchasePrice: normalizeNumber(purchasePrice, 'purchasePrice'),
+        currency: normalizeCurrency(currency),
+        shippingDestination: String(shippingDestination || '').trim(),
+        shippingPrice: normalizeNumber(shippingPrice, 'shippingPrice'),
+        otherExpenses: normalizeNumber(otherExpenses, 'otherExpenses'),
+        estimatedTimeOfArrival: normalizeDate(estimatedTimeOfArrival),
+        estimatedTimeOfSelling: normalizeDate(estimatedTimeOfSelling),
+        shippingType: normalizedShippingType,
+        cargoDescription: String(cargoDescription || '').trim(),
+      },
+      { new: true, runValidators: true }
+    );
+
+    if (!cargo) {
+      res.status(404).json({ message: 'Cargo not found.' });
+      return;
+    }
+
+    res.status(200).json({ cargo });
+  } catch (error) {
+    res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to update cargo.' });
+  }
+});
+
+router.delete('/admin/cargos/:id', async (req: Request, res: Response): Promise<void> => {
+  if (!requireAdmin(req, res)) return;
+
+  try {
+    const { id } = req.params;
+    const cargo = await CargoModel.findByIdAndDelete(id);
+
+    if (!cargo) {
+      res.status(404).json({ message: 'Cargo not found.' });
+      return;
+    }
+
+    res.status(200).json({ message: 'Cargo deleted.' });
+  } catch (error) {
+    res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to delete cargo.' });
+  }
+});
+
 router.get('/admin/investors', (req: Request, res: Response): void => {
   if (!requireAdmin(req, res)) {
     return;

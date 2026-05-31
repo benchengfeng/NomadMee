@@ -147,6 +147,21 @@ export async function createCargo(payload: Omit<Cargo, '_id' | 'assignedInvestor
   return response.cargo;
 }
 
+export async function updateCargo(id: string, payload: Omit<Cargo, '_id' | 'assignedInvestorIds' | 'createdAt' | 'updatedAt'>): Promise<Cargo> {
+  const response = await request<{ cargo: Cargo }>(`/admin/cargos/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  }, getAdminToken());
+
+  return response.cargo;
+}
+
+export async function deleteCargo(id: string): Promise<void> {
+  await request<{ message: string }>(`/admin/cargos/${id}`, {
+    method: 'DELETE',
+  }, getAdminToken());
+}
+
 export async function getPublicMapData(): Promise<PublicMapData> {
   return request<PublicMapData>('/public/map-data', { method: 'GET' });
 }
