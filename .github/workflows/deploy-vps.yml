@@ -1,0 +1,137 @@
+name: Deploy NomadMee to VPS
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ===================================================
+      # BUILD FRONTEND  (React CRA → client/build)
+      # ===================================================
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install frontend deps
+        run: |
+          cd client
+          npm install
+
+      - name: Build frontend
+        env:
+          # Points the React app at the production backend API
+          REACT_APP_API_URL: ${{ vars.REACT_APP_API_URL }}
+          # Required for react-scripts on Node 18+
+          NODE_OPTIONS: --openssl-legacy-provider
+        run: |
+          cd client
+          npm run build
+
+      # ===================================================
+      # BUILD BACKEND  (TypeScript → backend/dist)
+      # ===================================================
+      - name: Install backend deps
+        run: |
+          cd backend
+          npm install
+
+      - name: Build backend
+        run: |
+          cd backend
+          npm run build
+
+      # ===================================================
+      # PACKAGE ARTIFACTS
+      # ===================================================
+      - name: Package backend
+        run: |
+          tar -czf backend.tar.gz \
+            backend/dist \
+            backend/package.json \
+            backend/package-lock.json \
+            backend/ecosystem.config.js
+
+      - name: Package frontend
+        run: |
+          tar -czf client.tar.gz -C client build
+
+      # ===================================================
+      # UPLOAD TO VPS
+      # ===================================================
+      - name: Upload backend to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ vars.VPS_HOST }}
+          username: ${{ vars.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ vars.VPS_PORT }}
+          source: "backend.tar.gz"
+          target: "/tmp"
+
+      - name: Upload frontend to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ vars.VPS_HOST }}
+          username: ${{ vars.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ vars.VPS_PORT }}
+          source: "client.tar.gz"
+          target: "/tmp"
+
+      # ===================================================
+      # DEPLOY ON VPS
+      # ===================================================
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ vars.VPS_HOST }}
+          username: ${{ vars.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ vars.VPS_PORT }}
+          script_stop: true
+          envs: VPS_ENV_CONTENT
+          script: |
+            set -e
+            APP="${{ vars.VPS_APP_PATH }}"
+
+            # ---- Write backend .env ----
+            mkdir -p "$APP/backend"
+            printf '%s' "$VPS_ENV_CONTENT" > "$APP/backend/.env"
+
+            # ---- Deploy backend ----
+            tar -xzf /tmp/backend.tar.gz -C /tmp
+            mkdir -p "$APP/backend/dist"
+            cp -r /tmp/backend/dist/. "$APP/backend/dist/"
+            cp /tmp/backend/package.json "$APP/backend/"
+            cp /tmp/backend/package-lock.json "$APP/backend/"
+            cp /tmp/backend/ecosystem.config.js "$APP/backend/"
+            rm -rf /tmp/backend /tmp/backend.tar.gz
+
+            cd "$APP/backend"
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+            npm ci --omit=dev
+            pm2 restart ecosystem.config.js --env production \
+              || pm2 start ecosystem.config.js --env production
+            pm2 save
+
+            # ---- Deploy frontend ----
+            mkdir -p "$APP/frontend"
+            tar -xzf /tmp/client.tar.gz -C /tmp
+            rm -rf "$APP/frontend/"*
+            cp -r /tmp/build/. "$APP/frontend/"
+            rm -rf /tmp/build /tmp/client.tar.gz
+
+            echo "✅ NomadMee deployed successfully"
+        env:
+          VPS_ENV_CONTENT: ${{ secrets.VPS_ENV_FILE }}
