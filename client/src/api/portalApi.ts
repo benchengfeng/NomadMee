@@ -109,10 +109,24 @@ export type SiteContent = {
   mediaUrls?: string[];
 };
 
+export type ContactRequest = {
+  _id: string;
+  investmentId: string;
+  investmentTitle: string;
+  fullName: string;
+  contactMethod: 'whatsapp' | 'email';
+  contactDetail: string;
+  rdvDate: string;
+  note?: string;
+  status: 'new' | 'read' | 'contacted';
+  createdAt: string;
+};
+
 export type AdminDashboardResponse = {
   cargos: Cargo[];
   investors: InvestorRecord[];
   investments: Investment[];
+  unreadContactCount: number;
 };
 
 export type InvestorProfile = {
@@ -339,4 +353,30 @@ export async function completeInvestorKyc(payload: { avatar: string; displayName
   }, getInvestorToken());
 
   return response.investor;
+}
+
+export async function submitContactRequest(payload: {
+  investmentId: string;
+  investmentTitle: string;
+  fullName: string;
+  contactMethod: 'whatsapp' | 'email';
+  contactDetail: string;
+  rdvDate: string;
+  note?: string;
+}): Promise<{ request: { _id: string } }> {
+  return request<{ request: { _id: string } }>('/public/contact-request', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function getAdminContactRequests(): Promise<{ requests: ContactRequest[] }> {
+  return request<{ requests: ContactRequest[] }>('/admin/contact-requests', { method: 'GET' }, getAdminToken());
+}
+
+export async function updateContactRequestStatus(id: string, status: ContactRequest['status']): Promise<void> {
+  await request<unknown>(`/admin/contact-requests/${id}/status`, {
+    method: 'PUT',
+    body: JSON.stringify({ status }),
+  }, getAdminToken());
 }

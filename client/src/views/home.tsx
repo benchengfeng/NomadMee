@@ -145,7 +145,7 @@ const LandingPage: React.FC = () => {
                       <button
                         type="button"
                         className="investment-card-join"
-                        onClick={() => navigate('/login')}
+                        onClick={() => navigate(`/join/${inv._id}`)}
                         style={{ border: `1px solid ${palette.accent}55`, color: palette.accent }}
                         onMouseEnter={(e) => { e.currentTarget.style.background = `${palette.accent}18`; }}
                         onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}

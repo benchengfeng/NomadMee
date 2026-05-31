@@ -11,6 +11,7 @@ import InvestorHome from "../views/investorHome";
 import KycOnboarding from "../views/kycOnboarding";
 import AdminLogin from "../views/adminLogin";
 import AdminDashboard from "../views/adminDashboard";
+import JoinInvestment from "../views/joinInvestment";
 import { getAdminToken, getSessionToken } from "../utils/auth";
 
 const InvestorProtectedRoute: React.FC<{ children: JSX.Element }> = ({ children }) => {
@@ -62,6 +63,7 @@ const AppRouter = () => {
             </AdminProtectedRoute>
           }
         />
+        <Route path="/join/:investmentId" element={<JoinInvestment />} />
         <Route path="/landing" element={<AppHome />} />
         <Route path="/hotDeals" element={<AppHotDeals />} />
         <Route path="/aboutUs" element={<AboutUs />} />

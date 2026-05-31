@@ -1,0 +1,419 @@
+/* ============================================================
+   Join Investment — contact request page
+   ============================================================ */
+
+.join-shell {
+  min-height: 100vh;
+  background: #0a0c14;
+  color: #f1f5f9;
+  font-family: inherit;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Nav ── */
+.join-nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 28px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  background: rgba(10,12,20,0.96);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.join-nav-brand {
+  font-weight: 800;
+  font-size: 0.88rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.join-back-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: transparent;
+  color: #94a3b8;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.16s;
+  text-decoration: none;
+}
+
+.join-back-btn:hover {
+  background: rgba(255,255,255,0.06);
+  color: #e2e8f0;
+}
+
+/* ── Body ── */
+.join-body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 380px 1fr;
+  gap: 0;
+  max-width: 1000px;
+  margin: 48px auto;
+  padding: 0 24px;
+  width: 100%;
+  box-sizing: border-box;
+  align-items: start;
+}
+
+/* ── Investment info card ── */
+.join-info-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 22px;
+  padding: 28px;
+  position: sticky;
+  top: 88px;
+}
+
+.join-info-eyebrow {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  margin: 0 0 10px;
+}
+
+.join-info-title {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 16px;
+  line-height: 1.3;
+}
+
+.join-info-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.join-info-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  font-size: 0.82rem;
+}
+
+.join-info-row-label {
+  color: #64748b;
+}
+
+.join-info-row-value {
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+.join-info-note {
+  font-size: 0.78rem;
+  color: #475569;
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ── Form column ── */
+.join-form-wrap {
+  padding-left: 48px;
+}
+
+.join-form-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 6px;
+}
+
+.join-form-sub {
+  color: #64748b;
+  font-size: 0.88rem;
+  margin: 0 0 32px;
+}
+
+.join-form {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.join-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.join-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #64748b;
+}
+
+.join-input {
+  padding: 13px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.05);
+  color: #f1f5f9;
+  font-size: 0.92rem;
+  transition: border-color 0.18s, box-shadow 0.18s;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.join-input:focus {
+  outline: none;
+  border-color: var(--join-accent, #38bdf8);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--join-accent, #38bdf8) 20%, transparent);
+}
+
+.join-input::placeholder { color: #475569; }
+
+/* Contact method selector */
+.join-method-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.join-method-card {
+  padding: 18px 16px;
+  border-radius: 16px;
+  border: 2px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.04);
+  cursor: pointer;
+  transition: all 0.18s;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.join-method-card:hover {
+  border-color: rgba(255,255,255,0.2);
+}
+
+.join-method-card--active.join-method-card--whatsapp {
+  border-color: #22c55e;
+  background: rgba(34,197,94,0.1);
+}
+
+.join-method-card--active.join-method-card--email {
+  border-color: #38bdf8;
+  background: rgba(56,189,248,0.1);
+}
+
+.join-method-icon {
+  font-size: 1.6rem;
+  line-height: 1;
+}
+
+.join-method-name {
+  font-weight: 800;
+  font-size: 0.9rem;
+  color: #f1f5f9;
+}
+
+.join-method-desc {
+  font-size: 0.72rem;
+  color: #64748b;
+}
+
+/* Submit button */
+.join-submit-btn {
+  padding: 15px;
+  border-radius: 14px;
+  border: none;
+  font-weight: 800;
+  font-size: 0.95rem;
+  cursor: pointer;
+  width: 100%;
+  transition: filter 0.18s, transform 0.15s;
+  margin-top: 4px;
+}
+
+.join-submit-btn:hover:not(:disabled) {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.join-submit-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+/* Error */
+.join-error {
+  color: #f87171;
+  font-size: 0.82rem;
+  margin: -8px 0 0;
+}
+
+/* ── Success screen ── */
+.join-success {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+}
+
+.join-success-card {
+  text-align: center;
+  max-width: 480px;
+  padding: 48px 40px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 28px;
+  animation: joinSuccessIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes joinSuccessIn {
+  from { opacity: 0; transform: scale(0.92) translateY(20px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.join-success-icon {
+  font-size: 3.5rem;
+  margin-bottom: 20px;
+  display: block;
+}
+
+.join-success-title {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 10px;
+}
+
+.join-success-sub {
+  color: #64748b;
+  font-size: 0.9rem;
+  line-height: 1.7;
+  margin: 0 0 28px;
+}
+
+.join-success-rdv {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.06);
+  font-size: 0.82rem;
+  color: #94a3b8;
+  margin-bottom: 28px;
+}
+
+/* ── Admin message card ── */
+.msg-card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  padding: 18px 20px;
+  transition: border-color 0.18s;
+  cursor: pointer;
+}
+
+.msg-card:hover { border-color: rgba(255,255,255,0.18); }
+
+.msg-card--new {
+  border-color: rgba(34,197,94,0.3);
+  background: rgba(34,197,94,0.05);
+}
+
+.msg-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.msg-card-name {
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: #f1f5f9;
+  margin: 0 0 2px;
+}
+
+.msg-card-investment {
+  font-size: 0.78rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.msg-status-badge {
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.msg-status-badge--new    { background: rgba(34,197,94,0.15);  color: #22c55e; }
+.msg-status-badge--read   { background: rgba(148,163,184,0.12); color: #94a3b8; }
+.msg-status-badge--contacted { background: rgba(56,189,248,0.12);  color: #38bdf8; }
+
+.msg-card-body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.msg-detail-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.msg-card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  flex-wrap: wrap;
+}
+
+/* ── Mobile ── */
+@media (max-width: 768px) {
+  .join-body {
+    grid-template-columns: 1fr;
+    margin: 24px auto;
+    gap: 24px;
+  }
+
+  .join-info-card {
+    position: static;
+  }
+
+  .join-form-wrap {
+    padding-left: 0;
+  }
+
+  .join-form-title {
+    font-size: 1.3rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .join-nav { padding: 12px 16px; }
+  .join-body { padding: 0 16px; }
+  .join-method-grid { grid-template-columns: 1fr; }
+}

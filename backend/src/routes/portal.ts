@@ -8,6 +8,7 @@ import { CargoModel } from '../models/Cargo';
 import { InvestorModel } from '../models/Investor';
 import { InvestmentModel } from '../models/Investment';
 import { SiteContentModel } from '../models/SiteContent';
+import { ContactRequestModel } from '../models/ContactRequest';
 
 const uploadsDir = path.join(process.cwd(), 'uploads');
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
@@ -414,10 +415,11 @@ router.get('/admin/dashboard', async (req: Request, res: Response): Promise<void
     return;
   }
 
-  const [cargos, investors, investments] = await Promise.all([
+  const [cargos, investors, investments, unreadContactCount] = await Promise.all([
     CargoModel.find().sort({ createdAt: -1 }).lean(),
     InvestorModel.find().sort({ createdAt: -1 }).lean(),
     InvestmentModel.find().sort({ createdAt: -1 }).lean(),
+    ContactRequestModel.countDocuments({ status: 'new' }),
   ]);
 
   const safeInvestors = investors.map((investor) => ({
@@ -427,7 +429,7 @@ router.get('/admin/dashboard', async (req: Request, res: Response): Promise<void
     currency: investor.currency || 'USD',
   }));
 
-  res.status(200).json({ cargos, investors: safeInvestors, investments });
+  res.status(200).json({ cargos, investors: safeInvestors, investments, unreadContactCount });
 });
 
 router.post('/admin/investors', async (req: Request, res: Response): Promise<void> => {
@@ -703,6 +705,84 @@ router.delete('/admin/investments/:id', async (req: Request, res: Response): Pro
     res.status(400).json({
       message: error instanceof Error ? error.message : 'Failed to delete investment.',
     });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Contact requests
+// ---------------------------------------------------------------------------
+
+router.post('/public/contact-request', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { investmentId, investmentTitle, fullName, contactMethod, contactDetail, rdvDate, note } =
+      req.body as Record<string, string>;
+
+    if (!fullName?.trim() || !contactMethod || !contactDetail?.trim() || !rdvDate?.trim() || !investmentId) {
+      res.status(400).json({ message: 'All fields are required.' });
+      return;
+    }
+
+    if (!['whatsapp', 'email'].includes(contactMethod)) {
+      res.status(400).json({ message: 'Invalid contact method.' });
+      return;
+    }
+
+    const investment = await InvestmentModel.findById(investmentId).lean();
+
+    const request = await ContactRequestModel.create({
+      investmentId: investmentId.trim(),
+      investmentTitle: (investmentTitle || investment?.title || 'Unknown Investment').trim(),
+      fullName: fullName.trim(),
+      contactMethod,
+      contactDetail: contactDetail.trim(),
+      rdvDate: rdvDate.trim(),
+      note: (note ?? '').trim(),
+      status: 'new',
+    });
+
+    res.status(201).json({ request: { _id: request._id } });
+  } catch (error) {
+    res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to submit request.' });
+  }
+});
+
+router.get('/admin/contact-requests', async (req: Request, res: Response): Promise<void> => {
+  if (!requireAdmin(req, res)) return;
+
+  try {
+    const requests = await ContactRequestModel.find().sort({ createdAt: -1 }).lean();
+    res.status(200).json({ requests });
+  } catch {
+    res.status(500).json({ message: 'Failed to load contact requests.' });
+  }
+});
+
+router.put('/admin/contact-requests/:id/status', async (req: Request, res: Response): Promise<void> => {
+  if (!requireAdmin(req, res)) return;
+
+  try {
+    const { id } = req.params;
+    const { status } = req.body as { status?: string };
+
+    if (!['new', 'read', 'contacted'].includes(status ?? '')) {
+      res.status(400).json({ message: 'Invalid status.' });
+      return;
+    }
+
+    const request = await ContactRequestModel.findByIdAndUpdate(
+      id,
+      { status },
+      { new: true }
+    );
+
+    if (!request) {
+      res.status(404).json({ message: 'Request not found.' });
+      return;
+    }
+
+    res.status(200).json({ request });
+  } catch (error) {
+    res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to update status.' });
   }
 });
 
