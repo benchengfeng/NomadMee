@@ -122,6 +122,7 @@ export type InvestorProfile = {
   profitPercentageOnInvestment: number;
   estimatedROI: number;
   currency: string;
+  preferredCurrency: string;
   avatar?: string;
   kycCompleted: boolean;
 };
@@ -330,7 +331,7 @@ export async function getInvestorHome(): Promise<InvestorHomeResponse> {
   return request<InvestorHomeResponse>('/investor/home', { method: 'GET' }, getInvestorToken());
 }
 
-export async function completeInvestorKyc(payload: { avatar: string; displayName: string }): Promise<InvestorProfile> {
+export async function completeInvestorKyc(payload: { avatar: string; displayName: string; preferredCurrency?: string }): Promise<InvestorProfile> {
   const response = await request<{ investor: InvestorProfile }>('/investor/kyc', {
     method: 'POST',
     body: JSON.stringify(payload),

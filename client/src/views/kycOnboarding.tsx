@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { completeInvestorKyc, getInvestorHome } from '../api/portalApi';
 
+const CURRENCIES = ['USD', 'EUR', 'TND', 'CNY'] as const;
+
 const characterAssets: Record<string, string> = {
   popeye: '/assets/popeyesmall.png',
   olive: '/assets/olive1.jpeg',
@@ -19,6 +21,7 @@ const KycOnboarding: React.FC = () => {
   const [selectedCharacter, setSelectedCharacter] = useState<'popeye' | 'olive' | 'curto'>('popeye');
   const [showSecretCharacter, setShowSecretCharacter] = useState(false);
   const [displayName, setDisplayName] = useState('');
+  const [preferredCurrency, setPreferredCurrency] = useState<string>('USD');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -66,6 +69,7 @@ const KycOnboarding: React.FC = () => {
       await completeInvestorKyc({
         avatar: selectedCharacter,
         displayName: displayName.trim() || 'Future investor',
+        preferredCurrency,
       });
       navigate('/home');
     } catch (err) {
@@ -98,6 +102,33 @@ const KycOnboarding: React.FC = () => {
                 placeholder="Your investor name"
                 style={{ padding: '12px 14px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.16)', background: '#0E1018', color: '#fff' }}
               />
+            </label>
+
+            <label style={{ display: 'flex', flexDirection: 'column', gap: '8px', color: 'rgba(255,255,255,0.9)' }}>
+              <span style={{ fontWeight: 700 }}>Display currency</span>
+              <p style={{ margin: 0, fontSize: '0.78rem', color: 'rgba(255,255,255,0.5)' }}>All amounts in your dashboard will be shown in this currency.</p>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+                {CURRENCIES.map((cur) => (
+                  <button
+                    key={cur}
+                    type="button"
+                    onClick={() => setPreferredCurrency(cur)}
+                    style={{
+                      padding: '10px 0',
+                      borderRadius: '12px',
+                      border: preferredCurrency === cur ? '2px solid #F4D06F' : '1px solid rgba(255,255,255,0.14)',
+                      background: preferredCurrency === cur ? 'rgba(244,208,111,0.15)' : '#10131C',
+                      color: preferredCurrency === cur ? '#F4D06F' : 'rgba(255,255,255,0.7)',
+                      fontWeight: 700,
+                      fontSize: '0.85rem',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s',
+                    }}
+                  >
+                    {cur}
+                  </button>
+                ))}
+              </div>
             </label>
 
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: '10px', marginTop: '6px' }}>
@@ -215,6 +246,10 @@ const KycOnboarding: React.FC = () => {
             <div style={{ padding: '12px 14px', borderRadius: '14px', background: '#0E1018' }}>
               <p style={{ margin: 0, color: 'rgba(255,255,255,0.6)', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Avatar</p>
               <p style={{ margin: '6px 0 0', fontSize: '1.1rem', fontWeight: 800, textTransform: 'capitalize' }}>{selectedCharacter}</p>
+            </div>
+            <div style={{ padding: '12px 14px', borderRadius: '14px', background: '#0E1018' }}>
+              <p style={{ margin: 0, color: 'rgba(255,255,255,0.6)', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Currency</p>
+              <p style={{ margin: '6px 0 0', fontSize: '1.1rem', fontWeight: 800 }}>{preferredCurrency}</p>
             </div>
           </div>
         </div>

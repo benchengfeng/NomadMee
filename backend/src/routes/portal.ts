@@ -778,6 +778,7 @@ router.get('/investor/home', async (req: Request, res: Response): Promise<void> 
       profitPercentageOnInvestment: investor.profitPercentageOnInvestment,
       estimatedROI: investor.estimatedROI,
       currency: investor.currency || 'USD',
+      preferredCurrency: investor.preferredCurrency || investor.currency || 'USD',
       avatar: investor.avatar,
       kycCompleted: investor.kycCompleted === true,
     },
@@ -793,10 +794,14 @@ router.post('/investor/kyc', async (req: Request, res: Response): Promise<void> 
 
   try {
     const investorId = investorTokens.get(token);
-    const { avatar, displayName } = req.body as { avatar?: unknown; displayName?: unknown };
+    const { avatar, displayName, preferredCurrency } = req.body as { avatar?: unknown; displayName?: unknown; preferredCurrency?: unknown };
 
     const normalizedAvatar = normalizeAvatar(avatar);
     const normalizedDisplayName = String(displayName || '').trim() || 'Future investor';
+    const validCurrencies = ['USD', 'EUR', 'TND', 'CNY'];
+    const normalizedCurrency = validCurrencies.includes(String(preferredCurrency || '').toUpperCase())
+      ? String(preferredCurrency).toUpperCase()
+      : undefined;
 
     const investor = await InvestorModel.findByIdAndUpdate(
       investorId,
@@ -805,6 +810,7 @@ router.post('/investor/kyc', async (req: Request, res: Response): Promise<void> 
           avatar: normalizedAvatar,
           displayName: normalizedDisplayName,
           kycCompleted: true,
+          ...(normalizedCurrency && { preferredCurrency: normalizedCurrency }),
         },
       },
       { new: true, runValidators: true }
@@ -825,6 +831,7 @@ router.post('/investor/kyc', async (req: Request, res: Response): Promise<void> 
         profitPercentageOnInvestment: investor.profitPercentageOnInvestment,
         estimatedROI: investor.estimatedROI,
         currency: investor.currency || 'USD',
+        preferredCurrency: investor.preferredCurrency || investor.currency || 'USD',
         avatar: investor.avatar,
         kycCompleted: investor.kycCompleted === true,
       },

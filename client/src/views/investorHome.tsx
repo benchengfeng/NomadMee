@@ -48,11 +48,6 @@ function formatCurrency(amount: number, currency: string | null | undefined): st
   }).format(safeAmount);
 }
 
-function formatCurrencyWithConversion(amount: number, currency: string | null | undefined, convertedAmount: number, convertedCurrency: string | null | undefined): string {
-  const base = formatCurrency(amount, currency);
-  const converted = formatCurrency(convertedAmount, convertedCurrency);
-  return `${base} • ${converted}`;
-}
 
 function formatDate(value: string | null | undefined): string {
   if (!value) return 'N/A';
@@ -90,6 +85,7 @@ const InvestorHome: React.FC = () => {
   // Settings panel state
   const [settingsName, setSettingsName] = useState('');
   const [settingsAvatar, setSettingsAvatar] = useState<'popeye' | 'olive' | 'curto'>('popeye');
+  const [settingsCurrency, setSettingsCurrency] = useState('USD');
   const [showSecretAvatar, setShowSecretAvatar] = useState(false);
   const [settingsSaving, setSettingsSaving] = useState(false);
   const [settingsSaved, setSettingsSaved] = useState(false);
@@ -115,6 +111,7 @@ const InvestorHome: React.FC = () => {
           setData(response);
           setError(null);
           setSettingsName(response.investor.displayName || response.investor.name || '');
+          setSettingsCurrency(response.investor.preferredCurrency || response.investor.currency || 'USD');
           const av = response.investor.avatar;
           if (av === 'popeye' || av === 'olive' || av === 'curto') {
             setSettingsAvatar(av);
@@ -166,8 +163,9 @@ const InvestorHome: React.FC = () => {
   const renderSummary = () => {
     if (!data) return null;
 
-    const investorCurrency = data.investor.currency || 'USD';
-    const investedAmount = data.investor.investmentAmount || 0;
+    const displayCurrency = data.investor.preferredCurrency || data.investor.currency || 'USD';
+    const investmentSourceCurrency = data.investor.currency || 'USD';
+    const investedAmount = convertCurrency(data.investor.investmentAmount || 0, investmentSourceCurrency, displayCurrency);
     const profitPct = data.investor.profitPercentageOnInvestment || 0;
     const expectedProfit = Number(((investedAmount * profitPct) / 100).toFixed(0));
     const projectedPayout = investedAmount + expectedProfit;
@@ -178,7 +176,7 @@ const InvestorHome: React.FC = () => {
           <div>
             <p className="hero-label">Investor companion</p>
             <h2>{data.investor.displayName || data.investor.name}</h2>
-            <p className="hero-subtitle">Welcome back. Portfolio amounts shown in {investorCurrency}.</p>
+            <p className="hero-subtitle">Welcome back. All amounts shown in {displayCurrency}.</p>
           </div>
           <div className="hero-metric" style={{ borderColor: theme.accent }}>
             <span>Your tier</span>
@@ -189,11 +187,11 @@ const InvestorHome: React.FC = () => {
         <div className="dashboard-grid-stats">
           <div className="stat-card" style={{ background: theme.surface, color: theme.text }}>
             <span>Invested</span>
-            <strong>{formatCurrency(investedAmount, investorCurrency)}</strong>
+            <strong>{formatCurrency(investedAmount, displayCurrency)}</strong>
           </div>
           <div className="stat-card" style={{ background: theme.surface, color: theme.text }}>
             <span>Projected profit</span>
-            <strong>{formatCurrency(expectedProfit, investorCurrency)}</strong>
+            <strong>{formatCurrency(expectedProfit, displayCurrency)}</strong>
           </div>
           <div className="stat-card" style={{ background: theme.surface, color: theme.text }}>
             <span>Estimated ROI</span>
@@ -205,7 +203,7 @@ const InvestorHome: React.FC = () => {
           </div>
           <div className="stat-card stat-card-wide" style={{ background: theme.surface, color: theme.text }}>
             <span>Expected payout</span>
-            <strong>{formatCurrency(projectedPayout, investorCurrency)}</strong>
+            <strong>{formatCurrency(projectedPayout, displayCurrency)}</strong>
           </div>
         </div>
       </div>
@@ -215,7 +213,7 @@ const InvestorHome: React.FC = () => {
   const renderCargos = () => {
     if (!data) return null;
 
-    const investorCurrency = data.investor.currency || 'USD';
+    const investorCurrency = data.investor.preferredCurrency || data.investor.currency || 'USD';
 
     return (
       <div className="cargo-panel" style={{ color: theme.text }}>
@@ -249,7 +247,7 @@ const InvestorHome: React.FC = () => {
                   <div className="cargo-card-title">{cargo.productBeingShipped}</div>
                   <div className="cargo-card-meta">{cargo.purchaseLocation} → {cargo.shippingDestination}</div>
                   <div className="cargo-card-footer">
-                    {cargo.quantity} units · {formatCurrencyWithConversion(totalCost, cargo.currency, convertedTotal, investorCurrency)} · ETA {formatDate(cargo.estimatedTimeOfArrival)}
+                    {cargo.quantity} units · {formatCurrency(convertedTotal, investorCurrency)} total · ETA {formatDate(cargo.estimatedTimeOfArrival)}
                   </div>
                   <div className="cargo-card-actions">
                     <button
@@ -288,7 +286,7 @@ const InvestorHome: React.FC = () => {
       );
     }
 
-    const investorCurrency = data?.investor.currency || 'USD';
+    const investorCurrency = data?.investor.preferredCurrency || data?.investor.currency || 'USD';
 
     return (
       <div className="map-panel" style={{ color: theme.text }}>
@@ -311,15 +309,15 @@ const InvestorHome: React.FC = () => {
         <div className="map-details" style={{ background: theme.surface }}>
           <div>
             <span>Purchase price</span>
-            <strong>{formatCurrencyWithConversion(selectedCargo.purchasePrice, selectedCargo.currency, convertCurrency(selectedCargo.purchasePrice, selectedCargo.currency, investorCurrency), investorCurrency)}</strong>
+            <strong>{formatCurrency(convertCurrency(selectedCargo.purchasePrice, selectedCargo.currency, investorCurrency), investorCurrency)}</strong>
           </div>
           <div>
             <span>Shipping cost</span>
-            <strong>{formatCurrencyWithConversion(selectedCargo.shippingPrice, selectedCargo.currency, convertCurrency(selectedCargo.shippingPrice, selectedCargo.currency, investorCurrency), investorCurrency)}</strong>
+            <strong>{formatCurrency(convertCurrency(selectedCargo.shippingPrice, selectedCargo.currency, investorCurrency), investorCurrency)}</strong>
           </div>
           <div>
             <span>Other fees</span>
-            <strong>{formatCurrencyWithConversion(selectedCargo.otherExpenses, selectedCargo.currency, convertCurrency(selectedCargo.otherExpenses, selectedCargo.currency, investorCurrency), investorCurrency)}</strong>
+            <strong>{formatCurrency(convertCurrency(selectedCargo.otherExpenses, selectedCargo.currency, investorCurrency), investorCurrency)}</strong>
           </div>
           <div>
             <span>ETA</span>
@@ -466,6 +464,7 @@ const InvestorHome: React.FC = () => {
         const updatedInvestor = await completeInvestorKyc({
           avatar: settingsAvatar,
           displayName: settingsName.trim() || data?.investor.name || 'Investor',
+          preferredCurrency: settingsCurrency,
         });
         setData((prev) => prev ? { ...prev, investor: { ...prev.investor, ...updatedInvestor } } : prev);
         setSettingsSaved(true);
@@ -507,6 +506,36 @@ const InvestorHome: React.FC = () => {
                     boxSizing: 'border-box',
                   }}
                 />
+              </label>
+
+              {/* Display currency */}
+              <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: theme.secondaryText }}>Display currency</span>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
+                  {['USD', 'EUR', 'TND', 'CNY'].map((cur) => (
+                    <button
+                      key={cur}
+                      type="button"
+                      onClick={() => setSettingsCurrency(cur)}
+                      style={{
+                        padding: '10px 0',
+                        borderRadius: 10,
+                        border: settingsCurrency === cur ? `2px solid ${theme.accent}` : `1px solid rgba(255,255,255,0.1)`,
+                        background: settingsCurrency === cur ? `${theme.accent}22` : theme.surface,
+                        color: settingsCurrency === cur ? theme.accent : theme.secondaryText,
+                        fontWeight: 700,
+                        fontSize: '0.82rem',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      {cur}
+                    </button>
+                  ))}
+                </div>
+                <p style={{ margin: 0, fontSize: '0.72rem', color: theme.secondaryText, opacity: 0.7 }}>
+                  All amounts in your dashboard will be converted to {settingsCurrency}.
+                </p>
               </label>
 
               {/* Avatar picker */}
