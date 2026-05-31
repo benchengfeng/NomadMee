@@ -198,6 +198,27 @@ export async function getPublicMapData(): Promise<PublicMapData> {
   return request<PublicMapData>('/public/map-data', { method: 'GET' });
 }
 
+export async function uploadMedia(file: File): Promise<string> {
+  const adminToken = getAdminToken();
+  if (!adminToken) throw new Error('Not authenticated.');
+
+  const form = new FormData();
+  form.append('file', file);
+
+  const base = (process.env['REACT_APP_API_URL'] || 'http://localhost:8000/api/portal').replace(/\/$/, '');
+  const apiBase = base.replace(/\/api\/portal$/, '');
+
+  const res = await fetch(`${apiBase}/api/portal/admin/upload`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${adminToken}` },
+    body: form,
+  });
+
+  const payload = (await res.json()) as { url?: string; message?: string };
+  if (!res.ok) throw new Error(payload.message || 'Upload failed');
+  return payload.url!;
+}
+
 export async function getPublicInvestments(): Promise<{ investments: PublicInvestment[] }> {
   return request<{ investments: PublicInvestment[] }>('/public/investments', { method: 'GET' });
 }

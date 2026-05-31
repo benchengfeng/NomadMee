@@ -107,6 +107,9 @@ jobs:
             mkdir -p "$APP/backend"
             printf '%s' "$VPS_ENV_CONTENT" > "$APP/backend/.env"
 
+            # ---- Ensure uploads directory is preserved across deploys ----
+            mkdir -p "$APP/backend/uploads"
+
             # ---- Deploy backend ----
             tar -xzf /tmp/backend.tar.gz -C /tmp
             mkdir -p "$APP/backend/dist"

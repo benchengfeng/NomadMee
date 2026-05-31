@@ -20,6 +20,7 @@ import {
   SiteContent,
 } from '../api/portalApi';
 import { COUNTRIES } from '../utils/countries';
+import MediaUploader from '../components/admin/MediaUploader';
 
 const currencyOptions = ['USD', 'EUR', 'TND', 'CNY'] as const;
 
@@ -101,7 +102,6 @@ const AdminDashboard: React.FC = () => {
   const [savingInvestor, setSavingInvestor] = useState(false);
   const [savingInvestment, setSavingInvestment] = useState(false);
   const [siteContent, setSiteContent] = useState<SiteContent>({ key: 'who_are_we', title: '', body: '', mediaUrls: [] });
-  const [siteContentMediaInput, setSiteContentMediaInput] = useState('');
   const [savingSiteContent, setSavingSiteContent] = useState(false);
 
   const refresh = async () => {
@@ -159,16 +159,6 @@ const AdminDashboard: React.FC = () => {
     storyMediaUrls: cargoForm.storyMediaUrls,
   });
 
-  const addStoryMedia = () => {
-    const url = cargoForm.storyMediaInput.trim();
-    if (url && !cargoForm.storyMediaUrls.includes(url)) {
-      setCargoForm((f) => ({ ...f, storyMediaUrls: [...f.storyMediaUrls, url], storyMediaInput: '' }));
-    }
-  };
-
-  const removeStoryMedia = (url: string) => {
-    setCargoForm((f) => ({ ...f, storyMediaUrls: f.storyMediaUrls.filter((u) => u !== url) }));
-  };
 
   const submitCargo = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -435,27 +425,12 @@ const AdminDashboard: React.FC = () => {
                 placeholder="Write the cargo story — origin, sourcing process, quality notes..."
                 rows={5}
               />
-              <label>Add photo / video URL</label>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <input
-                  value={cargoForm.storyMediaInput}
-                  onChange={(e) => setCargoForm({ ...cargoForm, storyMediaInput: e.target.value })}
-                  placeholder="https://... image or YouTube URL"
-                  onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addStoryMedia(); } }}
-                  style={{ flex: 1 }}
-                />
-                <button type="button" onClick={addStoryMedia} style={{ whiteSpace: 'nowrap' }}>Add</button>
-              </div>
-              {cargoForm.storyMediaUrls.length > 0 && (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 4 }}>
-                  {cargoForm.storyMediaUrls.map((url) => (
-                    <div key={url} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.78rem', color: '#94a3b8' }}>
-                      <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{url}</span>
-                      <button type="button" className="portal-btn-delete" onClick={() => removeStoryMedia(url)} style={{ padding: '2px 8px', fontSize: '0.72rem' }}>✕</button>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <label>Photos &amp; videos</label>
+              <MediaUploader
+                urls={cargoForm.storyMediaUrls}
+                onAdd={(url) => setCargoForm((f) => ({ ...f, storyMediaUrls: [...f.storyMediaUrls, url] }))}
+                onRemove={(url) => setCargoForm((f) => ({ ...f, storyMediaUrls: f.storyMediaUrls.filter((u) => u !== url) }))}
+              />
               <div className="portal-form-actions">
                 <button type="submit" disabled={savingCargo}>{savingCargo ? 'Saving...' : editingCargoId ? 'Update Cargo' : 'Save Cargo'}</button>
                 {editingCargoId && <button type="button" onClick={resetCargoForm}>Cancel</button>}
@@ -654,18 +629,6 @@ const AdminDashboard: React.FC = () => {
           } finally { setSavingSiteContent(false); }
         };
 
-        const addContentMedia = () => {
-          const url = siteContentMediaInput.trim();
-          if (url && !siteContent.mediaUrls?.includes(url)) {
-            setSiteContent((c) => ({ ...c, mediaUrls: [...(c.mediaUrls ?? []), url] }));
-            setSiteContentMediaInput('');
-          }
-        };
-
-        const removeContentMedia = (url: string) => {
-          setSiteContent((c) => ({ ...c, mediaUrls: c.mediaUrls?.filter((u) => u !== url) }));
-        };
-
         return (
           <div className="admin-section-grid">
             <article className="portal-card">
@@ -687,27 +650,12 @@ const AdminDashboard: React.FC = () => {
                   placeholder="Tell your story — who you are, your mission, your values..."
                   rows={10}
                 />
-                <label>Add photo / video URL</label>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <input
-                    value={siteContentMediaInput}
-                    onChange={(e) => setSiteContentMediaInput(e.target.value)}
-                    placeholder="https://... image or YouTube URL"
-                    onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addContentMedia(); } }}
-                    style={{ flex: 1 }}
-                  />
-                  <button type="button" onClick={addContentMedia} style={{ whiteSpace: 'nowrap' }}>Add</button>
-                </div>
-                {(siteContent.mediaUrls ?? []).length > 0 && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 4 }}>
-                    {(siteContent.mediaUrls ?? []).map((url) => (
-                      <div key={url} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.78rem', color: '#94a3b8' }}>
-                        <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{url}</span>
-                        <button type="button" className="portal-btn-delete" onClick={() => removeContentMedia(url)} style={{ padding: '2px 8px', fontSize: '0.72rem' }}>✕</button>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                <label>Photos &amp; videos</label>
+                <MediaUploader
+                  urls={siteContent.mediaUrls ?? []}
+                  onAdd={(url) => setSiteContent((c) => ({ ...c, mediaUrls: [...(c.mediaUrls ?? []), url] }))}
+                  onRemove={(url) => setSiteContent((c) => ({ ...c, mediaUrls: c.mediaUrls?.filter((u) => u !== url) }))}
+                />
                 <button type="submit" disabled={savingSiteContent}>{savingSiteContent ? 'Saving...' : 'Save Content'}</button>
               </form>
             </article>

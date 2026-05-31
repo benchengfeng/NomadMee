@@ -10,6 +10,7 @@ import type { DashboardTheme } from '../theme';
 import { dashboardThemes } from '../theme';
 import CargoMap from '../components/cargo/CargoMap';
 import WorldMap from '../components/WorldMap';
+import StoryMediaGallery from '../components/cargo/StoryMediaGallery';
 
 const currencyRatesToUSD: Record<string, number> = {
   USD: 1,
@@ -336,32 +337,16 @@ const InvestorHome: React.FC = () => {
                     <p className="story-step-eta">{cargo.purchaseLocation} → {cargo.shippingDestination}</p>
                     <p className="story-step-eta">ETA {formatDate(cargo.estimatedTimeOfArrival)}</p>
                     {hasStory && (
-                      <div style={{ marginTop: 12 }}>
+                      <div style={{ marginTop: 16 }}>
                         {cargo.story?.text && (
-                          <p style={{ fontSize: '0.85rem', color: theme.secondaryText, lineHeight: 1.7, margin: '0 0 12px', whiteSpace: 'pre-wrap' }}>
+                          <p style={{ fontSize: '0.87rem', color: theme.secondaryText, lineHeight: 1.8, margin: '0 0 20px', whiteSpace: 'pre-wrap' }}>
                             {cargo.story.text}
                           </p>
                         )}
-                        {(cargo.story?.mediaUrls ?? []).map((url) => {
-                          const isYT = url.includes('youtube.com') || url.includes('youtu.be');
-                          const isImg = /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(url);
-                          const isVid = /\.(mp4|webm|ogg)$/i.test(url);
-                          const ytId = isYT ? (url.match(/(?:v=|youtu\.be\/)([A-Za-z0-9_-]{11})/)?.[1] ?? '') : '';
-                          return isYT ? (
-                            <iframe
-                              key={url}
-                              title="Cargo story video"
-                              src={`https://www.youtube.com/embed/${ytId}`}
-                              style={{ width: '100%', aspectRatio: '16/9', borderRadius: 12, border: 'none', marginBottom: 8 }}
-                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                              allowFullScreen
-                            />
-                          ) : isImg ? (
-                            <img key={url} src={url} alt="" style={{ width: '100%', borderRadius: 12, objectFit: 'cover', maxHeight: 280, marginBottom: 8 }} />
-                          ) : isVid ? (
-                            <video key={url} src={url} controls style={{ width: '100%', borderRadius: 12, marginBottom: 8 }} />
-                          ) : null;
-                        })}
+                        <StoryMediaGallery
+                          urls={cargo.story?.mediaUrls ?? []}
+                          accentColor={theme.accent}
+                        />
                       </div>
                     )}
                   </div>

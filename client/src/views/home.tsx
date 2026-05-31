@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { landingThemes } from '../utils/landingThemes';
 import WorldMap from '../components/WorldMap';
 import { getPublicInvestments, getPublicSiteContent, PublicInvestment, SiteContent } from '../api/portalApi';
+import StoryMediaGallery from '../components/cargo/StoryMediaGallery';
 
 type LandingSection = 'globe' | 'investments' | 'who';
 
@@ -12,43 +13,6 @@ const STATUS_STYLE: Record<string, { label: string; color: string; bg: string }>
   waiting:     { label: 'Waiting',     color: '#fbbf24', bg: 'rgba(251,191,36,0.1)' },
 };
 
-function isYouTube(url: string) {
-  return url.includes('youtube.com') || url.includes('youtu.be');
-}
-
-function isVideo(url: string) {
-  return /\.(mp4|webm|ogg)$/i.test(url);
-}
-
-function isImage(url: string) {
-  return /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(url);
-}
-
-function youtubeEmbedUrl(url: string): string {
-  const match = url.match(/(?:v=|youtu\.be\/)([A-Za-z0-9_-]{11})/);
-  return match ? `https://www.youtube.com/embed/${match[1]}` : url;
-}
-
-const MediaItem: React.FC<{ url: string }> = ({ url }) => {
-  if (isYouTube(url)) {
-    return (
-      <iframe
-        title="Video"
-        src={youtubeEmbedUrl(url)}
-        style={{ width: '100%', aspectRatio: '16/9', borderRadius: 14, border: 'none' }}
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowFullScreen
-      />
-    );
-  }
-  if (isVideo(url)) {
-    return <video src={url} controls style={{ width: '100%', borderRadius: 14 }} />;
-  }
-  if (isImage(url)) {
-    return <img src={url} alt="" style={{ width: '100%', borderRadius: 14, objectFit: 'cover', maxHeight: 400 }} />;
-  }
-  return <a href={url} target="_blank" rel="noreferrer" style={{ color: '#38bdf8', fontSize: '0.85rem' }}>{url}</a>;
-};
 
 const NAV_H = 64;
 
@@ -291,11 +255,7 @@ const LandingPage: React.FC = () => {
             )}
 
             {(siteContent?.mediaUrls ?? []).length > 0 && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
-                {(siteContent!.mediaUrls ?? []).map((url) => (
-                  <MediaItem key={url} url={url} />
-                ))}
-              </div>
+              <StoryMediaGallery urls={siteContent!.mediaUrls ?? []} accentColor={palette.accent} />
             )}
           </div>
         )}

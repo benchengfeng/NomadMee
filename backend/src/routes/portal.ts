@@ -1,9 +1,34 @@
 import { Router, Request, Response } from 'express';
 import crypto from 'crypto';
+import path from 'path';
+import fs from 'fs';
+import multer from 'multer';
+import { v4 as uuidv4 } from 'uuid';
 import { CargoModel } from '../models/Cargo';
 import { InvestorModel } from '../models/Investor';
 import { InvestmentModel } from '../models/Investment';
 import { SiteContentModel } from '../models/SiteContent';
+
+const uploadsDir = path.join(process.cwd(), 'uploads');
+if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+
+const upload = multer({
+  storage: multer.diskStorage({
+    destination: uploadsDir,
+    filename: (_req, file, cb) => {
+      const ext = path.extname(file.originalname).toLowerCase();
+      cb(null, `${uuidv4()}${ext}`);
+    },
+  }),
+  limits: { fileSize: 100 * 1024 * 1024 }, // 100 MB
+  fileFilter: (_req, file, cb) => {
+    if (/\.(jpg|jpeg|png|gif|webp|mp4|webm|mov)$/i.test(file.originalname)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only images and videos are allowed.'));
+    }
+  },
+});
 
 const router = Router();
 
@@ -173,6 +198,19 @@ router.get('/public/site-content/:key', async (req: Request, res: Response): Pro
   } catch {
     res.status(500).json({ message: 'Failed to load content.' });
   }
+});
+
+router.post('/admin/upload', upload.single('file'), (req: Request, res: Response): void => {
+  if (!requireAdmin(req, res)) return;
+
+  if (!req.file) {
+    res.status(400).json({ message: 'No file uploaded.' });
+    return;
+  }
+
+  const baseUrl = (process.env.BASE_URL || 'http://localhost:8000').replace(/\/$/, '');
+  const url = `${baseUrl}/api/uploads/${req.file.filename}`;
+  res.status(200).json({ url, filename: req.file.filename });
 });
 
 router.post('/admin/login', (req: Request, res: Response): void => {

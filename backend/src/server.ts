@@ -1,4 +1,6 @@
 import 'dotenv/config';
+import path from 'path';
+import fs from 'fs';
 import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
@@ -6,6 +8,10 @@ import sendEmailRoutes from './routes/sendEmail';
 import statusRoutes from './routes/status';
 import portalRoutes from './routes/portal';
 import { connectMongo } from './config/mongoose';
+
+// Ensure uploads directory exists
+const uploadsDir = path.join(process.cwd(), 'uploads');
+if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 
 const app = express();
 
@@ -30,6 +36,9 @@ app.options('*', (req, res) => {
   res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.sendStatus(200); // Respond with OK
 });
+
+// Serve uploaded media files
+app.use('/api/uploads', express.static(uploadsDir));
 
 // Routes
 app.use('/api/sendEmail', sendEmailRoutes);
