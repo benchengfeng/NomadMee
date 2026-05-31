@@ -59,9 +59,17 @@ export type PublicMapCargo = {
   createdAt: string;
 };
 
+export type PublicMapStats = {
+  totalInvested: number;
+  totalExpectedProfit: number;
+  activeInvestments: number;
+  activeShipments: number;
+};
+
 export type PublicMapData = {
   investors: PublicMapInvestor[];
   cargos: PublicMapCargo[];
+  stats: PublicMapStats;
 };
 
 export type Investment = {

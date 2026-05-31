@@ -92,10 +92,23 @@ function normalizeAvatar(value: unknown): string {
 
 router.get('/public/map-data', async (_req: Request, res: Response): Promise<void> => {
   try {
-    const [investors, cargos] = await Promise.all([
+    const now = new Date();
+
+    const [investors, cargos, investmentCount, allInvestors] = await Promise.all([
       InvestorModel.find({ kycCompleted: true }).select('displayName name avatar location').lean(),
       CargoModel.find().select('productBeingShipped shippingType purchaseLocation shippingDestination estimatedTimeOfArrival createdAt').lean(),
+      InvestmentModel.countDocuments(),
+      InvestorModel.find().select('investmentAmount profitPercentageOnInvestment').lean(),
     ]);
+
+    const totalInvested = allInvestors.reduce((sum, inv) => sum + (inv.investmentAmount || 0), 0);
+    const totalExpectedProfit = allInvestors.reduce(
+      (sum, inv) => sum + ((inv.investmentAmount || 0) * (inv.profitPercentageOnInvestment || 0)) / 100,
+      0
+    );
+    const activeShipments = cargos.filter(
+      (c) => c.createdAt != null && c.createdAt <= now && new Date(c.estimatedTimeOfArrival) >= now
+    ).length;
 
     res.status(200).json({
       investors: investors.map((inv) => ({
@@ -112,6 +125,12 @@ router.get('/public/map-data', async (_req: Request, res: Response): Promise<voi
         estimatedTimeOfArrival: c.estimatedTimeOfArrival,
         createdAt: c.createdAt,
       })),
+      stats: {
+        totalInvested: Math.round(totalInvested),
+        totalExpectedProfit: Math.round(totalExpectedProfit),
+        activeInvestments: investmentCount,
+        activeShipments,
+      },
     });
   } catch {
     res.status(500).json({ message: 'Failed to load map data.' });

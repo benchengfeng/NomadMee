@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { getPublicMapData, PublicMapCargo, PublicMapInvestor } from '../api/portalApi';
+import { getPublicMapData, PublicMapCargo, PublicMapInvestor, PublicMapData } from '../api/portalApi';
 import { buildCargoRoute, getPositionAtProgress } from '../utils/routeBuilder';
 import { findCountryCoords } from '../utils/countries';
 
@@ -29,9 +29,10 @@ function cargoProgress(cargo: PublicMapCargo): number {
 
 interface WorldMapProps {
   accentColor?: string;
+  onDataLoaded?: (data: PublicMapData) => void;
 }
 
-const WorldMap: React.FC<WorldMapProps> = ({ accentColor = '#38bdf8' }) => {
+const WorldMap: React.FC<WorldMapProps> = ({ accentColor = '#38bdf8', onDataLoaded }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const [mapError, setMapError] = useState(false);
@@ -70,6 +71,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor = '#38bdf8' }) => {
         const data = await getPublicMapData();
         investors = data.investors;
         cargos = data.cargos;
+        onDataLoaded?.(data);
       } catch {
         // Map still shows even if data fetch fails
       }

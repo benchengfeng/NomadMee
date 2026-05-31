@@ -2,13 +2,44 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { landingThemes } from '../utils/landingThemes';
 import WorldMap from '../components/WorldMap';
+import type { PublicMapData } from '../api/portalApi';
+
+function formatCompact(n: number): string {
+  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `$${(n / 1_000).toFixed(0)}K`;
+  return `$${n}`;
+}
+
+interface StatRowProps {
+  label: string;
+  value: string;
+  sub?: string;
+  accent?: string;
+}
+
+const StatRow: React.FC<StatRowProps> = ({ label, value, sub, accent = '#fff' }) => (
+  <div style={{ padding: '12px 0', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+    <p style={{ margin: 0, fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.14em', color: '#475569', fontWeight: 700 }}>
+      {label}
+    </p>
+    <p style={{ margin: '4px 0 0', fontSize: '1.35rem', fontWeight: 800, color: accent, lineHeight: 1.1 }}>
+      {value}
+    </p>
+    {sub && <p style={{ margin: '2px 0 0', fontSize: '0.7rem', color: '#64748b' }}>{sub}</p>}
+  </div>
+);
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const [selectedTheme, setSelectedTheme] = useState(0);
+  const [stats, setStats] = useState<PublicMapData['stats'] | null>(null);
 
   const idx = Math.min(Math.max(selectedTheme, 0), landingThemes.length - 1);
   const palette = landingThemes[idx] as (typeof landingThemes)[number];
+
+  const handleDataLoaded = (data: PublicMapData) => {
+    setStats(data.stats);
+  };
 
   return (
     <main style={{
@@ -33,7 +64,6 @@ const LandingPage: React.FC = () => {
         background: 'linear-gradient(180deg, rgba(10,12,20,0.92) 0%, rgba(10,12,20,0.0) 100%)',
         gap: 16,
       }}>
-        {/* Brand + tagline */}
         <div>
           <p style={{ margin: 0, color: palette.highlight, textTransform: 'uppercase', letterSpacing: '0.2em', fontWeight: 700, fontSize: '0.65rem' }}>
             NomadMee
@@ -43,7 +73,6 @@ const LandingPage: React.FC = () => {
           </h1>
         </div>
 
-        {/* Controls */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexShrink: 0 }}>
           {/* Theme chips */}
           <div style={{ display: 'flex', gap: 6 }}>
@@ -91,8 +120,85 @@ const LandingPage: React.FC = () => {
         </div>
       </header>
 
+      {/* Live stats panel — bottom-left overlay */}
+      {stats && (
+        <div style={{
+          position: 'absolute',
+          bottom: 32,
+          left: 28,
+          zIndex: 10,
+          width: 220,
+          background: 'rgba(10,12,20,0.82)',
+          backdropFilter: 'blur(18px)',
+          WebkitBackdropFilter: 'blur(18px)',
+          border: '1px solid rgba(255,255,255,0.08)',
+          borderRadius: 20,
+          padding: '16px 20px',
+          boxShadow: '0 24px 60px rgba(0,0,0,0.6)',
+        }}>
+          {/* Live indicator */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+            <div style={{ position: 'relative', width: 10, height: 10 }}>
+              <div style={{
+                position: 'absolute',
+                inset: 0,
+                borderRadius: '50%',
+                background: '#22c55e',
+                animation: 'livePing 1.8s ease-out infinite',
+              }} />
+              <div style={{
+                position: 'absolute',
+                inset: '2px',
+                borderRadius: '50%',
+                background: '#22c55e',
+                boxShadow: '0 0 6px #22c55e',
+              }} />
+            </div>
+            <span style={{ fontSize: '0.65rem', fontWeight: 800, letterSpacing: '0.18em', color: '#22c55e', textTransform: 'uppercase' }}>
+              Live
+            </span>
+          </div>
+
+          <StatRow
+            label="Total invested"
+            value={formatCompact(stats.totalInvested)}
+            sub="across all active deals"
+            accent={palette.accent}
+          />
+          <StatRow
+            label="Expected profits"
+            value={formatCompact(stats.totalExpectedProfit)}
+            sub="projected returns"
+            accent="#22c55e"
+          />
+          <StatRow
+            label="Active investments"
+            value={stats.activeInvestments.toString()}
+            sub="open investment rounds"
+            accent="#f1f5f9"
+          />
+          <div style={{ padding: '12px 0 0' }}>
+            <p style={{ margin: 0, fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.14em', color: '#475569', fontWeight: 700 }}>
+              Shipments in transit
+            </p>
+            <p style={{ margin: '4px 0 0', fontSize: '1.35rem', fontWeight: 800, color: '#f1f5f9', lineHeight: 1.1 }}>
+              {stats.activeShipments}
+            </p>
+            <p style={{ margin: '2px 0 0', fontSize: '0.7rem', color: '#64748b' }}>cargo routes active now</p>
+          </div>
+
+          <style>{`
+            @keyframes livePing {
+              0%   { transform: scale(1);   opacity: 0.9; }
+              70%  { transform: scale(2.6); opacity: 0; }
+              100% { transform: scale(1);   opacity: 0; }
+            }
+          `}</style>
+        </div>
+      )}
+
       {/* World map — fills remaining space */}
-      <WorldMap accentColor={palette.accent} />
+      <WorldMap accentColor={palette.accent} onDataLoaded={handleDataLoaded} />
     </main>
   );
 };
