@@ -33,6 +33,7 @@ import {
 import { dashboardThemes } from '../theme';
 import { COUNTRIES } from '../utils/countries';
 import MediaUploader from '../components/admin/MediaUploader';
+import ImageCropUploader from '../components/admin/ImageCropUploader';
 import StoryMediaGallery from '../components/cargo/StoryMediaGallery';
 
 // ---------------------------------------------------------------------------
@@ -103,6 +104,7 @@ const emptyCargoForm = {
   storyMediaInput: '',
   storyMediaUrls: [] as string[],
   hidden: false,
+  coverImageUrl: '',
 };
 
 const emptyInvestorForm = {
@@ -124,6 +126,7 @@ const emptyInvestmentForm = {
   cargoIds: [] as string[],
   status: 'active' as InvestmentStatus,
   hidden: false,
+  coverImageUrl: '',
 };
 
 const currencyRatesToUSD: Record<string, number> = { USD: 1, EUR: 1.09, TND: 0.33, CNY: 0.14 };
@@ -265,6 +268,7 @@ const AdminDashboard: React.FC = () => {
     storyText: cargoForm.storyText,
     storyMediaUrls: cargoForm.storyMediaUrls,
     hidden: cargoForm.hidden,
+    coverImageUrl: cargoForm.coverImageUrl,
   });
 
   const submitCargo = async (event: React.FormEvent) => {
@@ -304,6 +308,7 @@ const AdminDashboard: React.FC = () => {
       storyMediaInput: '',
       storyMediaUrls: cargo.story?.mediaUrls ?? [],
       hidden: cargo.hidden ?? false,
+      coverImageUrl: cargo.coverImageUrl ?? '',
     });
   };
 
@@ -367,6 +372,7 @@ const AdminDashboard: React.FC = () => {
           cargoIds: investmentForm.cargoIds,
           status: investmentForm.status,
           hidden: investmentForm.hidden,
+          coverImageUrl: investmentForm.coverImageUrl,
         });
         showToast('Investment updated!');
       } else {
@@ -378,6 +384,7 @@ const AdminDashboard: React.FC = () => {
           cargoIds: investmentForm.cargoIds,
           status: investmentForm.status,
           hidden: investmentForm.hidden,
+          coverImageUrl: investmentForm.coverImageUrl,
         });
         showToast('Investment created!');
       }
@@ -432,6 +439,7 @@ const AdminDashboard: React.FC = () => {
       cargoIds: investment.cargoIds || [],
       status: investment.status || 'active',
       hidden: investment.hidden ?? false,
+      coverImageUrl: investment.coverImageUrl ?? '',
     });
   };
 
@@ -598,6 +606,12 @@ const AdminDashboard: React.FC = () => {
                 placeholder="Optional: describe this cargo for investors..."
                 rows={3}
               />
+              <ImageCropUploader
+                value={cargoForm.coverImageUrl}
+                onChange={(url) => setCargoForm({ ...cargoForm, coverImageUrl: url })}
+                aspect={16 / 9}
+                label="Cover image"
+              />
               <label style={{ marginTop: 8, borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 12 }}>Story text</label>
               <textarea
                 value={cargoForm.storyText}
@@ -647,7 +661,11 @@ const AdminDashboard: React.FC = () => {
               return hasContent ? (
                 <div className="cargo-live-preview">
                   <p className="clp-label">Investor card preview</p>
-                  <div className="cargo-card clp-card" style={{ background: '#0F2434', borderColor: 'rgba(78,211,201,0.3)' }}>
+                  <div className="cargo-card clp-card" style={{ background: '#0F2434', borderColor: 'rgba(78,211,201,0.3)', padding: 0, overflow: 'hidden' }}>
+                    {f.coverImageUrl && (
+                      <img src={f.coverImageUrl} alt="" style={{ width: '100%', height: 100, objectFit: 'cover', display: 'block' }} />
+                    )}
+                    <div style={{ padding: '12px 14px' }}>
                     <div className="cargo-card-title" style={{ color: '#F3F7FB' }}>{f.productBeingShipped}</div>
                     <div className="cargo-card-meta" style={{ color: '#B8D9EA' }}>{shippingIcon} {f.purchaseLocation || '—'} → {f.shippingDestination || '—'}</div>
                     <div className="cargo-card-footer" style={{ color: '#B8D9EA' }}>
@@ -656,6 +674,7 @@ const AdminDashboard: React.FC = () => {
                     <div className="cargo-journey-progress">
                       <div className="cargo-journey-bar"><div className="cargo-journey-fill" style={{ width: `${pct}%`, background: '#4ED3C9' }} /></div>
                       <span className="cargo-journey-label" style={{ color: '#4ED3C9' }}>{pct}%</span>
+                    </div>
                     </div>
                   </div>
                   {f.cargoDescription && (
@@ -703,6 +722,9 @@ const AdminDashboard: React.FC = () => {
                 <p className="relation-empty">{cargoSearch ? 'No cargos match your search.' : 'No cargos yet.'}</p>
               ) : filteredCargos.map((cargo) => (
                 <div className="portal-item" key={cargo._id}>
+                  {cargo.coverImageUrl && (
+                    <img src={cargo.coverImageUrl} alt="" style={{ width: '100%', height: 72, objectFit: 'cover', borderRadius: '8px 8px 0 0', marginBottom: 8, display: 'block' }} />
+                  )}
                   <div className="portal-item-head">
                     <h3>
                       {cargo.productBeingShipped}
@@ -752,6 +774,12 @@ const AdminDashboard: React.FC = () => {
               <input value={investmentForm.title} onChange={(e) => setInvestmentForm({ ...investmentForm, title: e.target.value })} required />
               <label>Description</label>
               <textarea value={investmentForm.description} onChange={(e) => setInvestmentForm({ ...investmentForm, description: e.target.value })} required />
+              <ImageCropUploader
+                value={investmentForm.coverImageUrl}
+                onChange={(url) => setInvestmentForm({ ...investmentForm, coverImageUrl: url })}
+                aspect={16 / 9}
+                label="Cover image"
+              />
               <label>Minimum investment</label>
               <div className="portal-amount-row">
                 <input type="number" value={investmentForm.minimumInvestment} onChange={(e) => setInvestmentForm({ ...investmentForm, minimumInvestment: e.target.value })} required />
@@ -798,6 +826,9 @@ const AdminDashboard: React.FC = () => {
             <div className="portal-stack">
               {data.investments.length === 0 ? <p className="relation-empty">No investments yet.</p> : data.investments.map((inv) => (
                 <div className="portal-item" key={inv._id}>
+                  {inv.coverImageUrl && (
+                    <img src={inv.coverImageUrl} alt="" style={{ width: '100%', height: 72, objectFit: 'cover', borderRadius: '8px 8px 0 0', marginBottom: 8, display: 'block' }} />
+                  )}
                   <div className="portal-item-head">
                     <h3>
                       {inv.title}

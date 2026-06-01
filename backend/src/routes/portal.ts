@@ -243,6 +243,7 @@ router.get('/public/investments', async (_req: Request, res: Response): Promise<
         status: inv.status || 'active',
         cargoCount: inv.cargoIds?.length ?? 0,
         investorCount: inv.assignedInvestorIds?.length ?? 0,
+        coverImageUrl: inv.coverImageUrl || '',
       })),
     });
   } catch {
@@ -396,7 +397,7 @@ router.post('/admin/cargos', async (req: Request, res: Response): Promise<void> 
 
     const { storyText, storyMediaUrls } = req.body as { storyText?: string; storyMediaUrls?: string[] };
 
-    const { hidden } = req.body as { hidden?: boolean };
+    const { hidden, coverImageUrl } = req.body as { hidden?: boolean; coverImageUrl?: string };
     const cargo = await CargoModel.create({
       productBeingShipped: String(productBeingShipped || '').trim(),
       quantity: normalizeNumber(quantity, 'quantity'),
@@ -415,6 +416,7 @@ router.post('/admin/cargos', async (req: Request, res: Response): Promise<void> 
         mediaUrls: Array.isArray(storyMediaUrls) ? storyMediaUrls.filter(Boolean) : [],
       },
       hidden: hidden === true,
+      coverImageUrl: String(coverImageUrl || '').trim(),
       assignedInvestorIds: [],
     });
 
@@ -452,7 +454,7 @@ router.put('/admin/cargos/:id', async (req: Request, res: Response): Promise<voi
       : 'sea';
 
     const { storyText, storyMediaUrls } = req.body as { storyText?: string; storyMediaUrls?: string[] };
-    const { hidden } = req.body as { hidden?: boolean };
+    const { hidden, coverImageUrl } = req.body as { hidden?: boolean; coverImageUrl?: string };
 
     const cargo = await CargoModel.findByIdAndUpdate(
       id,
@@ -474,6 +476,7 @@ router.put('/admin/cargos/:id', async (req: Request, res: Response): Promise<voi
           mediaUrls: Array.isArray(storyMediaUrls) ? storyMediaUrls.filter(Boolean) : [],
         },
         hidden: hidden === true,
+        coverImageUrl: String(coverImageUrl || '').trim(),
       },
       { new: true, runValidators: true }
     );
@@ -723,7 +726,7 @@ router.post('/admin/investments', async (req: Request, res: Response): Promise<v
   if (!await requireAdmin(req, res)) return;
 
   try {
-    const { title, description, currency, minimumInvestment, cargoIds, status, hidden } = req.body as {
+    const { title, description, currency, minimumInvestment, cargoIds, status, hidden, coverImageUrl } = req.body as {
       title?: string;
       description?: string;
       currency?: unknown;
@@ -731,6 +734,7 @@ router.post('/admin/investments', async (req: Request, res: Response): Promise<v
       cargoIds?: string[];
       status?: string;
       hidden?: boolean;
+      coverImageUrl?: string;
     };
 
     const validStatuses = ['active', 'in_progress', 'waiting', 'successful'];
@@ -744,6 +748,7 @@ router.post('/admin/investments', async (req: Request, res: Response): Promise<v
       assignedInvestorIds: [],
       status: validStatuses.includes(String(status || '')) ? status : 'active',
       hidden: hidden === true,
+      coverImageUrl: String(coverImageUrl || '').trim(),
     });
 
     res.status(201).json({ investment });
@@ -759,7 +764,7 @@ router.put('/admin/investments/:id', async (req: Request, res: Response): Promis
 
   try {
     const { id } = req.params;
-    const { title, description, currency, minimumInvestment, cargoIds, status, hidden } = req.body as {
+    const { title, description, currency, minimumInvestment, cargoIds, status, hidden, coverImageUrl } = req.body as {
       title?: string;
       description?: string;
       currency?: unknown;
@@ -767,6 +772,7 @@ router.put('/admin/investments/:id', async (req: Request, res: Response): Promis
       cargoIds?: string[];
       status?: string;
       hidden?: boolean;
+      coverImageUrl?: string;
     };
 
     const validStatuses = ['active', 'in_progress', 'waiting', 'successful'];
@@ -780,6 +786,7 @@ router.put('/admin/investments/:id', async (req: Request, res: Response): Promis
         minimumInvestment: normalizeNumber(minimumInvestment, 'minimumInvestment'),
         cargoIds: assignedCargoIds,
         hidden: hidden === true,
+        coverImageUrl: String(coverImageUrl || '').trim(),
         ...(validStatuses.includes(String(status || '')) && { status }),
       },
       { new: true, runValidators: true }

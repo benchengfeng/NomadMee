@@ -1022,3 +1022,13 @@
   white-space: nowrap;
   flex-shrink: 0;
 }
+
+/* ── Cover image on investor cargo cards ── */
+.cargo-card-cover {
+  width: calc(100% + 28px);
+  margin: -14px -14px 10px;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 14px 14px 0 0;
+  display: block;
+}

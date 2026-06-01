@@ -28,6 +28,7 @@ export type Cargo = {
   cargoDescription?: string;
   story?: CargoStory;
   hidden?: boolean;
+  coverImageUrl?: string;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -110,6 +111,7 @@ export type Investment = {
   assignedInvestorIds: string[];
   status?: InvestmentStatus;
   hidden?: boolean;
+  coverImageUrl?: string;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -123,6 +125,7 @@ export type PublicInvestment = {
   status: InvestmentStatus;
   cargoCount: number;
   investorCount: number;
+  coverImageUrl?: string;
 };
 
 export type SiteContent = {
@@ -323,6 +326,7 @@ export async function createInvestment(payload: {
   cargoIds: string[];
   status?: InvestmentStatus;
   hidden?: boolean;
+  coverImageUrl?: string;
 }): Promise<Investment> {
   const response = await request<{ investment: Investment }>('/admin/investments', {
     method: 'POST',
@@ -340,6 +344,7 @@ export async function updateInvestment(id: string, payload: {
   cargoIds: string[];
   status?: InvestmentStatus;
   hidden?: boolean;
+  coverImageUrl?: string;
 }): Promise<Investment> {
   const response = await request<{ investment: Investment }>(`/admin/investments/${id}`, {
     method: 'PUT',

@@ -132,6 +132,9 @@ const LandingPage: React.FC = () => {
                       onMouseEnter={(e) => (e.currentTarget.style.borderColor = `${palette.accent}55`)}
                       onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)')}
                     >
+                      {inv.coverImageUrl && (
+                        <img src={inv.coverImageUrl} alt="" className="investment-card-cover" />
+                      )}
                       <div className="investment-card-header">
                         <h3 className="investment-card-title">{inv.title}</h3>
                         <span style={{

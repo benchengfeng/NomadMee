@@ -2633,3 +2633,13 @@ responsive
 .reactEasyCrop_Container {
   border-radius: 12px;
 }
+
+/* ── Cover image on landing investment cards ── */
+.investment-card-cover {
+  width: calc(100% + 2px);
+  margin: -1px -1px 14px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 12px 12px 0 0;
+  display: block;
+}

@@ -138,7 +138,8 @@ const InvestorHome: React.FC = () => {
     return () => {
       isMounted = false;
     };
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dispatch]);
 
   useEffect(() => {
     const firstCargoId = data?.cargos?.[0]?._id;
@@ -255,6 +256,9 @@ const InvestorHome: React.FC = () => {
                     if (e.key === 'Enter' || e.key === ' ') dispatch(setSelectedCargoId(cargo._id));
                   }}
                 >
+                  {cargo.coverImageUrl && (
+                    <img src={cargo.coverImageUrl} alt="" className="cargo-card-cover" />
+                  )}
                   <div className="cargo-card-title">{cargo.productBeingShipped}</div>
                   <div className="cargo-card-meta">
                     {cargo.shippingType === 'air' ? '✈️' : cargo.shippingType === 'land' ? '🚛' : '🚢'}{' '}

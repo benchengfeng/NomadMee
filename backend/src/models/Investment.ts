@@ -9,6 +9,7 @@ export type InvestmentDocument = {
   assignedInvestorIds: mongoose.Types.ObjectId[];
   status?: 'active' | 'in_progress' | 'waiting' | 'successful';
   hidden?: boolean;
+  coverImageUrl?: string;
   createdAt?: Date;
   updatedAt?: Date;
 };
@@ -23,6 +24,7 @@ const InvestmentSchema = new Schema<InvestmentDocument>(
     assignedInvestorIds: [{ type: Schema.Types.ObjectId, ref: 'Investor', default: [] }],
     status: { type: String, enum: ['active', 'in_progress', 'waiting', 'successful'], default: 'active' },
     hidden: { type: Boolean, default: false },
+    coverImageUrl: { type: String, default: '', trim: true },
   },
   { timestamps: true }
 );
