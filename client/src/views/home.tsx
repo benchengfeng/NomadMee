@@ -49,7 +49,10 @@ const LandingPage: React.FC = () => {
     <div className="landing-shell">
       {/* ── Nav bar ── */}
       <nav className="landing-nav">
-        <span className="landing-brand" style={{ color: palette.accent }}>NomadMee</span>
+        <span className="landing-brand" style={{ color: palette.accent }}>
+          <img src="/logo192.png" className="brand-logo" alt="" />
+          NomadMee
+        </span>
 
         <div className="landing-nav-links">
           {NAV_ITEMS.map((item) => (

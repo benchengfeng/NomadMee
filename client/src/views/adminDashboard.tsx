@@ -417,9 +417,12 @@ const AdminDashboard: React.FC = () => {
   return (
     <main className="portal-shell admin-shell">
       <header className="portal-header">
-        <div>
-          <h1>Admin Dashboard</h1>
-          <p>{data.cargos.length} cargos · {data.investments.length} investments · {data.investors.length} investors</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+          <img src="/logo192.png" className="admin-header-logo" alt="NomadMee" />
+          <div>
+            <h1>Admin Dashboard</h1>
+            <p>{data.cargos.length} cargos · {data.investments.length} investments · {data.investors.length} investors</p>
+          </div>
         </div>
         <button type="button" onClick={handleLogout}>Logout</button>
       </header>

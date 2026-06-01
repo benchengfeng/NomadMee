@@ -36,6 +36,8 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor = '#38bdf8', onDataLoad
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const [mapError, setMapError] = useState(false);
+  const [mapReady, setMapReady] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(false);
   const [investorCount, setInvestorCount] = useState(0);
   const [cargoCount, setCargoCount] = useState(0);
 
@@ -75,6 +77,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor = '#38bdf8', onDataLoad
       } catch {
         // Map still shows even if data fetch fails
       }
+      setDataLoaded(true);
 
       // ---- Investor markers ----
       let visibleInvestors = 0;
@@ -220,6 +223,8 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor = '#38bdf8', onDataLoad
       setCargoCount(visibleCargos);
     });
 
+    map.once('idle', () => setMapReady(true));
+
     mapRef.current = map;
 
     return () => {
@@ -246,6 +251,10 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor = '#38bdf8', onDataLoad
           70%  { transform: scale(2.2); opacity: 0; }
           100% { transform: scale(1);   opacity: 0; }
         }
+        @keyframes globeSpin {
+          from { transform: rotate(0deg); }
+          to   { transform: rotate(360deg); }
+        }
         .world-map-popup .maplibregl-popup-content {
           background: rgba(15,18,28,0.96);
           border: 1px solid rgba(255,255,255,0.1);
@@ -260,7 +269,40 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor = '#38bdf8', onDataLoad
         .world-map-popup .maplibregl-popup-tip { border-top-color: rgba(15,18,28,0.96) !important; }
         .maplibregl-ctrl-bottom-right { bottom: 28px !important; right: 10px !important; }
       `}</style>
-      <div ref={containerRef} style={{ position: 'absolute', inset: 0 }} />
+      {/* Map canvas — fades in once tiles are ready */}
+      <div ref={containerRef} style={{ position: 'absolute', inset: 0, opacity: mapReady ? 1 : 0, transition: 'opacity 0.7s ease' }} />
+      {/* Loading / empty overlay */}
+      {!mapReady && (
+        <div style={{
+          position: 'absolute', inset: 0,
+          display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center',
+          background: '#0a0c14', gap: 16, zIndex: 1,
+        }}>
+          <img
+            src="/logo192.png"
+            alt=""
+            style={{ width: 72, height: 72, borderRadius: '50%', objectFit: 'cover', opacity: 0.7 }}
+          />
+          <p style={{ color: '#475569', fontSize: '0.82rem', margin: 0 }}>Loading investor map…</p>
+        </div>
+      )}
+      {/* Empty state — after load, no investors */}
+      {mapReady && dataLoaded && investorCount === 0 && (
+        <div style={{
+          position: 'absolute', inset: 0,
+          display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center',
+          pointerEvents: 'none', gap: 10,
+        }}>
+          <img
+            src="/logo192.png"
+            alt=""
+            style={{ width: 56, height: 56, borderRadius: '50%', objectFit: 'cover', opacity: 0.35 }}
+          />
+          <p style={{ color: '#334155', fontSize: '0.78rem', margin: 0 }}>No investors on the map yet</p>
+        </div>
+      )}
       {/* Stats overlay */}
       {(investorCount > 0 || cargoCount > 0) && (
         <div style={{

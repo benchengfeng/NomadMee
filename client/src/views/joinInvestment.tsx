@@ -72,7 +72,10 @@ const JoinInvestment: React.FC = () => {
       {/* Nav */}
       <nav className="join-nav">
         <Link to="/" className="join-back-btn">← Back</Link>
-        <span className="join-nav-brand" style={{ color: accent }}>NomadMee</span>
+        <span className="join-nav-brand" style={{ color: accent }}>
+          <img src="/logo192.png" className="brand-logo" alt="" />
+          NomadMee
+        </span>
       </nav>
 
       {submitted ? (

@@ -28,41 +28,52 @@ const InvestorLogin: React.FC = () => {
 	};
 
 	return (
-		<main className="auth-shell">
-			<section className="auth-card">
+		<main className="investor-login-shell">
+			<div className="investor-login-logo">
+				<img src="/logo192.png" alt="NomadMee" />
+			</div>
+			<p className="investor-login-brand">NomadMee</p>
+
+			<section className="investor-login-card">
 				<Link to="/" className="auth-back-link">← Home</Link>
-				<h1>Investor Access</h1>
-				<p>Sign in to view your assigned cargos and investment summary.</p>
+				<h2>Investor Access</h2>
+				<p className="investor-login-subtitle">Sign in to track your cargos and investment portfolio.</p>
 
-				<form className="auth-form" onSubmit={handleSubmit}>
-					<label htmlFor="username">Username</label>
-					<input
-						id="username"
-						type="text"
-						value={username}
-						onChange={(event) => setUsername(event.target.value)}
-						placeholder="Enter your username"
-						required
-					/>
+				<form className="investor-login-form" onSubmit={handleSubmit}>
+					<div className="investor-login-field">
+						<label htmlFor="username">Username</label>
+						<input
+							id="username"
+							type="text"
+							value={username}
+							onChange={(event) => setUsername(event.target.value)}
+							placeholder="Enter your username"
+							required
+							autoComplete="username"
+						/>
+					</div>
 
-					<label htmlFor="password">Password</label>
-					<input
-						id="password"
-						type="password"
-						value={password}
-						onChange={(event) => setPassword(event.target.value)}
-						placeholder="Enter your password"
-						required
-					/>
+					<div className="investor-login-field">
+						<label htmlFor="password">Password</label>
+						<input
+							id="password"
+							type="password"
+							value={password}
+							onChange={(event) => setPassword(event.target.value)}
+							placeholder="Enter your password"
+							required
+							autoComplete="current-password"
+						/>
+					</div>
 
-					{error && <p className="auth-error">{error}</p>}
+					{error && <p className="investor-login-error">{error}</p>}
 
-					<button type="submit" disabled={isLoading}>
-						{isLoading ? 'Signing in...' : 'Login'}
+					<button type="submit" disabled={isLoading} className="investor-login-btn">
+						{isLoading ? 'Signing in…' : 'Login →'}
 					</button>
 				</form>
 
-				<div className="auth-links">
+				<div className="investor-login-footer">
 					<Link to="/admin">Admin login</Link>
 				</div>
 			</section>

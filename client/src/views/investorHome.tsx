@@ -248,7 +248,10 @@ const InvestorHome: React.FC = () => {
                   }}
                 >
                   <div className="cargo-card-title">{cargo.productBeingShipped}</div>
-                  <div className="cargo-card-meta">{cargo.purchaseLocation} → {cargo.shippingDestination}</div>
+                  <div className="cargo-card-meta">
+                    {cargo.shippingType === 'air' ? '✈️' : cargo.shippingType === 'land' ? '🚛' : '🚢'}{' '}
+                    {cargo.purchaseLocation} → {cargo.shippingDestination}
+                  </div>
                   <div className="cargo-card-footer">
                     {cargo.quantity} units · {formatCurrency(convertedTotal, investorCurrency)} total · ETA {formatDate(cargo.estimatedTimeOfArrival)}
                   </div>
@@ -710,10 +713,13 @@ const InvestorHome: React.FC = () => {
   return (
     <main className="investor-dashboard-shell gamified-shell" style={{ background: theme.background, color: theme.text }}>
       <div className="investor-topbar gamified-topbar">
-        <div>
-          <p className="mini-label">NomadMee — investor portal</p>
-          <h1>Welcome back, {data.investor.displayName || data.investor.name}</h1>
-          <p className="mini-description">Select a section below to explore your portfolio.</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <img src="/logo192.png" className="topbar-brand-logo" alt="NomadMee" />
+          <div>
+            <p className="mini-label">NomadMee — investor portal</p>
+            <h1>Welcome back, {data.investor.displayName || data.investor.name}</h1>
+            <p className="mini-description">Select a section below to explore your portfolio.</p>
+          </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           {/* View toggle */}
