@@ -12,35 +12,6 @@ Each item is scoped small. Grouped by area: Security & Reliability first, then U
 
 ## 3. Admin Quality of Life
 
-### 3.1 — Unsaved-changes warning when switching admin sections
-**Problem:** If an admin is mid-way through editing a cargo and clicks "Investments" in the nav, the form data is silently lost. No warning.  
-**Fix:** Track a `hasUnsavedChanges` boolean (true when any form field differs from initial state). On tab switch, if true, show a small inline warning: "You have unsaved changes — continue?" with Discard / Stay buttons. Pure frontend state, no backend.  
-**Effort:** 45 minutes.
-
-### 3.2 — Admin search/filter on cargo and investor lists
-**Problem:** When there are 20+ cargos or investors, the list becomes a scroll wall. No way to find a specific item quickly.  
-**Fix:** Add a single search input above each list panel. Filter client-side on `productBeingShipped` for cargos, `name` or `username` for investors. No backend change — data is already loaded.  
-**Effort:** 30 minutes.
-
-### 3.3 — Admin: cargo list shows no link to view in investor preview
-**Problem:** Admin creates a cargo with a story and photos but can't preview how it looks in the investor dashboard without logging out and switching accounts.  
-**Fix:** Add a small "Preview story" button on each cargo item that opens a modal with `StoryMediaGallery` + the description rendered exactly as investors see it. Reuse the existing component — zero backend work.  
-**Effort:** 45 minutes.
-
-### 3.4 — Admin: investor list shows amount in original currency, not normalized
-**Problem:** The investor list shows raw `investmentAmount` + `currency` per investor, making it hard to compare: "20,000 TND" vs "5,000 USD" — which is bigger?  
-**Fix:** Add a "(≈ $X)" annotation computed via the same `convertCurrency()` utility already in the frontend. Small label in gray next to the value. Admin can immediately see relative size.  
-**Effort:** 20 minutes.
-
-### 3.5 — Contact requests: auto-mark as "read" on expand
-**Problem:** Admin has to manually click "Mark as read" after expanding a contact card. Adds friction and means the red badge count doesn't clear naturally.  
-**Fix:** When a card is expanded (`setExpandedContactId`), if its status is `'new'`, automatically call `markStatus('read')`. Same as how email clients work.  
-**Effort:** 10 minutes.
-
-### 3.6 — Admin: Relations tab has no quick-assign shortcut
-**Problem:** Seeing "No investors assigned" for an investment in the Relations tab is informative, but fixing it requires navigating to a completely different tab (Investors) and re-filling the form.  
-**Fix:** Add a small "Assign investor →" button on each relation card that navigates to the Investors tab and pre-selects that investment in the form filter. Just `setActiveSection('investors')` + `setInvestorFormInvestmentFilter(inv._id)`. No backend change.  
-**Effort:** 30 minutes.
 
 ---
 

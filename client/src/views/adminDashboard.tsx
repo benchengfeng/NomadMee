@@ -24,6 +24,7 @@ import {
 } from '../api/portalApi';
 import { COUNTRIES } from '../utils/countries';
 import MediaUploader from '../components/admin/MediaUploader';
+import StoryMediaGallery from '../components/cargo/StoryMediaGallery';
 
 const currencyOptions = ['USD', 'EUR', 'TND', 'CNY'] as const;
 
@@ -89,6 +90,11 @@ const emptyInvestmentForm = {
   status: 'active' as InvestmentStatus,
 };
 
+const currencyRatesToUSD: Record<string, number> = { USD: 1, EUR: 1.09, TND: 0.33, CNY: 0.14 };
+function toUSD(amount: number, currency: string): number {
+  return Math.round(amount * (currencyRatesToUSD[currency.toUpperCase()] ?? 1));
+}
+
 type Toast = { id: number; message: string; type: 'success' | 'error' };
 type ConfirmDelete = { type: 'cargo' | 'investor' | 'investment'; id: string };
 
@@ -122,11 +128,26 @@ const AdminDashboard: React.FC = () => {
   // Inline delete confirmation
   const [confirmDelete, setConfirmDelete] = useState<ConfirmDelete | null>(null);
 
+  // 3.1 Unsaved-changes guard
+  const [pendingSection, setPendingSection] = useState<AdminSection | null>(null);
+  // 3.2 Search filters
+  const [cargoSearch, setCargoSearch] = useState('');
+  const [investorSearch, setInvestorSearch] = useState('');
+  // 3.3 Cargo story preview
+  const [previewCargoId, setPreviewCargoId] = useState<string | null>(null);
+
   const showToast = useCallback((message: string, type: Toast['type'] = 'success') => {
     const id = ++toastIdRef.current;
     setToasts((prev) => [...prev, { id, message, type }]);
     setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 3500);
   }, []);
+
+  const hasUnsavedChanges = useMemo(() => {
+    if (activeSection === 'cargos') return JSON.stringify(cargoForm) !== JSON.stringify(emptyCargoForm);
+    if (activeSection === 'investments') return JSON.stringify(investmentForm) !== JSON.stringify(emptyInvestmentForm);
+    if (activeSection === 'investors') return JSON.stringify(investorForm) !== JSON.stringify(emptyInvestorForm);
+    return false;
+  }, [activeSection, cargoForm, investorForm, investmentForm]);
 
   const refresh = async () => {
     const response = await getAdminDashboard();
@@ -384,6 +405,15 @@ const AdminDashboard: React.FC = () => {
   const cargoMap = Object.fromEntries(data.cargos.map((c) => [c._id, c]));
   const investorMap = Object.fromEntries(data.investors.map((i) => [i._id, i]));
 
+  const filteredCargos = cargoSearch
+    ? data.cargos.filter((c) => c.productBeingShipped.toLowerCase().includes(cargoSearch.toLowerCase()))
+    : data.cargos;
+  const filteredInvestors = investorSearch
+    ? data.investors.filter((i) =>
+        i.name.toLowerCase().includes(investorSearch.toLowerCase()) ||
+        i.username.toLowerCase().includes(investorSearch.toLowerCase()))
+    : data.investors;
+
   return (
     <main className="portal-shell admin-shell">
       <header className="portal-header">
@@ -402,6 +432,10 @@ const AdminDashboard: React.FC = () => {
             type="button"
             className={`admin-nav-tab${activeSection === s.id ? ' admin-nav-tab--active' : ''}`}
             onClick={() => {
+              if (hasUnsavedChanges && s.id !== activeSection) {
+                setPendingSection(s.id);
+                return;
+              }
               setActiveSection(s.id);
               if (s.id === 'messages' && !contactsLoaded) {
                 getAdminContactRequests()
@@ -498,8 +532,18 @@ const AdminDashboard: React.FC = () => {
 
           <article className="portal-card">
             <h2>All Cargos <span className="portal-item-badge">{data.cargos.length}</span></h2>
+            {data.cargos.length > 3 && (
+              <input
+                className="admin-search"
+                placeholder="Search cargos…"
+                value={cargoSearch}
+                onChange={(e) => setCargoSearch(e.target.value)}
+              />
+            )}
             <div className="portal-stack">
-              {data.cargos.length === 0 ? <p className="relation-empty">No cargos yet.</p> : data.cargos.map((cargo) => (
+              {filteredCargos.length === 0 ? (
+                <p className="relation-empty">{cargoSearch ? 'No cargos match your search.' : 'No cargos yet.'}</p>
+              ) : filteredCargos.map((cargo) => (
                 <div className="portal-item" key={cargo._id}>
                   <div className="portal-item-head">
                     <h3>{cargo.productBeingShipped}</h3>
@@ -511,6 +555,9 @@ const AdminDashboard: React.FC = () => {
                       </div>
                     ) : (
                       <div className="portal-item-actions">
+                        {(cargo.story?.text || (cargo.story?.mediaUrls ?? []).length > 0) && (
+                          <button type="button" className="portal-btn-preview" onClick={() => setPreviewCargoId(cargo._id)}>Story</button>
+                        )}
                         <button type="button" className="portal-btn-edit" onClick={() => startEditCargo(cargo)}>Edit</button>
                         <button type="button" className="portal-btn-delete" onClick={() => setConfirmDelete({ type: 'cargo', id: cargo._id })}>Delete</button>
                       </div>
@@ -664,8 +711,18 @@ const AdminDashboard: React.FC = () => {
 
           <article className="portal-card">
             <h2>All Investors <span className="portal-item-badge">{data.investors.length}</span></h2>
+            {data.investors.length > 3 && (
+              <input
+                className="admin-search"
+                placeholder="Search investors…"
+                value={investorSearch}
+                onChange={(e) => setInvestorSearch(e.target.value)}
+              />
+            )}
             <div className="portal-stack">
-              {data.investors.length === 0 ? <p className="relation-empty">No investors yet.</p> : data.investors.map((investor) => (
+              {filteredInvestors.length === 0 ? (
+                <p className="relation-empty">{investorSearch ? 'No investors match your search.' : 'No investors yet.'}</p>
+              ) : filteredInvestors.map((investor) => (
                 <div className="portal-item" key={investor._id}>
                   <div className="portal-item-head">
                     <h3>{investor.name}</h3>
@@ -684,7 +741,11 @@ const AdminDashboard: React.FC = () => {
                   </div>
                   <p className="portal-item-meta">@{investor.username} {investor.location ? `· 📍 ${investor.location}` : ''}</p>
                   <p className="portal-item-meta">
-                    {investor.investmentAmount} {investor.currency} · {investor.profitPercentageOnInvestment}% profit
+                    {investor.investmentAmount.toLocaleString()} {investor.currency}
+                    {investor.currency !== 'USD' && (
+                      <span style={{ color: '#475569', fontSize: '0.78rem' }}> ≈ ${toUSD(investor.investmentAmount, investor.currency).toLocaleString()}</span>
+                    )}
+                    {' '}· {investor.profitPercentageOnInvestment}% profit
                     <span className="portal-item-badge">{investor.assignedInvestmentIds?.length ?? 0} investments</span>
                   </p>
                 </div>
@@ -945,7 +1006,20 @@ const AdminDashboard: React.FC = () => {
                       <div>
                         <p className="relation-col-label">Investors</p>
                         {linkedInvestors.length === 0 ? (
-                          <span className="relation-empty">No investors assigned</span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                            <span className="relation-empty">No investors assigned</span>
+                            <button
+                              type="button"
+                              className="portal-btn-edit"
+                              style={{ fontSize: '0.72rem', padding: '3px 10px' }}
+                              onClick={() => {
+                                setInvestorForm((f) => ({ ...f, investmentIds: f.investmentIds.includes(inv._id) ? f.investmentIds : [...f.investmentIds, inv._id] }));
+                                setActiveSection('investors');
+                              }}
+                            >
+                              Assign investor →
+                            </button>
+                          </div>
                         ) : (
                           <div className="relation-chips">
                             {linkedInvestors.map((investor) => investor && (
@@ -968,6 +1042,67 @@ const AdminDashboard: React.FC = () => {
           )}
         </div>
       )}
+
+      {/* 3.1 Unsaved-changes guard */}
+      {pendingSection && (
+        <div className="unsaved-overlay" onClick={() => setPendingSection(null)}>
+          <div className="unsaved-dialog" onClick={(e) => e.stopPropagation()}>
+            <p>You have unsaved changes. Discard and continue?</p>
+            <div className="unsaved-dialog-actions">
+              <button type="button" onClick={() => setPendingSection(null)}>Stay</button>
+              <button
+                type="button"
+                className="portal-btn-delete"
+                onClick={() => {
+                  if (activeSection === 'cargos') resetCargoForm();
+                  if (activeSection === 'investors') resetInvestorForm();
+                  if (activeSection === 'investments') resetInvestmentForm();
+                  const next = pendingSection;
+                  setPendingSection(null);
+                  setActiveSection(next);
+                  if (next === 'messages' && !contactsLoaded) {
+                    getAdminContactRequests()
+                      .then((r) => { setContactRequests(r.requests); setContactsLoaded(true); })
+                      .catch(() => {});
+                  }
+                }}
+              >
+                Discard &amp; continue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 3.3 Cargo story preview modal */}
+      {previewCargoId && (() => {
+        const cargo = data.cargos.find((c) => c._id === previewCargoId);
+        if (!cargo) return null;
+        return (
+          <div className="story-preview-overlay" onClick={() => setPreviewCargoId(null)}>
+            <div className="story-preview-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="story-preview-header">
+                <h3>{cargo.productBeingShipped}</h3>
+                <button type="button" onClick={() => setPreviewCargoId(null)}>✕</button>
+              </div>
+              <div className="story-preview-body">
+                {cargo.cargoDescription && (
+                  <p style={{ color: '#94a3b8', fontSize: '0.85rem', lineHeight: 1.6, marginBottom: 16 }}>{cargo.cargoDescription}</p>
+                )}
+                {cargo.story?.text && (
+                  <p style={{ color: '#e2e8f0', fontSize: '0.9rem', lineHeight: 1.7, marginBottom: 24, whiteSpace: 'pre-wrap' }}>{cargo.story.text}</p>
+                )}
+                {(cargo.story?.mediaUrls ?? []).length > 0 && (
+                  <StoryMediaGallery urls={cargo.story!.mediaUrls!} accentColor="#38bdf8" />
+                )}
+                {!cargo.story?.text && !(cargo.story?.mediaUrls ?? []).length && (
+                  <p style={{ color: '#475569', textAlign: 'center', padding: '40px 0' }}>No story content yet.</p>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Toast notifications */}
       <div className="toast-container">
