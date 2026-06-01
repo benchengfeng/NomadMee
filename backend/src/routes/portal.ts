@@ -4,11 +4,14 @@ import path from 'path';
 import fs from 'fs';
 import multer from 'multer';
 import { v4 as uuidv4 } from 'uuid';
+import bcrypt from 'bcrypt';
+import rateLimit from 'express-rate-limit';
 import { CargoModel } from '../models/Cargo';
 import { InvestorModel } from '../models/Investor';
 import { InvestmentModel } from '../models/Investment';
 import { SiteContentModel } from '../models/SiteContent';
 import { ContactRequestModel } from '../models/ContactRequest';
+import { SessionModel } from '../models/Session';
 
 const uploadsDir = path.join(process.cwd(), 'uploads');
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
@@ -33,52 +36,68 @@ const upload = multer({
 
 const router = Router();
 
-const ADMIN_USERNAME = 'admin';
-const ADMIN_PASSWORD = 'admin112233';
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin112233';
 
-const adminTokens = new Map<string, string>();
-const investorTokens = new Map<string, string>();
+const BCRYPT_ROUNDS = 12;
+const SESSION_7_DAYS = 7 * 24 * 60 * 60 * 1000;
+const SESSION_24_HOURS = 24 * 60 * 60 * 1000;
+
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { message: 'Too many login attempts. Please try again in 15 minutes.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 function readBearerToken(req: Request): string | null {
   const authHeader = req.header('Authorization');
-  if (!authHeader) {
-    return null;
-  }
-
+  if (!authHeader) return null;
   const [scheme, token] = authHeader.split(' ');
-  if (scheme !== 'Bearer' || !token) {
-    return null;
-  }
-
+  if (scheme !== 'Bearer' || !token) return null;
   return token;
 }
 
-function requireAdmin(req: Request, res: Response): string | null {
+async function requireAdmin(req: Request, res: Response): Promise<boolean> {
   const token = readBearerToken(req);
-  if (!token || !adminTokens.has(token)) {
+  if (!token) {
     res.status(401).json({ message: 'Admin authentication required.' });
-    return null;
+    return false;
   }
-
-  return token;
+  const session = await SessionModel.findOne({
+    token,
+    role: 'admin',
+    expiresAt: { $gt: new Date() },
+  }).lean();
+  if (!session) {
+    res.status(401).json({ message: 'Admin authentication required.' });
+    return false;
+  }
+  return true;
 }
 
-function requireInvestor(req: Request, res: Response): string | null {
+async function requireInvestor(req: Request, res: Response): Promise<string | null> {
   const token = readBearerToken(req);
-  if (!token || !investorTokens.has(token)) {
+  if (!token) {
     res.status(401).json({ message: 'Investor authentication required.' });
     return null;
   }
-
-  return token;
+  const session = await SessionModel.findOne({
+    token,
+    role: 'investor',
+    expiresAt: { $gt: new Date() },
+  }).lean();
+  if (!session) {
+    res.status(401).json({ message: 'Investor authentication required.' });
+    return null;
+  }
+  return String(session.userId);
 }
 
 function normalizeDate(value: unknown): Date {
   const date = new Date(String(value));
-  if (Number.isNaN(date.getTime())) {
-    throw new Error('Invalid date value.');
-  }
-
+  if (Number.isNaN(date.getTime())) throw new Error('Invalid date value.');
   return date;
 }
 
@@ -87,34 +106,29 @@ function normalizeNumber(value: unknown, fieldName: string): number {
   if (!Number.isFinite(parsed) || parsed < 0) {
     throw new Error(`${fieldName} must be a non-negative number.`);
   }
-
   return parsed;
 }
 
 function normalizeCurrency(value: unknown): string {
   const currency = String(value || '').trim().toUpperCase();
   const supported = ['USD', 'EUR', 'TND', 'CNY'];
-
   if (!supported.includes(currency)) {
     throw new Error(`Currency must be one of: ${supported.join(', ')}`);
   }
-
   return currency;
 }
 
 function normalizeAvatar(value: unknown): string {
   const avatar = String(value || '').trim().toLowerCase();
   const supported = ['popeye', 'olive', 'curto'];
-
   if (!supported.includes(avatar)) {
     throw new Error(`Avatar must be one of: ${supported.join(', ')}`);
   }
-
   return avatar;
 }
 
 // ---------------------------------------------------------------------------
-// Public — no auth required (landing page map data)
+// Public — no auth required
 // ---------------------------------------------------------------------------
 
 router.get('/public/map-data', async (_req: Request, res: Response): Promise<void> => {
@@ -137,7 +151,7 @@ router.get('/public/map-data', async (_req: Request, res: Response): Promise<voi
       (sum, inv) => sum + ((inv.investmentAmount || 0) * (inv.profitPercentageOnInvestment || 0)) / 100,
       0
     );
-    // Only show cargos linked to non-successful investments
+
     const activeInvestments = await InvestmentModel.find({ status: { $ne: 'successful' } }).select('cargoIds').lean();
     const activeCargoIds = new Set(activeInvestments.flatMap((inv) => inv.cargoIds.map(String)));
     const activeCargos = cargos.filter((c) => activeCargoIds.has(String(c._id)));
@@ -210,8 +224,76 @@ router.get('/public/site-content/:key', async (req: Request, res: Response): Pro
   }
 });
 
-router.post('/admin/upload', upload.single('file'), (req: Request, res: Response): void => {
-  if (!requireAdmin(req, res)) return;
+router.post('/public/contact-request', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { investmentId, investmentTitle, fullName, contactMethod, contactDetail, rdvDate, note } =
+      req.body as Record<string, string>;
+
+    if (!fullName?.trim() || !contactMethod || !contactDetail?.trim() || !rdvDate?.trim() || !investmentId) {
+      res.status(400).json({ message: 'All fields are required.' });
+      return;
+    }
+
+    if (!['whatsapp', 'email'].includes(contactMethod)) {
+      res.status(400).json({ message: 'Invalid contact method.' });
+      return;
+    }
+
+    const investment = await InvestmentModel.findById(investmentId).lean();
+
+    const request = await ContactRequestModel.create({
+      investmentId: investmentId.trim(),
+      investmentTitle: (investmentTitle || investment?.title || 'Unknown Investment').trim(),
+      fullName: fullName.trim(),
+      contactMethod,
+      contactDetail: contactDetail.trim(),
+      rdvDate: rdvDate.trim(),
+      note: (note ?? '').trim(),
+      status: 'new',
+    });
+
+    res.status(201).json({ request: { _id: request._id } });
+  } catch (error) {
+    res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to submit request.' });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Admin — login / logout
+// ---------------------------------------------------------------------------
+
+router.post('/admin/login', loginLimiter, async (req: Request, res: Response): Promise<void> => {
+  const { username, password } = req.body as { username?: string; password?: string };
+
+  if (username !== ADMIN_USERNAME || password !== ADMIN_PASSWORD) {
+    res.status(401).json({ message: 'Invalid admin credentials.' });
+    return;
+  }
+
+  const token = crypto.randomBytes(24).toString('hex');
+  const expiresAt = new Date(Date.now() + SESSION_24_HOURS);
+  await SessionModel.create({ token, userId: ADMIN_USERNAME, role: 'admin', expiresAt });
+
+  res.status(200).json({
+    token,
+    user: { username: ADMIN_USERNAME, role: 'admin' },
+  });
+});
+
+router.post('/admin/logout', async (req: Request, res: Response): Promise<void> => {
+  const token = readBearerToken(req);
+  if (token) {
+    await SessionModel.deleteOne({ token, role: 'admin' });
+  }
+  res.status(200).json({ message: 'Logged out.' });
+});
+
+// ---------------------------------------------------------------------------
+// Admin — file upload
+// ---------------------------------------------------------------------------
+
+router.post('/admin/upload', upload.single('file'), async (req: Request, res: Response): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
 
   if (!req.file) {
     res.status(400).json({ message: 'No file uploaded.' });
@@ -223,46 +305,18 @@ router.post('/admin/upload', upload.single('file'), (req: Request, res: Response
   res.status(200).json({ url, filename: req.file.filename });
 });
 
-router.post('/admin/login', (req: Request, res: Response): void => {
-  const { username, password } = req.body as { username?: string; password?: string };
+// ---------------------------------------------------------------------------
+// Admin — cargos
+// ---------------------------------------------------------------------------
 
-  if (username !== ADMIN_USERNAME || password !== ADMIN_PASSWORD) {
-    res.status(401).json({ message: 'Invalid admin credentials.' });
-    return;
-  }
-
-  const token = crypto.randomBytes(24).toString('hex');
-  adminTokens.set(token, ADMIN_USERNAME);
-
-  res.status(200).json({
-    token,
-    user: { username: ADMIN_USERNAME, role: 'admin' },
-  });
-});
-
-router.post('/admin/logout', (req: Request, res: Response): void => {
-  const token = readBearerToken(req);
-  if (token) {
-    adminTokens.delete(token);
-  }
-
-  res.status(200).json({ message: 'Logged out.' });
-});
-
-router.get('/admin/cargos', (req: Request, res: Response): void => {
-  if (!requireAdmin(req, res)) {
-    return;
-  }
-
-  void CargoModel.find().sort({ createdAt: -1 }).lean().then((cargos) => {
-    res.status(200).json({ cargos });
-  });
+router.get('/admin/cargos', async (req: Request, res: Response): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  const cargos = await CargoModel.find().sort({ createdAt: -1 }).lean();
+  res.status(200).json({ cargos });
 });
 
 router.post('/admin/cargos', async (req: Request, res: Response): Promise<void> => {
-  if (!requireAdmin(req, res)) {
-    return;
-  }
+  if (!await requireAdmin(req, res)) return;
 
   try {
     const {
@@ -316,7 +370,7 @@ router.post('/admin/cargos', async (req: Request, res: Response): Promise<void> 
 });
 
 router.put('/admin/cargos/:id', async (req: Request, res: Response): Promise<void> => {
-  if (!requireAdmin(req, res)) return;
+  if (!await requireAdmin(req, res)) return;
 
   try {
     const { id } = req.params;
@@ -377,7 +431,7 @@ router.put('/admin/cargos/:id', async (req: Request, res: Response): Promise<voi
 });
 
 router.delete('/admin/cargos/:id', async (req: Request, res: Response): Promise<void> => {
-  if (!requireAdmin(req, res)) return;
+  if (!await requireAdmin(req, res)) return;
 
   try {
     const { id } = req.params;
@@ -394,48 +448,25 @@ router.delete('/admin/cargos/:id', async (req: Request, res: Response): Promise<
   }
 });
 
-router.get('/admin/investors', (req: Request, res: Response): void => {
-  if (!requireAdmin(req, res)) {
-    return;
-  }
+// ---------------------------------------------------------------------------
+// Admin — investors
+// ---------------------------------------------------------------------------
 
-  void InvestorModel.find().sort({ createdAt: -1 }).lean().then((investors) => {
-    const safeInvestors = investors.map((investor) => ({
-      ...investor,
-      assignedCargoIds: [],
-      assignedInvestmentIds: investor.assignedInvestmentIds || [],
-      currency: investor.currency || 'USD',
-    }));
-    res.status(200).json({ investors: safeInvestors });
-  });
-});
+router.get('/admin/investors', async (req: Request, res: Response): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
 
-router.get('/admin/dashboard', async (req: Request, res: Response): Promise<void> => {
-  if (!requireAdmin(req, res)) {
-    return;
-  }
-
-  const [cargos, investors, investments, unreadContactCount] = await Promise.all([
-    CargoModel.find().sort({ createdAt: -1 }).lean(),
-    InvestorModel.find().sort({ createdAt: -1 }).lean(),
-    InvestmentModel.find().sort({ createdAt: -1 }).lean(),
-    ContactRequestModel.countDocuments({ status: 'new' }),
-  ]);
-
+  const investors = await InvestorModel.find().sort({ createdAt: -1 }).lean();
   const safeInvestors = investors.map((investor) => ({
     ...investor,
     assignedCargoIds: [],
     assignedInvestmentIds: investor.assignedInvestmentIds || [],
     currency: investor.currency || 'USD',
   }));
-
-  res.status(200).json({ cargos, investors: safeInvestors, investments, unreadContactCount });
+  res.status(200).json({ investors: safeInvestors });
 });
 
 router.post('/admin/investors', async (req: Request, res: Response): Promise<void> => {
-  if (!requireAdmin(req, res)) {
-    return;
-  }
+  if (!await requireAdmin(req, res)) return;
 
   try {
     const {
@@ -464,11 +495,14 @@ router.post('/admin/investors', async (req: Request, res: Response): Promise<voi
     const normalizedCurrency = normalizeCurrency(currency);
     const estimatedROI = Number(((investment * profitPercentage) / 100).toFixed(2));
 
+    const plainPassword = String(password || '');
+    const hashedPassword = await bcrypt.hash(plainPassword, BCRYPT_ROUNDS);
+
     const investor = await InvestorModel.create({
       name: String(name || '').trim(),
       displayName: String(name || '').trim(),
       username: String(username || '').trim().toLowerCase(),
-      password: String(password || ''),
+      password: hashedPassword,
       investmentAmount: investment,
       profitPercentageOnInvestment: profitPercentage,
       estimatedROI,
@@ -495,9 +529,7 @@ router.post('/admin/investors', async (req: Request, res: Response): Promise<voi
 });
 
 router.put('/admin/investors/:id', async (req: Request, res: Response): Promise<void> => {
-  if (!requireAdmin(req, res)) {
-    return;
-  }
+  if (!await requireAdmin(req, res)) return;
 
   try {
     const { id } = req.params;
@@ -541,7 +573,7 @@ router.put('/admin/investors/:id', async (req: Request, res: Response): Promise<
     };
 
     if (typeof password === 'string' && password.length > 0) {
-      updatePayload.password = password;
+      updatePayload.password = await bcrypt.hash(password, BCRYPT_ROUNDS);
     }
 
     const investor = await InvestorModel.findByIdAndUpdate(
@@ -576,9 +608,7 @@ router.put('/admin/investors/:id', async (req: Request, res: Response): Promise<
 });
 
 router.delete('/admin/investors/:id', async (req: Request, res: Response): Promise<void> => {
-  if (!requireAdmin(req, res)) {
-    return;
-  }
+  if (!await requireAdmin(req, res)) return;
 
   try {
     const { id } = req.params;
@@ -602,10 +632,36 @@ router.delete('/admin/investors/:id', async (req: Request, res: Response): Promi
   }
 });
 
+// ---------------------------------------------------------------------------
+// Admin — dashboard
+// ---------------------------------------------------------------------------
+
+router.get('/admin/dashboard', async (req: Request, res: Response): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+
+  const [cargos, investors, investments, unreadContactCount] = await Promise.all([
+    CargoModel.find().sort({ createdAt: -1 }).lean(),
+    InvestorModel.find().sort({ createdAt: -1 }).lean(),
+    InvestmentModel.find().sort({ createdAt: -1 }).lean(),
+    ContactRequestModel.countDocuments({ status: 'new' }),
+  ]);
+
+  const safeInvestors = investors.map((investor) => ({
+    ...investor,
+    assignedCargoIds: [],
+    assignedInvestmentIds: investor.assignedInvestmentIds || [],
+    currency: investor.currency || 'USD',
+  }));
+
+  res.status(200).json({ cargos, investors: safeInvestors, investments, unreadContactCount });
+});
+
+// ---------------------------------------------------------------------------
+// Admin — investments
+// ---------------------------------------------------------------------------
+
 router.post('/admin/investments', async (req: Request, res: Response): Promise<void> => {
-  if (!requireAdmin(req, res)) {
-    return;
-  }
+  if (!await requireAdmin(req, res)) return;
 
   try {
     const { title, description, currency, minimumInvestment, cargoIds, status } = req.body as {
@@ -638,9 +694,7 @@ router.post('/admin/investments', async (req: Request, res: Response): Promise<v
 });
 
 router.put('/admin/investments/:id', async (req: Request, res: Response): Promise<void> => {
-  if (!requireAdmin(req, res)) {
-    return;
-  }
+  if (!await requireAdmin(req, res)) return;
 
   try {
     const { id } = req.params;
@@ -675,16 +729,12 @@ router.put('/admin/investments/:id', async (req: Request, res: Response): Promis
 
     res.status(200).json({ investment });
   } catch (error) {
-    res.status(400).json({
-      message: error instanceof Error ? error.message : 'Failed to update investment.',
-    });
+    res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to update investment.' });
   }
 });
 
 router.delete('/admin/investments/:id', async (req: Request, res: Response): Promise<void> => {
-  if (!requireAdmin(req, res)) {
-    return;
-  }
+  if (!await requireAdmin(req, res)) return;
 
   try {
     const { id } = req.params;
@@ -702,52 +752,16 @@ router.delete('/admin/investments/:id', async (req: Request, res: Response): Pro
 
     res.status(200).json({ message: 'Investment deleted.' });
   } catch (error) {
-    res.status(400).json({
-      message: error instanceof Error ? error.message : 'Failed to delete investment.',
-    });
+    res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to delete investment.' });
   }
 });
 
 // ---------------------------------------------------------------------------
-// Contact requests
+// Admin — contact requests
 // ---------------------------------------------------------------------------
-
-router.post('/public/contact-request', async (req: Request, res: Response): Promise<void> => {
-  try {
-    const { investmentId, investmentTitle, fullName, contactMethod, contactDetail, rdvDate, note } =
-      req.body as Record<string, string>;
-
-    if (!fullName?.trim() || !contactMethod || !contactDetail?.trim() || !rdvDate?.trim() || !investmentId) {
-      res.status(400).json({ message: 'All fields are required.' });
-      return;
-    }
-
-    if (!['whatsapp', 'email'].includes(contactMethod)) {
-      res.status(400).json({ message: 'Invalid contact method.' });
-      return;
-    }
-
-    const investment = await InvestmentModel.findById(investmentId).lean();
-
-    const request = await ContactRequestModel.create({
-      investmentId: investmentId.trim(),
-      investmentTitle: (investmentTitle || investment?.title || 'Unknown Investment').trim(),
-      fullName: fullName.trim(),
-      contactMethod,
-      contactDetail: contactDetail.trim(),
-      rdvDate: rdvDate.trim(),
-      note: (note ?? '').trim(),
-      status: 'new',
-    });
-
-    res.status(201).json({ request: { _id: request._id } });
-  } catch (error) {
-    res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to submit request.' });
-  }
-});
 
 router.get('/admin/contact-requests', async (req: Request, res: Response): Promise<void> => {
-  if (!requireAdmin(req, res)) return;
+  if (!await requireAdmin(req, res)) return;
 
   try {
     const requests = await ContactRequestModel.find().sort({ createdAt: -1 }).lean();
@@ -758,7 +772,7 @@ router.get('/admin/contact-requests', async (req: Request, res: Response): Promi
 });
 
 router.put('/admin/contact-requests/:id/status', async (req: Request, res: Response): Promise<void> => {
-  if (!requireAdmin(req, res)) return;
+  if (!await requireAdmin(req, res)) return;
 
   try {
     const { id } = req.params;
@@ -769,11 +783,7 @@ router.put('/admin/contact-requests/:id/status', async (req: Request, res: Respo
       return;
     }
 
-    const request = await ContactRequestModel.findByIdAndUpdate(
-      id,
-      { status },
-      { new: true }
-    );
+    const request = await ContactRequestModel.findByIdAndUpdate(id, { status }, { new: true });
 
     if (!request) {
       res.status(404).json({ message: 'Request not found.' });
@@ -786,8 +796,12 @@ router.put('/admin/contact-requests/:id/status', async (req: Request, res: Respo
   }
 });
 
+// ---------------------------------------------------------------------------
+// Admin — site content
+// ---------------------------------------------------------------------------
+
 router.put('/admin/site-content/:key', async (req: Request, res: Response): Promise<void> => {
-  if (!requireAdmin(req, res)) return;
+  if (!await requireAdmin(req, res)) return;
 
   try {
     const { key } = req.params;
@@ -810,7 +824,11 @@ router.put('/admin/site-content/:key', async (req: Request, res: Response): Prom
   }
 });
 
-router.post('/investor/login', async (req: Request, res: Response): Promise<void> => {
+// ---------------------------------------------------------------------------
+// Investor — login / logout
+// ---------------------------------------------------------------------------
+
+router.post('/investor/login', loginLimiter, async (req: Request, res: Response): Promise<void> => {
   const { username, password } = req.body as { username?: string; password?: string };
 
   if (!username || !password) {
@@ -820,7 +838,6 @@ router.post('/investor/login', async (req: Request, res: Response): Promise<void
 
   const investor = await InvestorModel.findOne({
     username: username.trim().toLowerCase(),
-    password,
   }).lean();
 
   if (!investor) {
@@ -828,8 +845,28 @@ router.post('/investor/login', async (req: Request, res: Response): Promise<void
     return;
   }
 
+  // Auto-migrate plain-text passwords to bcrypt on first successful login
+  const isHashed = investor.password.startsWith('$2b$') || investor.password.startsWith('$2a$');
+  let passwordValid: boolean;
+
+  if (isHashed) {
+    passwordValid = await bcrypt.compare(password, investor.password);
+  } else {
+    passwordValid = investor.password === password;
+    if (passwordValid) {
+      const hashed = await bcrypt.hash(password, BCRYPT_ROUNDS);
+      await InvestorModel.updateOne({ _id: investor._id }, { password: hashed });
+    }
+  }
+
+  if (!passwordValid) {
+    res.status(401).json({ message: 'Invalid investor credentials.' });
+    return;
+  }
+
   const token = crypto.randomBytes(24).toString('hex');
-  investorTokens.set(token, String(investor._id));
+  const expiresAt = new Date(Date.now() + SESSION_7_DAYS);
+  await SessionModel.create({ token, userId: String(investor._id), role: 'investor', expiresAt });
 
   res.status(200).json({
     token,
@@ -840,13 +877,22 @@ router.post('/investor/login', async (req: Request, res: Response): Promise<void
   });
 });
 
-router.get('/investor/home', async (req: Request, res: Response): Promise<void> => {
-  const token = requireInvestor(req, res);
-  if (!token) {
-    return;
+router.post('/investor/logout', async (req: Request, res: Response): Promise<void> => {
+  const token = readBearerToken(req);
+  if (token) {
+    await SessionModel.deleteOne({ token, role: 'investor' });
   }
+  res.status(200).json({ message: 'Logged out.' });
+});
 
-  const investorId = investorTokens.get(token);
+// ---------------------------------------------------------------------------
+// Investor — home & KYC
+// ---------------------------------------------------------------------------
+
+router.get('/investor/home', async (req: Request, res: Response): Promise<void> => {
+  const investorId = await requireInvestor(req, res);
+  if (!investorId) return;
+
   const investor = await InvestorModel.findById(investorId).lean();
 
   if (!investor) {
@@ -876,14 +922,15 @@ router.get('/investor/home', async (req: Request, res: Response): Promise<void> 
 });
 
 router.post('/investor/kyc', async (req: Request, res: Response): Promise<void> => {
-  const token = requireInvestor(req, res);
-  if (!token) {
-    return;
-  }
+  const investorId = await requireInvestor(req, res);
+  if (!investorId) return;
 
   try {
-    const investorId = investorTokens.get(token);
-    const { avatar, displayName, preferredCurrency } = req.body as { avatar?: unknown; displayName?: unknown; preferredCurrency?: unknown };
+    const { avatar, displayName, preferredCurrency } = req.body as {
+      avatar?: unknown;
+      displayName?: unknown;
+      preferredCurrency?: unknown;
+    };
 
     const normalizedAvatar = normalizeAvatar(avatar);
     const normalizedDisplayName = String(displayName || '').trim() || 'Future investor';
@@ -930,15 +977,6 @@ router.post('/investor/kyc', async (req: Request, res: Response): Promise<void> 
       message: error instanceof Error ? error.message : 'Failed to complete KYC.',
     });
   }
-});
-
-router.post('/investor/logout', (req: Request, res: Response): void => {
-  const token = readBearerToken(req);
-  if (token) {
-    investorTokens.delete(token);
-  }
-
-  res.status(200).json({ message: 'Logged out.' });
 });
 
 export default router;
