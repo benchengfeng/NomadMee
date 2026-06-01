@@ -208,6 +208,9 @@ const JoinInvestment: React.FC = () => {
                   placeholder={contactMethod === 'whatsapp' ? '+1 234 567 8900' : 'you@example.com'}
                   required
                 />
+                {contactMethod === 'whatsapp' && (
+                  <p className="join-field-hint">Include country code, e.g. +216 XX XXX XXX</p>
+                )}
               </div>
 
               {/* RDV date */}

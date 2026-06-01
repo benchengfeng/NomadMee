@@ -127,6 +127,7 @@ const AdminDashboard: React.FC = () => {
 
   // Inline delete confirmation
   const [confirmDelete, setConfirmDelete] = useState<ConfirmDelete | null>(null);
+  const [confirmLogout, setConfirmLogout] = useState(false);
 
   // 3.1 Unsaved-changes guard
   const [pendingSection, setPendingSection] = useState<AdminSection | null>(null);
@@ -424,7 +425,15 @@ const AdminDashboard: React.FC = () => {
             <p>{data.cargos.length} cargos · {data.investments.length} investments · {data.investors.length} investors</p>
           </div>
         </div>
-        <button type="button" onClick={handleLogout}>Logout</button>
+        {confirmLogout ? (
+          <div className="logout-confirm">
+            <span>Log out?</span>
+            <button type="button" onClick={handleLogout}>Yes</button>
+            <button type="button" onClick={() => setConfirmLogout(false)}>Cancel</button>
+          </div>
+        ) : (
+          <button type="button" onClick={() => setConfirmLogout(true)}>Logout</button>
+        )}
       </header>
 
       {/* Section tabs */}

@@ -2439,3 +2439,108 @@ responsive
   box-shadow: 0 0 0 3px rgba(255,255,255,0.08);
   flex-shrink: 0;
 }
+
+/* ── Join form field hint (6.1) ── */
+.join-field-hint {
+  margin: 5px 0 0;
+  font-size: 0.72rem;
+  color: #475569;
+  line-height: 1.4;
+}
+
+/* ── Admin logout confirm (6.2) ── */
+.logout-confirm {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.logout-confirm span {
+  font-size: 0.82rem;
+  color: rgba(255,255,255,0.75);
+  white-space: nowrap;
+}
+.logout-confirm button {
+  padding: 7px 14px;
+  border-radius: 9px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(255,255,255,0.08);
+  color: #fff;
+  transition: background 0.16s;
+  white-space: nowrap;
+}
+.logout-confirm button:first-of-type {
+  background: rgba(239,68,68,0.2);
+  border-color: rgba(239,68,68,0.35);
+  color: #fca5a5;
+}
+.logout-confirm button:first-of-type:hover { background: rgba(239,68,68,0.32); }
+.logout-confirm button:last-of-type:hover { background: rgba(255,255,255,0.14); }
+
+/* ── 404 Not Found page (6.3) ── */
+.not-found-shell {
+  min-height: 100vh;
+  background: #0a0c14;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+}
+.not-found-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+}
+.not-found-logo {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(56,189,248,0.25);
+  box-shadow: 0 0 0 4px rgba(56,189,248,0.06);
+  margin-bottom: 4px;
+  opacity: 0.8;
+}
+.not-found-code {
+  margin: 0;
+  font-size: 5rem;
+  font-weight: 900;
+  color: rgba(56,189,248,0.15);
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+.not-found-msg {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+.not-found-sub {
+  margin: 0;
+  font-size: 0.82rem;
+  color: #475569;
+}
+.not-found-btn {
+  margin-top: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 22px;
+  border-radius: 12px;
+  background: rgba(56,189,248,0.1);
+  border: 1px solid rgba(56,189,248,0.25);
+  color: #38bdf8;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background 0.18s, border-color 0.18s;
+}
+.not-found-btn:hover {
+  background: rgba(56,189,248,0.18);
+  border-color: rgba(56,189,248,0.4);
+}

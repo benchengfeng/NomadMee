@@ -12,6 +12,7 @@ import KycOnboarding from "../views/kycOnboarding";
 import AdminLogin from "../views/adminLogin";
 import AdminDashboard from "../views/adminDashboard";
 import JoinInvestment from "../views/joinInvestment";
+import NotFound from "../views/notFound";
 import { getAdminToken, getSessionToken } from "../utils/auth";
 
 const InvestorProtectedRoute: React.FC<{ children: JSX.Element }> = ({ children }) => {
@@ -72,7 +73,7 @@ const AppRouter = () => {
         <Route path="/europe" element={<AppEurope />} /> */}
         <Route path="/terms-of-service" element={<TermsOfService />} />
         <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>
   );
