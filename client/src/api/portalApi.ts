@@ -91,7 +91,7 @@ export type PublicMapInvestment = {
   minimumInvestment: number;
   cargoCount: number;
   investorCount: number;
-  purchaseLocations: string[];
+  location: string;
 };
 
 export type PublicMapData = {
@@ -114,6 +114,7 @@ export type Investment = {
   status?: InvestmentStatus;
   hidden?: boolean;
   coverImageUrl?: string;
+  location?: string;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -329,6 +330,7 @@ export async function createInvestment(payload: {
   status?: InvestmentStatus;
   hidden?: boolean;
   coverImageUrl?: string;
+  location?: string;
 }): Promise<Investment> {
   const response = await request<{ investment: Investment }>('/admin/investments', {
     method: 'POST',
@@ -347,6 +349,7 @@ export async function updateInvestment(id: string, payload: {
   status?: InvestmentStatus;
   hidden?: boolean;
   coverImageUrl?: string;
+  location?: string;
 }): Promise<Investment> {
   const response = await request<{ investment: Investment }>(`/admin/investments/${id}`, {
     method: 'PUT',

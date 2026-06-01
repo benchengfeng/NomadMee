@@ -128,6 +128,7 @@ const emptyInvestmentForm = {
   status: 'active' as InvestmentStatus,
   hidden: false,
   coverImageUrl: '',
+  location: '',
 };
 
 const currencyRatesToUSD: Record<string, number> = { USD: 1, EUR: 1.09, TND: 0.33, CNY: 0.14 };
@@ -376,6 +377,7 @@ const AdminDashboard: React.FC = () => {
           status: investmentForm.status,
           hidden: investmentForm.hidden,
           coverImageUrl: investmentForm.coverImageUrl,
+          location: investmentForm.location,
         });
         showToast('Investment updated!');
       } else {
@@ -388,6 +390,7 @@ const AdminDashboard: React.FC = () => {
           status: investmentForm.status,
           hidden: investmentForm.hidden,
           coverImageUrl: investmentForm.coverImageUrl,
+          location: investmentForm.location,
         });
         showToast('Investment created!');
       }
@@ -443,6 +446,7 @@ const AdminDashboard: React.FC = () => {
       status: investment.status || 'active',
       hidden: investment.hidden ?? false,
       coverImageUrl: investment.coverImageUrl ?? '',
+      location: investment.location ?? '',
     });
   };
 
@@ -792,6 +796,17 @@ const AdminDashboard: React.FC = () => {
                   {currencyOptions.map((c) => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
+              <label>Location (shown on globe 📍)</label>
+              <input
+                list="inv-country-list"
+                value={investmentForm.location}
+                onChange={(e) => setInvestmentForm({ ...investmentForm, location: e.target.value })}
+                placeholder="Country where this investment is based…"
+                autoComplete="off"
+              />
+              <datalist id="inv-country-list">
+                {COUNTRIES.map((c) => <option key={c.code} value={c.name} />)}
+              </datalist>
               <label>Status</label>
               <select value={investmentForm.status} onChange={(e) => setInvestmentForm({ ...investmentForm, status: e.target.value as InvestmentStatus })}>
                 {STATUS_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
@@ -1317,16 +1332,36 @@ const AdminDashboard: React.FC = () => {
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-                {/* Cropped preview */}
-                <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                  <img src={avCroppedUrl} alt="Preview" style={{ width: 80, height: 80, borderRadius: '50%', objectFit: 'cover', border: '3px solid #38bdf8' }} />
-                  <div>
-                    <p style={{ margin: '0 0 4px', color: '#f1f5f9', fontWeight: 700, fontSize: '0.9rem' }}>Cropped — looks good?</p>
-                    <button type="button" onClick={() => { setAvCroppedUrl(null); setAvCroppedBlob(null); }} style={{ background: 'none', border: 'none', color: '#64748b', fontSize: '0.78rem', cursor: 'pointer', padding: 0 }}>
-                      ↺ Re-crop
-                    </button>
-                  </div>
-                </div>
+                {/* Live themed preview — repaints instantly when a theme is clicked */}
+                {(() => {
+                  const t = dashboardThemes[avTheme] ?? dashboardThemes[0]!;
+                  return (
+                    <div style={{ borderRadius: 16, overflow: 'hidden', border: `1px solid ${t.accent}33`, boxShadow: `0 12px 30px ${t.panelGlow}`, transition: 'all 0.3s ease' }}>
+                      <div style={{ background: t.background, padding: '18px 16px', transition: 'background 0.3s ease' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                          <img src={avCroppedUrl} alt="Preview" style={{ width: 56, height: 56, borderRadius: '50%', objectFit: 'cover', border: `2.5px solid ${t.accent}`, boxShadow: `0 0 0 3px ${t.accent}33`, flexShrink: 0 }} />
+                          <div style={{ minWidth: 0 }}>
+                            <p style={{ margin: 0, fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: t.secondaryText, fontWeight: 700 }}>Investor preview</p>
+                            <p style={{ margin: '3px 0 0', fontSize: '1rem', fontWeight: 800, color: t.text, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{avName.trim() || 'Avatar name'}</p>
+                          </div>
+                        </div>
+                        {/* Mini chips that pick up the accent so the palette reads clearly */}
+                        <div style={{ display: 'flex', gap: 8, marginTop: 14 }}>
+                          <div style={{ flex: 1, background: t.surface, borderRadius: 10, padding: '10px 12px', transition: 'background 0.3s ease' }}>
+                            <p style={{ margin: 0, fontSize: '0.56rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: t.secondaryText, fontWeight: 700 }}>Invested</p>
+                            <p style={{ margin: '3px 0 0', fontSize: '0.82rem', fontWeight: 800, color: t.text }}>$25,000</p>
+                          </div>
+                          <button type="button" style={{ border: 'none', borderRadius: 10, padding: '0 16px', background: t.accent, color: t.background, fontWeight: 800, fontSize: '0.78rem', cursor: 'default', transition: 'background 0.3s ease' }}>
+                            View
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+                <button type="button" onClick={() => { setAvCroppedUrl(null); setAvCroppedBlob(null); }} style={{ alignSelf: 'flex-start', background: 'none', border: 'none', color: '#64748b', fontSize: '0.78rem', cursor: 'pointer', padding: 0 }}>
+                  ↺ Re-crop image
+                </button>
 
                 {/* Avatar name */}
                 <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>

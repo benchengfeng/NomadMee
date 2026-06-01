@@ -10,6 +10,7 @@ export type InvestmentDocument = {
   status?: 'active' | 'in_progress' | 'waiting' | 'successful';
   hidden?: boolean;
   coverImageUrl?: string;
+  location?: string;
   createdAt?: Date;
   updatedAt?: Date;
 };
@@ -25,6 +26,7 @@ const InvestmentSchema = new Schema<InvestmentDocument>(
     status: { type: String, enum: ['active', 'in_progress', 'waiting', 'successful'], default: 'active' },
     hidden: { type: Boolean, default: false },
     coverImageUrl: { type: String, default: '', trim: true },
+    location: { type: String, default: '', trim: true },
   },
   { timestamps: true }
 );

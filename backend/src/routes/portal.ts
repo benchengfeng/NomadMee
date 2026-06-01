@@ -166,7 +166,7 @@ router.get('/public/map-data', async (_req: Request, res: Response): Promise<voi
       0
     );
 
-    const activeInvestments = await InvestmentModel.find({ status: { $ne: 'successful' }, hidden: { $ne: true } }).select('title status currency minimumInvestment cargoIds assignedInvestorIds').lean();
+    const activeInvestments = await InvestmentModel.find({ status: { $ne: 'successful' }, hidden: { $ne: true } }).select('title status currency minimumInvestment cargoIds assignedInvestorIds location').lean();
     const activeCargoIds = new Set(activeInvestments.flatMap((inv) => inv.cargoIds.map(String)));
     const activeCargos = cargos.filter((c) => activeCargoIds.has(String(c._id)));
     const cargoDestMap = Object.fromEntries(cargos.map((c) => [String(c._id), c.shippingDestination]));
@@ -203,9 +203,8 @@ router.get('/public/map-data', async (_req: Request, res: Response): Promise<voi
         createdAt: c.createdAt,
       })),
       investments: activeInvestments.map((inv) => {
-        const purchaseLocations = [...new Set(
-          inv.cargoIds.map((id) => cargoPurchaseMap[String(id)]).filter(Boolean) as string[]
-        )];
+        const cargoFallback = inv.cargoIds.map((id) => cargoPurchaseMap[String(id)]).find(Boolean) ?? '';
+        const invDoc = inv as typeof inv & { location?: string };
         return {
           _id: inv._id,
           title: inv.title,
@@ -214,7 +213,7 @@ router.get('/public/map-data', async (_req: Request, res: Response): Promise<voi
           minimumInvestment: inv.minimumInvestment,
           cargoCount: inv.cargoIds.length,
           investorCount: inv.assignedInvestorIds.length,
-          purchaseLocations,
+          location: invDoc.location || cargoFallback,
         };
       }),
       stats: {
@@ -730,15 +729,9 @@ router.post('/admin/investments', async (req: Request, res: Response): Promise<v
   if (!await requireAdmin(req, res)) return;
 
   try {
-    const { title, description, currency, minimumInvestment, cargoIds, status, hidden, coverImageUrl } = req.body as {
-      title?: string;
-      description?: string;
-      currency?: unknown;
-      minimumInvestment?: unknown;
-      cargoIds?: string[];
-      status?: string;
-      hidden?: boolean;
-      coverImageUrl?: string;
+    const { title, description, currency, minimumInvestment, cargoIds, status, hidden, coverImageUrl, location } = req.body as {
+      title?: string; description?: string; currency?: unknown; minimumInvestment?: unknown;
+      cargoIds?: string[]; status?: string; hidden?: boolean; coverImageUrl?: string; location?: string;
     };
 
     const validStatuses = ['active', 'in_progress', 'waiting', 'successful'];
@@ -753,6 +746,7 @@ router.post('/admin/investments', async (req: Request, res: Response): Promise<v
       status: validStatuses.includes(String(status || '')) ? status : 'active',
       hidden: hidden === true,
       coverImageUrl: String(coverImageUrl || '').trim(),
+      location: String(location || '').trim(),
     });
 
     res.status(201).json({ investment });
@@ -768,15 +762,9 @@ router.put('/admin/investments/:id', async (req: Request, res: Response): Promis
 
   try {
     const { id } = req.params;
-    const { title, description, currency, minimumInvestment, cargoIds, status, hidden, coverImageUrl } = req.body as {
-      title?: string;
-      description?: string;
-      currency?: unknown;
-      minimumInvestment?: unknown;
-      cargoIds?: string[];
-      status?: string;
-      hidden?: boolean;
-      coverImageUrl?: string;
+    const { title, description, currency, minimumInvestment, cargoIds, status, hidden, coverImageUrl, location } = req.body as {
+      title?: string; description?: string; currency?: unknown; minimumInvestment?: unknown;
+      cargoIds?: string[]; status?: string; hidden?: boolean; coverImageUrl?: string; location?: string;
     };
 
     const validStatuses = ['active', 'in_progress', 'waiting', 'successful'];
@@ -791,6 +779,7 @@ router.put('/admin/investments/:id', async (req: Request, res: Response): Promis
         cargoIds: assignedCargoIds,
         hidden: hidden === true,
         coverImageUrl: String(coverImageUrl || '').trim(),
+        location: String(location || '').trim(),
         ...(validStatuses.includes(String(status || '')) && { status }),
       },
       { new: true, runValidators: true }

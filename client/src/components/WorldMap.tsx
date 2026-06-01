@@ -172,30 +172,20 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor = '#38bdf8', onDataLoad
 
         visibleCargos++;
 
-        // Outer pulse ring
+        // Cargo icon marker (ship / plane / truck)
+        const emojiIcon = shippingType === 'air' ? '✈️' : shippingType === 'land' ? '🚛' : '🚢';
         const pulseEl = document.createElement('div');
         pulseEl.style.cssText = `
-          position:relative;width:20px;height:20px;
-          display:flex;align-items:center;justify-content:center;
-        `;
-
-        const ring = document.createElement('div');
-        ring.style.cssText = `
-          position:absolute;width:20px;height:20px;border-radius:50%;
+          width:32px;height:32px;border-radius:50%;
+          background:rgba(8,10,18,0.88);
           border:2px solid ${color};
-          animation:${arrived ? 'none' : 'worldMapPulse 2s ease-out infinite'};
-          opacity:0.6;
+          display:flex;align-items:center;justify-content:center;
+          font-size:15px;line-height:1;
+          cursor:pointer;
+          box-shadow:0 0 10px ${color}55, 0 3px 10px rgba(0,0,0,0.75);
+          transition:transform 0.15s, box-shadow 0.15s;
         `;
-
-        const dot = document.createElement('div');
-        dot.style.cssText = `
-          width:9px;height:9px;border-radius:50%;
-          background:${color};
-          box-shadow:0 0 8px ${color}88;
-        `;
-
-        pulseEl.appendChild(ring);
-        pulseEl.appendChild(dot);
+        pulseEl.textContent = emojiIcon;
 
         const icon = shippingType === 'air' ? '✈' : shippingType === 'land' ? '🚛' : '🚢';
         const eta = new Date(cargo.estimatedTimeOfArrival).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -213,6 +203,9 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor = '#38bdf8', onDataLoad
           `<span style="color:${color}">${statusText}</span>`
         );
 
+        pulseEl.addEventListener('mouseenter', () => { pulseEl.style.transform = 'scale(1.2)'; pulseEl.style.boxShadow = `0 0 16px ${color}88, 0 4px 14px rgba(0,0,0,0.9)`; });
+        pulseEl.addEventListener('mouseleave', () => { pulseEl.style.transform = 'scale(1)'; pulseEl.style.boxShadow = `0 0 10px ${color}55, 0 3px 10px rgba(0,0,0,0.75)`; });
+
         new maplibregl.Marker({ element: pulseEl, anchor: 'center' })
           .setLngLat(pos as [number, number])
           .setPopup(popup)
@@ -221,83 +214,57 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor = '#38bdf8', onDataLoad
       setCargoCount(visibleCargos);
 
       // ---- Investment markers ----
-      const STATUS_COLORS: Record<string, string> = {
-        active: '#22c55e',
-        in_progress: '#38bdf8',
-        waiting: '#fbbf24',
-        successful: '#a78bfa',
-      };
       let visibleInvestments = 0;
       for (const inv of investments) {
-        const destination = inv.purchaseLocations[0];
-        if (!destination) continue;
-        const coords = findCountryCoords(destination);
+        if (!inv.location) continue;
+        const coords = findCountryCoords(inv.location);
         if (!coords) continue;
         visibleInvestments++;
 
-        const statusColor = STATUS_COLORS[inv.status] ?? '#fbbf24';
+        const invColor = '#38bdf8';
 
-        const wrapper = document.createElement('div');
-        wrapper.style.cssText = `position:relative;width:30px;height:30px;cursor:pointer;`;
-
-        const badge = document.createElement('div');
-        badge.style.cssText = `
-          width:30px;height:30px;border-radius:8px;
-          background:rgba(0,0,0,0.6);
-          border:2px solid ${statusColor};
+        // Pulsing dot — same visual style as cargo was before
+        const invEl = document.createElement('div');
+        invEl.style.cssText = `
+          position:relative;width:22px;height:22px;
           display:flex;align-items:center;justify-content:center;
-          font-size:14px;
-          box-shadow:0 0 12px ${statusColor}55, 0 4px 14px rgba(0,0,0,0.8);
-          transition:transform 0.15s, box-shadow 0.15s;
+          cursor:pointer;
         `;
-        badge.textContent = '💼';
-        wrapper.appendChild(badge);
 
-        const tooltip = document.createElement('div');
-        tooltip.style.cssText = `
-          position:absolute;
-          bottom:calc(100% + 10px);
-          left:50%;
-          transform:translateX(-50%);
-          background:rgba(10,12,20,0.96);
-          border:1px solid rgba(255,255,255,0.12);
-          border-radius:12px;
-          padding:10px 14px;
-          white-space:nowrap;
-          pointer-events:none;
-          opacity:0;
-          transition:opacity 0.18s;
-          box-shadow:0 8px 24px rgba(0,0,0,0.7);
-          z-index:100;
-          min-width:160px;
+        const invRing = document.createElement('div');
+        invRing.style.cssText = `
+          position:absolute;width:22px;height:22px;border-radius:50%;
+          border:2px solid ${invColor};
+          animation:worldMapPulse 2.2s ease-out infinite;
+          opacity:0.55;
         `;
-        tooltip.innerHTML = `
-          <div style="font-weight:800;color:#f1f5f9;font-size:0.82rem;margin-bottom:3px;">${inv.title}</div>
-          <div style="color:#64748b;font-size:0.72rem;margin-bottom:6px;">📦 Origin: ${destination}</div>
-          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-            <span style="color:#94a3b8;font-size:0.7rem;">📦 ${inv.cargoCount} cargo${inv.cargoCount !== 1 ? 's' : ''}</span>
-            <span style="color:#94a3b8;font-size:0.7rem;">👤 ${inv.investorCount} investor${inv.investorCount !== 1 ? 's' : ''}</span>
-            <span style="display:flex;align-items:center;gap:4px;font-size:0.7rem;">
-              <span style="width:7px;height:7px;border-radius:50%;background:${statusColor};display:inline-block;"></span>
-              <span style="color:${statusColor};font-weight:700;">${inv.status.replace('_', ' ')}</span>
-            </span>
-          </div>
+
+        const invDot = document.createElement('div');
+        invDot.style.cssText = `
+          width:10px;height:10px;border-radius:50%;
+          background:${invColor};
+          box-shadow:0 0 8px ${invColor}99;
         `;
-        wrapper.appendChild(tooltip);
 
-        wrapper.addEventListener('mouseenter', () => {
-          badge.style.transform = 'scale(1.18)';
-          badge.style.boxShadow = `0 0 18px ${statusColor}88, 0 6px 18px rgba(0,0,0,0.9)`;
-          tooltip.style.opacity = '1';
-        });
-        wrapper.addEventListener('mouseleave', () => {
-          badge.style.transform = 'scale(1)';
-          badge.style.boxShadow = `0 0 12px ${statusColor}55, 0 4px 14px rgba(0,0,0,0.8)`;
-          tooltip.style.opacity = '0';
-        });
+        invEl.appendChild(invRing);
+        invEl.appendChild(invDot);
 
-        new maplibregl.Marker({ element: wrapper, anchor: 'center' })
+        const eta = inv.status.replace('_', ' ');
+        const invPopup = new maplibregl.Popup({
+          closeButton: false,
+          offset: 14,
+          className: 'world-map-popup',
+        }).setHTML(
+          `<strong>💼 ${inv.title}</strong><br/>` +
+          `<span>📍 ${inv.location}</span><br/>` +
+          `<span style="color:${invColor}">` +
+          `${inv.cargoCount} cargo${inv.cargoCount !== 1 ? 's' : ''} · ${inv.investorCount} investor${inv.investorCount !== 1 ? 's' : ''} · ${eta}` +
+          `</span>`
+        );
+
+        new maplibregl.Marker({ element: invEl, anchor: 'center' })
           .setLngLat(coords as [number, number])
+          .setPopup(invPopup)
           .addTo(map);
       }
       setInvestmentCount(visibleInvestments);
