@@ -15,6 +15,7 @@ export type CargoDocument = {
   shippingType?: 'sea' | 'air' | 'land';
   cargoDescription?: string;
   story?: { text?: string; mediaUrls?: string[] };
+  hidden?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
 };
@@ -33,6 +34,7 @@ const CargoSchema = new Schema<CargoDocument>(
     assignedInvestorIds: [{ type: Schema.Types.ObjectId, ref: 'Investor', default: [] }],
     shippingType: { type: String, enum: ['sea', 'air', 'land'], default: 'sea' },
     cargoDescription: { type: String, default: '', trim: true },
+    hidden: { type: Boolean, default: false },
     story: {
       text: { type: String, default: '', trim: true },
       mediaUrls: [{ type: String, trim: true }],

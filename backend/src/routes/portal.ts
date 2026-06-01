@@ -137,8 +137,8 @@ router.get('/public/map-data', async (_req: Request, res: Response): Promise<voi
 
     const [investors, cargos, investmentCount, allInvestors, investorInvestmentCounts] = await Promise.all([
       InvestorModel.find({ kycCompleted: true }).select('displayName name avatar location').lean(),
-      CargoModel.find().select('productBeingShipped shippingType purchaseLocation shippingDestination estimatedTimeOfArrival createdAt').lean(),
-      InvestmentModel.countDocuments(),
+      CargoModel.find({ hidden: { $ne: true } }).select('productBeingShipped shippingType purchaseLocation shippingDestination estimatedTimeOfArrival createdAt').lean(),
+      InvestmentModel.countDocuments({ hidden: { $ne: true } }),
       InvestorModel.find().select('investmentAmount profitPercentageOnInvestment').lean(),
       InvestmentModel.aggregate<{ _id: string; count: number }>([
         { $unwind: '$assignedInvestorIds' },
@@ -152,9 +152,10 @@ router.get('/public/map-data', async (_req: Request, res: Response): Promise<voi
       0
     );
 
-    const activeInvestments = await InvestmentModel.find({ status: { $ne: 'successful' } }).select('cargoIds').lean();
+    const activeInvestments = await InvestmentModel.find({ status: { $ne: 'successful' }, hidden: { $ne: true } }).select('title status currency minimumInvestment cargoIds assignedInvestorIds').lean();
     const activeCargoIds = new Set(activeInvestments.flatMap((inv) => inv.cargoIds.map(String)));
     const activeCargos = cargos.filter((c) => activeCargoIds.has(String(c._id)));
+    const cargoDestMap = Object.fromEntries(cargos.map((c) => [String(c._id), c.shippingDestination]));
 
     const activeShipments = activeCargos.filter(
       (c) => c.createdAt != null && c.createdAt <= now && new Date(c.estimatedTimeOfArrival) >= now
@@ -180,6 +181,21 @@ router.get('/public/map-data', async (_req: Request, res: Response): Promise<voi
         estimatedTimeOfArrival: c.estimatedTimeOfArrival,
         createdAt: c.createdAt,
       })),
+      investments: activeInvestments.map((inv) => {
+        const destinations = [...new Set(
+          inv.cargoIds.map((id) => cargoDestMap[String(id)]).filter(Boolean) as string[]
+        )];
+        return {
+          _id: inv._id,
+          title: inv.title,
+          status: inv.status || 'active',
+          currency: inv.currency,
+          minimumInvestment: inv.minimumInvestment,
+          cargoCount: inv.cargoIds.length,
+          investorCount: inv.assignedInvestorIds.length,
+          destinations,
+        };
+      }),
       stats: {
         totalInvested: Math.round(totalInvested),
         totalExpectedProfit: Math.round(totalExpectedProfit),
@@ -194,7 +210,7 @@ router.get('/public/map-data', async (_req: Request, res: Response): Promise<voi
 
 router.get('/public/investments', async (_req: Request, res: Response): Promise<void> => {
   try {
-    const investments = await InvestmentModel.find({ status: { $ne: 'successful' } })
+    const investments = await InvestmentModel.find({ status: { $ne: 'successful' }, hidden: { $ne: true } })
       .sort({ createdAt: -1 })
       .lean();
 
@@ -341,6 +357,7 @@ router.post('/admin/cargos', async (req: Request, res: Response): Promise<void> 
 
     const { storyText, storyMediaUrls } = req.body as { storyText?: string; storyMediaUrls?: string[] };
 
+    const { hidden } = req.body as { hidden?: boolean };
     const cargo = await CargoModel.create({
       productBeingShipped: String(productBeingShipped || '').trim(),
       quantity: normalizeNumber(quantity, 'quantity'),
@@ -358,6 +375,7 @@ router.post('/admin/cargos', async (req: Request, res: Response): Promise<void> 
         text: String(storyText || '').trim(),
         mediaUrls: Array.isArray(storyMediaUrls) ? storyMediaUrls.filter(Boolean) : [],
       },
+      hidden: hidden === true,
       assignedInvestorIds: [],
     });
 
@@ -395,6 +413,7 @@ router.put('/admin/cargos/:id', async (req: Request, res: Response): Promise<voi
       : 'sea';
 
     const { storyText, storyMediaUrls } = req.body as { storyText?: string; storyMediaUrls?: string[] };
+    const { hidden } = req.body as { hidden?: boolean };
 
     const cargo = await CargoModel.findByIdAndUpdate(
       id,
@@ -415,6 +434,7 @@ router.put('/admin/cargos/:id', async (req: Request, res: Response): Promise<voi
           text: String(storyText || '').trim(),
           mediaUrls: Array.isArray(storyMediaUrls) ? storyMediaUrls.filter(Boolean) : [],
         },
+        hidden: hidden === true,
       },
       { new: true, runValidators: true }
     );
@@ -664,13 +684,14 @@ router.post('/admin/investments', async (req: Request, res: Response): Promise<v
   if (!await requireAdmin(req, res)) return;
 
   try {
-    const { title, description, currency, minimumInvestment, cargoIds, status } = req.body as {
+    const { title, description, currency, minimumInvestment, cargoIds, status, hidden } = req.body as {
       title?: string;
       description?: string;
       currency?: unknown;
       minimumInvestment?: unknown;
       cargoIds?: string[];
       status?: string;
+      hidden?: boolean;
     };
 
     const validStatuses = ['active', 'in_progress', 'waiting', 'successful'];
@@ -683,6 +704,7 @@ router.post('/admin/investments', async (req: Request, res: Response): Promise<v
       cargoIds: assignedCargoIds,
       assignedInvestorIds: [],
       status: validStatuses.includes(String(status || '')) ? status : 'active',
+      hidden: hidden === true,
     });
 
     res.status(201).json({ investment });
@@ -698,13 +720,14 @@ router.put('/admin/investments/:id', async (req: Request, res: Response): Promis
 
   try {
     const { id } = req.params;
-    const { title, description, currency, minimumInvestment, cargoIds, status } = req.body as {
+    const { title, description, currency, minimumInvestment, cargoIds, status, hidden } = req.body as {
       title?: string;
       description?: string;
       currency?: unknown;
       minimumInvestment?: unknown;
       cargoIds?: string[];
       status?: string;
+      hidden?: boolean;
     };
 
     const validStatuses = ['active', 'in_progress', 'waiting', 'successful'];
@@ -717,6 +740,7 @@ router.put('/admin/investments/:id', async (req: Request, res: Response): Promis
         currency: normalizeCurrency(currency),
         minimumInvestment: normalizeNumber(minimumInvestment, 'minimumInvestment'),
         cargoIds: assignedCargoIds,
+        hidden: hidden === true,
         ...(validStatuses.includes(String(status || '')) && { status }),
       },
       { new: true, runValidators: true }
@@ -900,9 +924,9 @@ router.get('/investor/home', async (req: Request, res: Response): Promise<void> 
     return;
   }
 
-  const assignedInvestments = await InvestmentModel.find({ assignedInvestorIds: investor._id }).lean();
+  const assignedInvestments = await InvestmentModel.find({ assignedInvestorIds: investor._id, hidden: { $ne: true } }).lean();
   const cargoIds = Array.from(new Set(assignedInvestments.flatMap((investment) => investment.cargoIds || [])));
-  const cargos = await CargoModel.find({ _id: { $in: cargoIds } }).sort({ createdAt: -1 }).lean();
+  const cargos = await CargoModel.find({ _id: { $in: cargoIds }, hidden: { $ne: true } }).sort({ createdAt: -1 }).lean();
 
   res.status(200).json({
     investor: {

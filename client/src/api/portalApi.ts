@@ -27,6 +27,7 @@ export type Cargo = {
   shippingType?: 'sea' | 'air' | 'land';
   cargoDescription?: string;
   story?: CargoStory;
+  hidden?: boolean;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -70,9 +71,21 @@ export type PublicMapStats = {
   activeShipments: number;
 };
 
+export type PublicMapInvestment = {
+  _id: string;
+  title: string;
+  status: InvestmentStatus;
+  currency: string;
+  minimumInvestment: number;
+  cargoCount: number;
+  investorCount: number;
+  destinations: string[];
+};
+
 export type PublicMapData = {
   investors: PublicMapInvestor[];
   cargos: PublicMapCargo[];
+  investments: PublicMapInvestment[];
   stats: PublicMapStats;
 };
 
@@ -87,6 +100,7 @@ export type Investment = {
   cargoIds: string[];
   assignedInvestorIds: string[];
   status?: InvestmentStatus;
+  hidden?: boolean;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -299,6 +313,7 @@ export async function createInvestment(payload: {
   minimumInvestment: number;
   cargoIds: string[];
   status?: InvestmentStatus;
+  hidden?: boolean;
 }): Promise<Investment> {
   const response = await request<{ investment: Investment }>('/admin/investments', {
     method: 'POST',
@@ -315,6 +330,7 @@ export async function updateInvestment(id: string, payload: {
   minimumInvestment: number;
   cargoIds: string[];
   status?: InvestmentStatus;
+  hidden?: boolean;
 }): Promise<Investment> {
   const response = await request<{ investment: Investment }>(`/admin/investments/${id}`, {
     method: 'PUT',

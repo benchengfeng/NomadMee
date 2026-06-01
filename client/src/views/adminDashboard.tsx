@@ -68,6 +68,7 @@ const emptyCargoForm = {
   storyText: '',
   storyMediaInput: '',
   storyMediaUrls: [] as string[],
+  hidden: false,
 };
 
 const emptyInvestorForm = {
@@ -88,6 +89,7 @@ const emptyInvestmentForm = {
   minimumInvestment: '',
   cargoIds: [] as string[],
   status: 'active' as InvestmentStatus,
+  hidden: false,
 };
 
 const currencyRatesToUSD: Record<string, number> = { USD: 1, EUR: 1.09, TND: 0.33, CNY: 0.14 };
@@ -204,6 +206,7 @@ const AdminDashboard: React.FC = () => {
     cargoDescription: cargoForm.cargoDescription,
     storyText: cargoForm.storyText,
     storyMediaUrls: cargoForm.storyMediaUrls,
+    hidden: cargoForm.hidden,
   });
 
   const submitCargo = async (event: React.FormEvent) => {
@@ -242,6 +245,7 @@ const AdminDashboard: React.FC = () => {
       storyText: cargo.story?.text ?? '',
       storyMediaInput: '',
       storyMediaUrls: cargo.story?.mediaUrls ?? [],
+      hidden: cargo.hidden ?? false,
     });
   };
 
@@ -304,6 +308,7 @@ const AdminDashboard: React.FC = () => {
           minimumInvestment: Number(investmentForm.minimumInvestment),
           cargoIds: investmentForm.cargoIds,
           status: investmentForm.status,
+          hidden: investmentForm.hidden,
         });
         showToast('Investment updated!');
       } else {
@@ -314,6 +319,7 @@ const AdminDashboard: React.FC = () => {
           minimumInvestment: Number(investmentForm.minimumInvestment),
           cargoIds: investmentForm.cargoIds,
           status: investmentForm.status,
+          hidden: investmentForm.hidden,
         });
         showToast('Investment created!');
       }
@@ -367,6 +373,7 @@ const AdminDashboard: React.FC = () => {
       minimumInvestment: investment.minimumInvestment.toString(),
       cargoIds: investment.cargoIds || [],
       status: investment.status || 'active',
+      hidden: investment.hidden ?? false,
     });
   };
 
@@ -546,6 +553,14 @@ const AdminDashboard: React.FC = () => {
                 onAdd={(url) => setCargoForm((f) => ({ ...f, storyMediaUrls: [...f.storyMediaUrls, url] }))}
                 onRemove={(url) => setCargoForm((f) => ({ ...f, storyMediaUrls: f.storyMediaUrls.filter((u) => u !== url) }))}
               />
+              <label className="portal-hidden-toggle">
+                <input
+                  type="checkbox"
+                  checked={cargoForm.hidden}
+                  onChange={(e) => setCargoForm({ ...cargoForm, hidden: e.target.checked })}
+                />
+                <span>Hidden — investors cannot see this cargo</span>
+              </label>
               <div className="portal-form-actions">
                 <button type="submit" disabled={savingCargo}>{savingCargo ? 'Saving...' : editingCargoId ? 'Update Cargo' : 'Save Cargo'}</button>
                 {editingCargoId && <button type="button" onClick={resetCargoForm}>Cancel</button>}
@@ -569,7 +584,10 @@ const AdminDashboard: React.FC = () => {
               ) : filteredCargos.map((cargo) => (
                 <div className="portal-item" key={cargo._id}>
                   <div className="portal-item-head">
-                    <h3>{cargo.productBeingShipped}</h3>
+                    <h3>
+                      {cargo.productBeingShipped}
+                      {cargo.hidden && <span className="hidden-badge">Hidden</span>}
+                    </h3>
                     {confirmDelete?.id === cargo._id ? (
                       <div className="portal-inline-confirm">
                         <span>Delete?</span>
@@ -639,6 +657,14 @@ const AdminDashboard: React.FC = () => {
                   </label>
                 ))}
               </div>
+              <label className="portal-hidden-toggle">
+                <input
+                  type="checkbox"
+                  checked={investmentForm.hidden}
+                  onChange={(e) => setInvestmentForm({ ...investmentForm, hidden: e.target.checked })}
+                />
+                <span>Hidden — investors cannot see this investment</span>
+              </label>
               <div className="portal-form-actions">
                 <button type="submit" disabled={savingInvestment}>{savingInvestment ? 'Saving...' : editingInvestmentId ? 'Update Investment' : 'Create Investment'}</button>
                 {editingInvestmentId && <button type="button" onClick={resetInvestmentForm}>Cancel</button>}
@@ -652,7 +678,10 @@ const AdminDashboard: React.FC = () => {
               {data.investments.length === 0 ? <p className="relation-empty">No investments yet.</p> : data.investments.map((inv) => (
                 <div className="portal-item" key={inv._id}>
                   <div className="portal-item-head">
-                    <h3>{inv.title}</h3>
+                    <h3>
+                      {inv.title}
+                      {inv.hidden && <span className="hidden-badge">Hidden</span>}
+                    </h3>
                     {confirmDelete?.id === inv._id ? (
                       <div className="portal-inline-confirm">
                         <span>Delete?</span>
