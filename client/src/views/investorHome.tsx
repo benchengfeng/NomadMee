@@ -177,10 +177,7 @@ const InvestorHome: React.FC = () => {
     const projectedPayout = investedAmount + expectedProfit;
 
     const investedUSD = convertCurrency(data.investor.investmentAmount || 0, investmentSourceCurrency, 'USD');
-    const tier = investedUSD >= 100_000 ? 'Lead Investor'
-      : investedUSD >= 25_000 ? 'Senior Partner'
-      : investedUSD >= 5_000 ? 'Portfolio Explorer'
-      : 'Emerging Partner';
+    void investedUSD; // tier label removed — kept for future use
 
     return (
       <div className="summary-panel">
@@ -190,9 +187,17 @@ const InvestorHome: React.FC = () => {
             <h2>{data.investor.displayName || data.investor.name}</h2>
             <p className="hero-subtitle">Welcome back. All amounts shown in {displayCurrency}.</p>
           </div>
-          <div className="hero-metric" style={{ borderColor: theme.accent }}>
-            <span>Your tier</span>
-            <strong>{tier}</strong>
+          <div className="hero-metric hero-metric--avatar" style={{ borderColor: theme.accent, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '16px 20px' }}>
+            {avatarBadgeSrc && (
+              <img
+                src={avatarBadgeSrc}
+                alt={data.investor.displayName || data.investor.name}
+                style={{ width: 56, height: 56, borderRadius: '50%', objectFit: 'cover', border: `2px solid ${theme.accent}`, boxShadow: `0 0 0 3px ${theme.accent}33` }}
+              />
+            )}
+            <span style={{ fontSize: '0.72rem', fontWeight: 700, color: theme.secondaryText, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+              @{data.investor.username}
+            </span>
           </div>
         </div>
 
