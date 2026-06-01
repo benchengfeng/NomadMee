@@ -1336,17 +1336,29 @@ const AdminDashboard: React.FC = () => {
 
                 {/* Default theme */}
                 <div>
-                  <p style={{ margin: '0 0 8px', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Default dashboard theme</p>
-                  <div style={{ display: 'flex', gap: 8 }}>
+                  <p style={{ margin: '0 0 10px', fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Default dashboard theme</p>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 8 }}>
                     {dashboardThemes.map((t, i) => (
-                      <button key={i} type="button" onClick={() => setAvTheme(i)}
-                        style={{ width: 36, height: 36, borderRadius: '50%', border: avTheme === i ? `3px solid #fff` : '2px solid transparent', background: t.accent, cursor: 'pointer', boxShadow: avTheme === i ? `0 0 0 2px ${t.accent}88` : 'none', transition: 'all 0.15s' }}
-                        title={`Theme ${i + 1}`} />
+                      <button key={i} type="button" onClick={() => setAvTheme(i)} title={t.name}
+                        style={{
+                          display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4,
+                          padding: '8px 4px', borderRadius: 10, border: avTheme === i ? `2px solid #fff` : '2px solid transparent',
+                          background: avTheme === i ? 'rgba(255,255,255,0.08)' : 'transparent',
+                          cursor: 'pointer', transition: 'all 0.15s',
+                        }}>
+                        <span style={{ width: 28, height: 28, borderRadius: '50%', background: t.accent, display: 'block', boxShadow: avTheme === i ? `0 0 0 2px ${t.accent}66` : 'none', flexShrink: 0 }} />
+                        <span style={{ fontSize: '0.58rem', color: avTheme === i ? '#f1f5f9' : '#475569', fontWeight: 600, lineHeight: 1.2, textAlign: 'center', wordBreak: 'break-word' }}>
+                          {t.name}
+                        </span>
+                      </button>
                     ))}
                   </div>
-                  <p style={{ margin: '6px 0 0', fontSize: '0.72rem', color: '#475569' }}>
-                    This theme activates when an investor selects this avatar.
-                  </p>
+                  {dashboardThemes[avTheme] && (
+                    <p style={{ margin: '10px 0 0', fontSize: '0.78rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ width: 10, height: 10, borderRadius: '50%', background: dashboardThemes[avTheme]!.accent, display: 'inline-block', flexShrink: 0 }} />
+                      <strong style={{ color: '#f1f5f9' }}>{dashboardThemes[avTheme]!.name}</strong> activates when investor selects this avatar.
+                    </p>
+                  )}
                 </div>
 
                 {/* Secret toggle */}

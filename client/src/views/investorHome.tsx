@@ -94,15 +94,7 @@ const InvestorHome: React.FC = () => {
   const [pwError, setPwError] = useState('');
   const [pwSaved, setPwSaved] = useState(false);
 
-  const theme: DashboardTheme = dashboardThemes[activeTheme] || dashboardThemes[0] || {
-    background: '#091422',
-    surface: '#14233B',
-    accent: '#6FD4C8',
-    accentSoft: '#3E8B92',
-    text: '#F4F9FF',
-    secondaryText: '#B9D1DD',
-    panelGlow: 'rgba(111, 212, 200, 0.16)',
-  };
+  const theme: DashboardTheme = dashboardThemes[activeTheme] ?? dashboardThemes[0]!;
 
   useEffect(() => {
     let isMounted = true;
@@ -851,14 +843,17 @@ const InvestorHome: React.FC = () => {
 
           <div className="sidebar-section">
             <h2>Theme</h2>
+            <p style={{ margin: '-8px 0 10px', fontSize: '0.72rem', color: theme.secondaryText, opacity: 0.7 }}>
+              {dashboardThemes[activeTheme]?.name}
+            </p>
             <div className="theme-picker">
               {dashboardThemes.map((themeOption, index) => (
                 <button
                   key={index}
                   type="button"
-                  aria-label={`Theme ${index + 1}`}
-                  title={`Theme ${index + 1}`}
-                  className={`theme-chip ${activeTheme === index ? 'theme-chip-active' : ''}`}
+                  aria-label={themeOption.name}
+                  title={themeOption.name}
+                  className={`theme-chip${activeTheme === index ? ' theme-chip-active' : ''}`}
                   style={{
                     background: themeOption.accent,
                     boxShadow: activeTheme === index ? `0 0 0 3px ${themeOption.panelGlow}, 0 0 0 1px ${themeOption.accent}` : 'none',

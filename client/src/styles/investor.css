@@ -234,18 +234,26 @@
 
 .theme-picker {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
 }
 
 .theme-chip {
   width: 100%;
-  padding: 16px 0;
-  border-radius: 14px;
+  aspect-ratio: 1;
+  border-radius: 50%;
   border: 2px solid transparent;
-  color: #fff;
-  font-weight: 700;
   cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.theme-chip:hover {
+  transform: scale(1.12);
+}
+
+.theme-chip-active {
+  border-color: rgba(255,255,255,0.6) !important;
+  transform: scale(1.15);
 }
 
 .sidebar-note {

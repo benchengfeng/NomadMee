@@ -66,49 +66,78 @@ const KycOnboarding: React.FC = () => {
   const hasSecrets = avatars.some((a) => a.secret);
 
   return (
-    <main style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#08090D', color: '#fff', padding: '24px' }}>
-      <section style={{ width: 'min(960px, 100%)', background: 'rgba(10,12,18,0.95)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '26px', padding: '24px', display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '24px' }}>
-        <div>
-          <p style={{ margin: 0, color: '#F4D06F', fontWeight: 700, letterSpacing: '0.16em', textTransform: 'uppercase', fontSize: '0.72rem' }}>Initial KYC</p>
-          <h1 style={{ margin: '10px 0 12px', fontSize: 'clamp(2.2rem, 6vw, 3.6rem)' }}>Welcome futur investor</h1>
-          <p style={{ margin: '0 0 16px', color: 'rgba(255,255,255,0.76)', lineHeight: 1.5 }}>Choose your adventure buddy, set your investor name, and we'll take you straight into your portfolio.</p>
+    <main className="kyc-shell">
+      <section className="kyc-card">
 
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <label style={{ display: 'flex', flexDirection: 'column', gap: '8px', color: 'rgba(255,255,255,0.9)' }}>
-              <span style={{ fontWeight: 700 }}>Investor username</span>
-              <input value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Your investor name" style={{ padding: '12px 14px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.16)', background: '#0E1018', color: '#fff' }} />
+        {/* ── Left: form ── */}
+        <div className="kyc-form-col">
+          <p className="kyc-eyebrow">Initial KYC</p>
+          <h1 className="kyc-title">Welcome futur investor</h1>
+          <p className="kyc-subtitle">Choose your adventure buddy, set your investor name, and we'll take you straight into your portfolio.</p>
+
+          {/* Mobile-only compact avatar preview */}
+          {selectedAvatar && (
+            <div className="kyc-mobile-avatar">
+              <img src={selectedAvatar.imageUrl} alt={selectedAvatar.name} />
+              <span>{selectedAvatar.name}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="kyc-form">
+            <label className="kyc-field">
+              <span>Investor name</span>
+              <input
+                value={displayName}
+                onChange={(e) => setDisplayName(e.target.value)}
+                placeholder="Your investor name"
+                autoComplete="name"
+              />
             </label>
 
-            <label style={{ display: 'flex', flexDirection: 'column', gap: '8px', color: 'rgba(255,255,255,0.9)' }}>
-              <span style={{ fontWeight: 700 }}>Display currency</span>
-              <p style={{ margin: 0, fontSize: '0.78rem', color: 'rgba(255,255,255,0.5)' }}>All amounts in your dashboard will be shown in this currency.</p>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+            <div className="kyc-field">
+              <span className="kyc-field-label">Display currency</span>
+              <p className="kyc-field-hint">All amounts in your dashboard will be shown in this currency.</p>
+              <div className="kyc-currency-grid">
                 {CURRENCIES.map((cur) => (
-                  <button key={cur} type="button" onClick={() => setPreferredCurrency(cur)} style={{ padding: '10px 0', borderRadius: '12px', border: preferredCurrency === cur ? '2px solid #F4D06F' : '1px solid rgba(255,255,255,0.14)', background: preferredCurrency === cur ? 'rgba(244,208,111,0.15)' : '#10131C', color: preferredCurrency === cur ? '#F4D06F' : 'rgba(255,255,255,0.7)', fontWeight: 700, fontSize: '0.85rem', cursor: 'pointer', transition: 'all 0.15s' }}>
+                  <button
+                    key={cur}
+                    type="button"
+                    onClick={() => setPreferredCurrency(cur)}
+                    className={`kyc-currency-btn${preferredCurrency === cur ? ' kyc-currency-btn--active' : ''}`}
+                  >
                     {cur}
                   </button>
                 ))}
               </div>
-            </label>
+            </div>
 
-            <div>
-              <p style={{ margin: '0 0 8px', fontWeight: 700, fontSize: '0.85rem', color: 'rgba(255,255,255,0.9)' }}>Choose your avatar</p>
+            <div className="kyc-field">
+              <span className="kyc-field-label">Choose your avatar</span>
               {avatars.length === 0 ? (
-                <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '0.82rem' }}>No avatars available yet — contact support.</p>
+                <p className="kyc-field-hint">No avatars available yet — contact support.</p>
               ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0,1fr))', gap: '10px' }}>
+                <div className="kyc-avatar-grid">
                   {visibleAvatars.map((av) => (
-                    <button key={av._id} type="button" onClick={() => setSelectedAvatarId(av._id)} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 12px', borderRadius: '18px', border: selectedAvatarId === av._id ? '2px solid #F4D06F' : '1px solid rgba(255,255,255,0.14)', background: selectedAvatarId === av._id ? 'rgba(244,208,111,0.1)' : '#10131C', color: '#fff', cursor: 'pointer', textAlign: 'left', gridColumn: av.secret ? '1 / span 2' : undefined }}>
-                      <img src={av.imageUrl} alt={av.name} style={{ width: 42, height: 42, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }} />
-                      <span style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                        <span style={{ fontWeight: 800 }}>{av.name}</span>
-                        {av.secret && <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.72rem' }}>Secret avatar</span>}
+                    <button
+                      key={av._id}
+                      type="button"
+                      onClick={() => setSelectedAvatarId(av._id)}
+                      className={`kyc-avatar-btn${selectedAvatarId === av._id ? ' kyc-avatar-btn--active' : ''}${av.secret ? ' kyc-avatar-btn--wide' : ''}`}
+                    >
+                      <img src={av.imageUrl} alt={av.name} />
+                      <span className="kyc-avatar-btn-info">
+                        <span>{av.name}</span>
+                        {av.secret && <span className="kyc-secret-label">Secret avatar</span>}
                       </span>
-                      {selectedAvatarId === av._id && <span style={{ marginLeft: 'auto', color: '#F4D06F' }}>✓</span>}
+                      {selectedAvatarId === av._id && <span className="kyc-check">✓</span>}
                     </button>
                   ))}
                   {hasSecrets && !showSecretAvatars && (
-                    <button type="button" onClick={() => setShowSecretAvatars(true)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px 12px', borderRadius: '18px', border: '1px dashed rgba(255,255,255,0.18)', background: '#10131C', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', gridColumn: '1 / span 2', fontSize: '0.82rem' }}>
+                    <button
+                      type="button"
+                      onClick={() => setShowSecretAvatars(true)}
+                      className="kyc-reveal-btn"
+                    >
                       🔒 Reveal secret avatar
                     </button>
                   )}
@@ -116,35 +145,41 @@ const KycOnboarding: React.FC = () => {
               )}
             </div>
 
-            {error && <p style={{ margin: 0, color: '#FF8A8A' }}>{error}</p>}
-            <button type="submit" disabled={saving || !selectedAvatarId} style={{ marginTop: '8px', padding: '14px 16px', borderRadius: '999px', border: 'none', background: 'linear-gradient(90deg, #A70000, #F4D06F)', color: '#000', fontWeight: 800, cursor: saving ? 'wait' : 'pointer', opacity: !selectedAvatarId ? 0.5 : 1 }}>
-              {saving ? 'Saving...' : 'Finish KYC'}
+            {error && <p className="kyc-error">{error}</p>}
+
+            <button
+              type="submit"
+              disabled={saving || !selectedAvatarId}
+              className="kyc-submit"
+            >
+              {saving ? 'Saving...' : 'Finish KYC →'}
             </button>
           </form>
         </div>
 
-        {/* Preview */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.04)', borderRadius: '24px', padding: '18px', border: '1px solid rgba(255,255,255,0.08)' }}>
-          <div style={{ width: '100%', display: 'flex', justifyContent: 'center' }}>
+        {/* ── Right: live preview (desktop only) ── */}
+        <div className="kyc-preview-col">
+          <div className="kyc-preview-avatar">
             {selectedAvatar ? (
-              <img src={selectedAvatar.imageUrl} alt={selectedAvatar.name} style={{ width: '100%', maxWidth: '200px', maxHeight: '200px', borderRadius: '50%', objectFit: 'cover', border: '3px solid #F4D06F', boxShadow: '0 0 0 4px rgba(244,208,111,0.2)' }} />
+              <img src={selectedAvatar.imageUrl} alt={selectedAvatar.name} />
             ) : (
-              <div style={{ width: 160, height: 160, borderRadius: '50%', background: 'rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.3)', fontSize: '0.8rem' }}>No avatar</div>
+              <div className="kyc-preview-placeholder">No avatar</div>
             )}
           </div>
-          <div style={{ width: '100%', display: 'grid', gap: '10px' }}>
+          <div className="kyc-preview-stats">
             {[
               { label: 'Name', value: displayName || 'Future investor' },
               { label: 'Avatar', value: selectedAvatar?.name || '—' },
               { label: 'Currency', value: preferredCurrency },
             ].map(({ label, value }) => (
-              <div key={label} style={{ padding: '12px 14px', borderRadius: '14px', background: '#0E1018' }}>
-                <p style={{ margin: 0, color: 'rgba(255,255,255,0.6)', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.1em' }}>{label}</p>
-                <p style={{ margin: '6px 0 0', fontSize: '1.1rem', fontWeight: 800 }}>{value}</p>
+              <div key={label} className="kyc-preview-stat">
+                <p>{label}</p>
+                <strong>{value}</strong>
               </div>
             ))}
           </div>
         </div>
+
       </section>
     </main>
   );
