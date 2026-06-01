@@ -273,7 +273,7 @@ const InvestorHome: React.FC = () => {
                     {cargo.quantity} units · {formatCurrency(convertedTotal, investorCurrency)} total · ETA {formatDate(cargo.estimatedTimeOfArrival)}
                   </div>
                   {(() => {
-                    const createdMs = cargo.createdAt ? new Date(cargo.createdAt).getTime() : 0;
+                    const createdMs = cargo.purchaseDate ? new Date(cargo.purchaseDate).getTime() : cargo.createdAt ? new Date(cargo.createdAt).getTime() : 0;
                     const etaMs = new Date(cargo.estimatedTimeOfArrival).getTime();
                     const nowMs = Date.now();
                     const progress = createdMs > 0 && etaMs > createdMs

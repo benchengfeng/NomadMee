@@ -15,7 +15,7 @@ const CARGO_COLORS: Record<string, string> = {
 };
 
 function cargoProgress(cargo: PublicMapCargo): number {
-  const start = new Date(cargo.createdAt).getTime();
+  const start = new Date(cargo.purchaseDate || cargo.createdAt).getTime();
   const end = new Date(cargo.estimatedTimeOfArrival).getTime();
   const now = Date.now();
   if (end <= start) return 1;
@@ -229,7 +229,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor = '#38bdf8', onDataLoad
       };
       let visibleInvestments = 0;
       for (const inv of investments) {
-        const destination = inv.destinations[0];
+        const destination = inv.purchaseLocations[0];
         if (!destination) continue;
         const coords = findCountryCoords(destination);
         if (!coords) continue;
@@ -273,7 +273,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor = '#38bdf8', onDataLoad
         `;
         tooltip.innerHTML = `
           <div style="font-weight:800;color:#f1f5f9;font-size:0.82rem;margin-bottom:3px;">${inv.title}</div>
-          <div style="color:#64748b;font-size:0.72rem;margin-bottom:6px;">📍 ${destination}</div>
+          <div style="color:#64748b;font-size:0.72rem;margin-bottom:6px;">📦 Origin: ${destination}</div>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
             <span style="color:#94a3b8;font-size:0.7rem;">📦 ${inv.cargoCount} cargo${inv.cargoCount !== 1 ? 's' : ''}</span>
             <span style="color:#94a3b8;font-size:0.7rem;">👤 ${inv.investorCount} investor${inv.investorCount !== 1 ? 's' : ''}</span>

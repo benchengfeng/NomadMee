@@ -29,6 +29,7 @@ export type Cargo = {
   story?: CargoStory;
   hidden?: boolean;
   coverImageUrl?: string;
+  purchaseDate?: string;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -71,6 +72,7 @@ export type PublicMapCargo = {
   purchaseLocation: string;
   shippingDestination: string;
   estimatedTimeOfArrival: string;
+  purchaseDate?: string;
   createdAt: string;
 };
 
@@ -89,7 +91,7 @@ export type PublicMapInvestment = {
   minimumInvestment: number;
   cargoCount: number;
   investorCount: number;
-  destinations: string[];
+  purchaseLocations: string[];
 };
 
 export type PublicMapData = {

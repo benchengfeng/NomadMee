@@ -149,7 +149,7 @@ router.get('/public/map-data', async (_req: Request, res: Response): Promise<voi
 
     const [investors, cargos, investmentCount, allInvestors, investorInvestmentCounts, avatarDocs] = await Promise.all([
       InvestorModel.find({ kycCompleted: true }).select('displayName name avatar location').lean(),
-      CargoModel.find({ hidden: { $ne: true } }).select('productBeingShipped shippingType purchaseLocation shippingDestination estimatedTimeOfArrival createdAt').lean(),
+      CargoModel.find({ hidden: { $ne: true } }).select('productBeingShipped shippingType purchaseLocation shippingDestination estimatedTimeOfArrival createdAt purchaseDate').lean(),
       InvestmentModel.countDocuments({ hidden: { $ne: true } }),
       InvestorModel.find().select('investmentAmount profitPercentageOnInvestment').lean(),
       InvestmentModel.aggregate<{ _id: string; count: number }>([
@@ -170,6 +170,7 @@ router.get('/public/map-data', async (_req: Request, res: Response): Promise<voi
     const activeCargoIds = new Set(activeInvestments.flatMap((inv) => inv.cargoIds.map(String)));
     const activeCargos = cargos.filter((c) => activeCargoIds.has(String(c._id)));
     const cargoDestMap = Object.fromEntries(cargos.map((c) => [String(c._id), c.shippingDestination]));
+    const cargoPurchaseMap = Object.fromEntries(cargos.map((c) => [String(c._id), c.purchaseLocation]));
 
     const activeShipments = activeCargos.filter(
       (c) => c.createdAt != null && c.createdAt <= now && new Date(c.estimatedTimeOfArrival) >= now
@@ -198,11 +199,12 @@ router.get('/public/map-data', async (_req: Request, res: Response): Promise<voi
         purchaseLocation: c.purchaseLocation,
         shippingDestination: c.shippingDestination,
         estimatedTimeOfArrival: c.estimatedTimeOfArrival,
+        purchaseDate: c.purchaseDate ?? c.createdAt,
         createdAt: c.createdAt,
       })),
       investments: activeInvestments.map((inv) => {
-        const destinations = [...new Set(
-          inv.cargoIds.map((id) => cargoDestMap[String(id)]).filter(Boolean) as string[]
+        const purchaseLocations = [...new Set(
+          inv.cargoIds.map((id) => cargoPurchaseMap[String(id)]).filter(Boolean) as string[]
         )];
         return {
           _id: inv._id,
@@ -212,7 +214,7 @@ router.get('/public/map-data', async (_req: Request, res: Response): Promise<voi
           minimumInvestment: inv.minimumInvestment,
           cargoCount: inv.cargoIds.length,
           investorCount: inv.assignedInvestorIds.length,
-          destinations,
+          purchaseLocations,
         };
       }),
       stats: {
@@ -397,7 +399,7 @@ router.post('/admin/cargos', async (req: Request, res: Response): Promise<void> 
 
     const { storyText, storyMediaUrls } = req.body as { storyText?: string; storyMediaUrls?: string[] };
 
-    const { hidden, coverImageUrl } = req.body as { hidden?: boolean; coverImageUrl?: string };
+    const { hidden, coverImageUrl, purchaseDate } = req.body as { hidden?: boolean; coverImageUrl?: string; purchaseDate?: string };
     const cargo = await CargoModel.create({
       productBeingShipped: String(productBeingShipped || '').trim(),
       quantity: normalizeNumber(quantity, 'quantity'),
@@ -409,6 +411,7 @@ router.post('/admin/cargos', async (req: Request, res: Response): Promise<void> 
       otherExpenses: normalizeNumber(otherExpenses, 'otherExpenses'),
       estimatedTimeOfArrival: normalizeDate(estimatedTimeOfArrival),
       estimatedTimeOfSelling: normalizeDate(estimatedTimeOfSelling),
+      purchaseDate: purchaseDate ? new Date(purchaseDate) : undefined,
       shippingType: normalizedShippingType,
       cargoDescription: String(cargoDescription || '').trim(),
       story: {
@@ -454,7 +457,7 @@ router.put('/admin/cargos/:id', async (req: Request, res: Response): Promise<voi
       : 'sea';
 
     const { storyText, storyMediaUrls } = req.body as { storyText?: string; storyMediaUrls?: string[] };
-    const { hidden, coverImageUrl } = req.body as { hidden?: boolean; coverImageUrl?: string };
+    const { hidden, coverImageUrl, purchaseDate } = req.body as { hidden?: boolean; coverImageUrl?: string; purchaseDate?: string };
 
     const cargo = await CargoModel.findByIdAndUpdate(
       id,
@@ -477,6 +480,7 @@ router.put('/admin/cargos/:id', async (req: Request, res: Response): Promise<voi
         },
         hidden: hidden === true,
         coverImageUrl: String(coverImageUrl || '').trim(),
+        ...(purchaseDate !== undefined && { purchaseDate: purchaseDate ? new Date(purchaseDate) : undefined }),
       },
       { new: true, runValidators: true }
     );

@@ -17,6 +17,7 @@ export type CargoDocument = {
   story?: { text?: string; mediaUrls?: string[] };
   hidden?: boolean;
   coverImageUrl?: string;
+  purchaseDate?: Date;
   createdAt?: Date;
   updatedAt?: Date;
 };
@@ -37,6 +38,7 @@ const CargoSchema = new Schema<CargoDocument>(
     cargoDescription: { type: String, default: '', trim: true },
     hidden: { type: Boolean, default: false },
     coverImageUrl: { type: String, default: '', trim: true },
+    purchaseDate: { type: Date },
     story: {
       text: { type: String, default: '', trim: true },
       mediaUrls: [{ type: String, trim: true }],

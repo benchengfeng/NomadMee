@@ -105,6 +105,7 @@ const emptyCargoForm = {
   storyMediaUrls: [] as string[],
   hidden: false,
   coverImageUrl: '',
+  purchaseDate: '',
 };
 
 const emptyInvestorForm = {
@@ -269,6 +270,7 @@ const AdminDashboard: React.FC = () => {
     storyMediaUrls: cargoForm.storyMediaUrls,
     hidden: cargoForm.hidden,
     coverImageUrl: cargoForm.coverImageUrl,
+    purchaseDate: cargoForm.purchaseDate || undefined,
   });
 
   const submitCargo = async (event: React.FormEvent) => {
@@ -309,6 +311,7 @@ const AdminDashboard: React.FC = () => {
       storyMediaUrls: cargo.story?.mediaUrls ?? [],
       hidden: cargo.hidden ?? false,
       coverImageUrl: cargo.coverImageUrl ?? '',
+      purchaseDate: cargo.purchaseDate ? cargo.purchaseDate.split('T')[0]! : '',
     });
   };
 
@@ -575,6 +578,8 @@ const AdminDashboard: React.FC = () => {
                   {currencyOptions.map((c) => <option key={c} value={c}>{c}</option>)}
                 </select>
               </div>
+              <label>Date of purchase <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 400 }}>(used for globe route estimation)</span></label>
+              <input type="date" value={cargoForm.purchaseDate} onChange={(e) => setCargoForm({ ...cargoForm, purchaseDate: e.target.value })} />
               <label>Shipping destination</label>
               <input value={cargoForm.shippingDestination} onChange={(e) => setCargoForm({ ...cargoForm, shippingDestination: e.target.value })} required />
               <label>Shipping type</label>
