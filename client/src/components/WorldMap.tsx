@@ -7,11 +7,6 @@ import { findCountryCoords } from '../utils/countries';
 
 const MAP_STYLE = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
 
-const AVATAR_URLS: Record<string, string> = {
-  popeye: '/assets/popeyesmall.png',
-  olive: '/assets/olive1.jpeg',
-  curto: '/assets/cortomaltese.png',
-};
 
 const CARGO_COLORS: Record<string, string> = {
   sea: '#38bdf8',
@@ -105,7 +100,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor = '#38bdf8', onDataLoad
 
         // Inner avatar — we apply hover scale here, NOT on wrapper
         const inner = document.createElement('div');
-        const src = AVATAR_URLS[inv.avatar] ?? AVATAR_URLS['popeye']!;
+        const src = inv.avatarImageUrl || '/logo192.png';
         inner.style.cssText = `
           width:36px;height:36px;border-radius:50%;
           background-image:url(${src});

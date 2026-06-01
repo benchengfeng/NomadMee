@@ -2587,3 +2587,49 @@ responsive
   color: #94a3b8;
   font-weight: 600;
 }
+
+/* ── Cargo live preview panel ── */
+.cargo-live-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.clp-label {
+  margin: 0 0 8px;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+  color: #38bdf8;
+}
+.clp-card {
+  border-radius: 16px !important;
+  padding: 16px !important;
+  background: #0F2434 !important;
+  border: 1px solid rgba(78,211,201,0.25) !important;
+}
+.clp-section {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+.clp-section-label {
+  margin: 0 0 8px;
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: #475569;
+}
+.clp-body {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #94a3b8;
+  line-height: 1.65;
+}
+
+/* ── react-easy-crop container fix ── */
+.reactEasyCrop_Container {
+  border-radius: 12px;
+}

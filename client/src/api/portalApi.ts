@@ -50,8 +50,17 @@ export type InvestorRecord = {
 export type PublicMapInvestor = {
   name: string;
   avatar: string;
+  avatarImageUrl: string;
   location: string;
   investmentCount: number;
+};
+
+export type AvatarData = {
+  _id: string;
+  name: string;
+  imageUrl: string;
+  defaultTheme: number;
+  secret: boolean;
 };
 
 export type PublicMapCargo = {
@@ -395,4 +404,47 @@ export async function updateContactRequestStatus(id: string, status: ContactRequ
     method: 'PUT',
     body: JSON.stringify({ status }),
   }, getAdminToken());
+}
+
+// ---------------------------------------------------------------------------
+// Avatars
+// ---------------------------------------------------------------------------
+
+export async function getPublicAvatars(): Promise<{ avatars: AvatarData[] }> {
+  return request<{ avatars: AvatarData[] }>('/public/avatars', { method: 'GET' });
+}
+
+export async function getAdminAvatars(): Promise<{ avatars: AvatarData[] }> {
+  return request<{ avatars: AvatarData[] }>('/admin/avatars', { method: 'GET' }, getAdminToken());
+}
+
+export async function createAvatar(payload: { name: string; imageUrl: string; defaultTheme: number; secret: boolean }): Promise<AvatarData> {
+  const res = await request<{ avatar: AvatarData }>('/admin/avatars', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  }, getAdminToken());
+  return res.avatar;
+}
+
+export async function updateAvatarMeta(id: string, payload: { name: string; defaultTheme: number; secret: boolean }): Promise<AvatarData> {
+  const res = await request<{ avatar: AvatarData }>(`/admin/avatars/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  }, getAdminToken());
+  return res.avatar;
+}
+
+export async function deleteAvatar(id: string): Promise<void> {
+  await request<unknown>(`/admin/avatars/${id}`, { method: 'DELETE' }, getAdminToken());
+}
+
+// ---------------------------------------------------------------------------
+// Investor — password change
+// ---------------------------------------------------------------------------
+
+export async function changeInvestorPassword(payload: { currentPassword: string; newPassword: string }): Promise<void> {
+  await request<unknown>('/investor/change-password', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  }, getInvestorToken());
 }

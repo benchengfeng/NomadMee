@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { FiHome, FiPackage, FiMap, FiTrendingUp, FiHeadphones, FiSettings } from 'react-icons/fi';
 import type { IconType } from 'react-icons';
-import { getInvestorHome, logoutInvestor, completeInvestorKyc, InvestorHomeResponse } from '../api/portalApi';
+import { getInvestorHome, logoutInvestor, completeInvestorKyc, getPublicAvatars, changeInvestorPassword, AvatarData, InvestorHomeResponse } from '../api/portalApi';
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { setTheme } from '../redux/slices/themeSlice';
 import { PanelId, setActivePanel, setSelectedCargoId } from '../redux/slices/dashboardUiSlice';
@@ -19,7 +19,7 @@ const currencyRatesToUSD: Record<string, number> = {
   CNY: 0.14,
 };
 
-const avatarBadgeMap: Record<string, string> = {
+const LEGACY_AVATAR_MAP: Record<string, string> = {
   popeye: '/assets/popeyesmall.png',
   olive: '/assets/olive1.jpeg',
   curto: '/assets/cortomaltese.png',
@@ -52,11 +52,6 @@ function formatDate(value: string | null | undefined): string {
   return Number.isNaN(date.getTime()) ? value : date.toLocaleDateString();
 }
 
-const AVATAR_OPTIONS = [
-  { key: 'popeye' as const, label: 'Popeye', src: '/assets/popeyesmall.png' },
-  { key: 'olive' as const, label: 'Olive Oyl', src: '/assets/olive1.jpeg' },
-  { key: 'curto' as const, label: 'Corto Maltese', src: '/assets/cortomaltese.png', secret: true },
-];
 
 const panelButtons: Array<{ id: PanelId; label: string; Icon: IconType }> = [
   { id: 'summary', label: 'Summary', Icon: FiHome },
@@ -79,14 +74,25 @@ const InvestorHome: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'me' | 'globe'>('me');
 
+  // Avatar data
+  const [avatarOptions, setAvatarOptions] = useState<AvatarData[]>([]);
+  const [showSecretAvatar, setShowSecretAvatar] = useState(false);
+
   // Settings panel state
   const [settingsName, setSettingsName] = useState('');
-  const [settingsAvatar, setSettingsAvatar] = useState<'popeye' | 'olive' | 'curto'>('popeye');
+  const [settingsAvatar, setSettingsAvatar] = useState('');
   const [settingsCurrency, setSettingsCurrency] = useState('USD');
-  const [showSecretAvatar, setShowSecretAvatar] = useState(false);
   const [settingsSaving, setSettingsSaving] = useState(false);
   const [settingsSaved, setSettingsSaved] = useState(false);
   const [settingsError, setSettingsError] = useState('');
+
+  // Password change state
+  const [pwCurrent, setPwCurrent] = useState('');
+  const [pwNew, setPwNew] = useState('');
+  const [pwConfirm, setPwConfirm] = useState('');
+  const [pwSaving, setPwSaving] = useState(false);
+  const [pwError, setPwError] = useState('');
+  const [pwSaved, setPwSaved] = useState(false);
 
   const theme: DashboardTheme = dashboardThemes[activeTheme] || dashboardThemes[0] || {
     background: '#091422',
@@ -103,17 +109,19 @@ const InvestorHome: React.FC = () => {
 
     const load = async () => {
       try {
-        const response = await getInvestorHome();
+        const [response, avatarRes] = await Promise.all([getInvestorHome(), getPublicAvatars()]);
         if (isMounted) {
           setData(response);
           setError(null);
+          setAvatarOptions(avatarRes.avatars);
           setSettingsName(response.investor.displayName || response.investor.name || '');
           setSettingsCurrency(response.investor.preferredCurrency || response.investor.currency || 'USD');
-          const av = response.investor.avatar;
-          if (av === 'popeye' || av === 'olive' || av === 'curto') {
-            setSettingsAvatar(av);
-            if (av === 'curto') setShowSecretAvatar(true);
-          }
+          const av = response.investor.avatar || '';
+          setSettingsAvatar(av);
+          const found = avatarRes.avatars.find((a) => a._id === av);
+          if (found?.secret) setShowSecretAvatar(true);
+          // Apply avatar's default theme
+          if (found) dispatch(setTheme(found.defaultTheme ?? 0));
         }
       } catch (err) {
         if (isMounted) {
@@ -510,7 +518,27 @@ const InvestorHome: React.FC = () => {
       }
     };
 
-    const currentAvatarSrc = avatarBadgeMap[settingsAvatar];
+    const currentAvatarSrc = avatarBadgeMap[settingsAvatar] ?? '/logo192.png';
+    const visibleAvatars = avatarOptions.filter((a) => !a.secret || showSecretAvatar);
+    const hasSecrets = avatarOptions.some((a) => a.secret);
+
+    const handlePasswordChange = async (e: React.FormEvent) => {
+      e.preventDefault();
+      setPwError('');
+      if (pwNew !== pwConfirm) { setPwError('New passwords do not match.'); return; }
+      if (pwNew.length < 6) { setPwError('New password must be at least 6 characters.'); return; }
+      setPwSaving(true);
+      try {
+        await changeInvestorPassword({ currentPassword: pwCurrent, newPassword: pwNew });
+        setPwSaved(true);
+        setPwCurrent(''); setPwNew(''); setPwConfirm('');
+        setTimeout(() => setPwSaved(false), 3000);
+      } catch (err) {
+        setPwError(err instanceof Error ? err.message : 'Failed to change password.');
+      } finally {
+        setPwSaving(false);
+      }
+    };
 
     return (
       <div className="story-panel" style={{ color: theme.text }}>
@@ -572,57 +600,36 @@ const InvestorHome: React.FC = () => {
                 </p>
               </label>
 
-              {/* Avatar picker */}
+              {/* Avatar picker — dynamic */}
               <div>
                 <p style={{ margin: '0 0 10px', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: theme.secondaryText }}>
                   Choose avatar
                 </p>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
-                  {AVATAR_OPTIONS.filter((a) => !a.secret || showSecretAvatar).map((av) => (
+                  {visibleAvatars.map((av) => (
                     <button
-                      key={av.key}
+                      key={av._id}
                       type="button"
-                      onClick={() => setSettingsAvatar(av.key)}
+                      onClick={() => { setSettingsAvatar(av._id); dispatch(setTheme(av.defaultTheme ?? 0)); }}
                       style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 10,
-                        padding: '10px 12px',
-                        borderRadius: 16,
-                        border: settingsAvatar === av.key ? `2px solid ${theme.accent}` : `1px solid rgba(255,255,255,0.1)`,
-                        background: settingsAvatar === av.key ? `${theme.accent}22` : theme.surface,
-                        color: theme.text,
-                        cursor: 'pointer',
-                        textAlign: 'left',
-                        gridColumn: av.secret ? '1 / -1' : undefined,
-                        transition: 'all 0.18s',
+                        display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 16,
+                        border: settingsAvatar === av._id ? `2px solid ${theme.accent}` : `1px solid rgba(255,255,255,0.1)`,
+                        background: settingsAvatar === av._id ? `${theme.accent}22` : theme.surface,
+                        color: theme.text, cursor: 'pointer', textAlign: 'left',
+                        gridColumn: av.secret ? '1 / -1' : undefined, transition: 'all 0.18s',
                       }}
                     >
-                      <img src={av.src} alt={av.label} style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: `2px solid ${settingsAvatar === av.key ? theme.accent : 'transparent'}` }} />
+                      <img src={av.imageUrl} alt={av.name} style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: `2px solid ${settingsAvatar === av._id ? theme.accent : 'transparent'}` }} />
                       <span style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                        <span style={{ fontWeight: 700, fontSize: '0.88rem' }}>{av.label}</span>
+                        <span style={{ fontWeight: 700, fontSize: '0.88rem' }}>{av.name}</span>
                         {av.secret && <span style={{ fontSize: '0.68rem', color: theme.secondaryText }}>Secret avatar</span>}
                       </span>
-                      {settingsAvatar === av.key && (
-                        <span style={{ marginLeft: 'auto', color: theme.accent, fontSize: '1rem' }}>✓</span>
-                      )}
+                      {settingsAvatar === av._id && <span style={{ marginLeft: 'auto', color: theme.accent, fontSize: '1rem' }}>✓</span>}
                     </button>
                   ))}
-                  {!showSecretAvatar && (
-                    <button
-                      type="button"
-                      onClick={() => setShowSecretAvatar(true)}
-                      style={{
-                        padding: '10px 12px',
-                        borderRadius: 16,
-                        border: '1px dashed rgba(255,255,255,0.2)',
-                        background: 'transparent',
-                        color: theme.secondaryText,
-                        cursor: 'pointer',
-                        fontSize: '0.82rem',
-                        gridColumn: '1 / -1',
-                      }}
-                    >
+                  {hasSecrets && !showSecretAvatar && (
+                    <button type="button" onClick={() => setShowSecretAvatar(true)}
+                      style={{ padding: '10px 12px', borderRadius: 16, border: '1px dashed rgba(255,255,255,0.2)', background: 'transparent', color: theme.secondaryText, cursor: 'pointer', fontSize: '0.82rem', gridColumn: '1 / -1' }}>
                       🔒 Reveal secret avatar
                     </button>
                   )}
@@ -649,6 +656,26 @@ const InvestorHome: React.FC = () => {
                 }}
               >
                 {settingsSaving ? 'Saving...' : settingsSaved ? '✓ Saved!' : 'Save changes'}
+              </button>
+            </form>
+
+            {/* Password change */}
+            <form onSubmit={handlePasswordChange} style={{ marginTop: 28, paddingTop: 20, borderTop: `1px solid rgba(255,255,255,0.08)`, display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <p style={{ margin: 0, fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: theme.secondaryText }}>Change password</p>
+              {[
+                { label: 'Current password', value: pwCurrent, set: setPwCurrent, id: 'pw-current' },
+                { label: 'New password', value: pwNew, set: setPwNew, id: 'pw-new' },
+                { label: 'Confirm new password', value: pwConfirm, set: setPwConfirm, id: 'pw-confirm' },
+              ].map(({ label, value, set, id }) => (
+                <label key={id} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  <span style={{ fontSize: '0.72rem', fontWeight: 700, color: theme.secondaryText, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label}</span>
+                  <input id={id} type="password" value={value} onChange={(e) => set(e.target.value)} autoComplete={id === 'pw-current' ? 'current-password' : 'new-password'}
+                    style={{ padding: '11px 14px', background: `${theme.surface}cc`, border: `1px solid rgba(255,255,255,0.1)`, borderRadius: 10, color: theme.text, fontSize: '0.88rem', outline: 'none' }} />
+                </label>
+              ))}
+              {pwError && <p style={{ margin: 0, color: '#f87171', fontSize: '0.82rem' }}>{pwError}</p>}
+              <button type="submit" disabled={pwSaving} style={{ padding: '11px', borderRadius: 10, border: 'none', background: pwSaved ? '#22c55e' : 'rgba(255,255,255,0.08)', color: pwSaved ? '#000' : theme.text, fontWeight: 700, fontSize: '0.85rem', cursor: pwSaving ? 'wait' : 'pointer', transition: 'background 0.3s' }}>
+                {pwSaving ? 'Saving...' : pwSaved ? '✓ Password updated!' : 'Update password'}
               </button>
             </form>
           </div>
@@ -708,7 +735,9 @@ const InvestorHome: React.FC = () => {
     );
   }
 
-  const avatarBadgeSrc = data.investor.avatar ? avatarBadgeMap[data.investor.avatar] : null;
+  const avatarBadgeMap: Record<string, string> = { ...LEGACY_AVATAR_MAP };
+  for (const av of avatarOptions) avatarBadgeMap[av._id] = av.imageUrl;
+  const avatarBadgeSrc = data.investor.avatar ? (avatarBadgeMap[data.investor.avatar] ?? null) : null;
 
   return (
     <main className="investor-dashboard-shell gamified-shell" style={{ background: theme.background, color: theme.text }}>

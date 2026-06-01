@@ -11,6 +11,7 @@ import { InvestmentModel } from '../models/Investment';
 import { SiteContentModel } from '../models/SiteContent';
 import { ContactRequestModel } from '../models/ContactRequest';
 import { SessionModel } from '../models/Session';
+import { AvatarModel } from '../models/Avatar';
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -129,13 +130,14 @@ function normalizeCurrency(value: unknown): string {
 }
 
 function normalizeAvatar(value: unknown): string {
-  const avatar = String(value || '').trim().toLowerCase();
-  const supported = ['popeye', 'olive', 'curto'];
-  if (!supported.includes(avatar)) {
-    throw new Error(`Avatar must be one of: ${supported.join(', ')}`);
-  }
-  return avatar;
+  return String(value || '').trim();
 }
+
+const LEGACY_AVATAR_URLS: Record<string, string> = {
+  popeye: '/assets/popeyesmall.png',
+  olive: '/assets/olive1.jpeg',
+  curto: '/assets/cortomaltese.png',
+};
 
 // ---------------------------------------------------------------------------
 // Public — no auth required
@@ -145,7 +147,7 @@ router.get('/public/map-data', async (_req: Request, res: Response): Promise<voi
   try {
     const now = new Date();
 
-    const [investors, cargos, investmentCount, allInvestors, investorInvestmentCounts] = await Promise.all([
+    const [investors, cargos, investmentCount, allInvestors, investorInvestmentCounts, avatarDocs] = await Promise.all([
       InvestorModel.find({ kycCompleted: true }).select('displayName name avatar location').lean(),
       CargoModel.find({ hidden: { $ne: true } }).select('productBeingShipped shippingType purchaseLocation shippingDestination estimatedTimeOfArrival createdAt').lean(),
       InvestmentModel.countDocuments({ hidden: { $ne: true } }),
@@ -154,7 +156,9 @@ router.get('/public/map-data', async (_req: Request, res: Response): Promise<voi
         { $unwind: '$assignedInvestorIds' },
         { $group: { _id: { $toString: '$assignedInvestorIds' }, count: { $sum: 1 } } },
       ]),
+      AvatarModel.find().select('imageUrl').lean(),
     ]);
+    const dbAvatarMap = new Map((avatarDocs as Array<{ _id: unknown; imageUrl: string }>).map((a) => [String(a._id), a.imageUrl]));
 
     const totalInvested = allInvestors.reduce((sum, inv) => sum + (inv.investmentAmount || 0), 0);
     const totalExpectedProfit = allInvestors.reduce(
@@ -176,12 +180,17 @@ router.get('/public/map-data', async (_req: Request, res: Response): Promise<voi
     );
 
     res.status(200).json({
-      investors: investors.map((inv) => ({
-        name: inv.displayName || inv.name,
-        avatar: inv.avatar || 'popeye',
-        location: inv.location || '',
-        investmentCount: investmentCountMap[String(inv._id)] ?? 0,
-      })),
+      investors: investors.map((inv) => {
+        const avatarKey = inv.avatar || '';
+        const avatarImageUrl = dbAvatarMap.get(avatarKey) || LEGACY_AVATAR_URLS[avatarKey] || '/logo192.png';
+        return {
+          name: inv.displayName || inv.name,
+          avatar: avatarKey,
+          avatarImageUrl,
+          location: inv.location || '',
+          investmentCount: investmentCountMap[String(inv._id)] ?? 0,
+        };
+      }),
       cargos: activeCargos.map((c) => ({
         _id: c._id,
         productBeingShipped: c.productBeingShipped,
@@ -238,6 +247,23 @@ router.get('/public/investments', async (_req: Request, res: Response): Promise<
     });
   } catch {
     res.status(500).json({ message: 'Failed to load investments.' });
+  }
+});
+
+router.get('/public/avatars', async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const avatars = await AvatarModel.find().sort({ createdAt: 1 }).lean();
+    res.status(200).json({
+      avatars: avatars.map((a) => ({
+        _id: a._id,
+        name: a.name,
+        imageUrl: a.imageUrl,
+        defaultTheme: a.defaultTheme ?? 0,
+        secret: a.secret ?? false,
+      })),
+    });
+  } catch {
+    res.status(500).json({ message: 'Failed to load avatars.' });
   }
 });
 
@@ -862,6 +888,70 @@ router.put('/admin/site-content/:key', async (req: Request, res: Response): Prom
 });
 
 // ---------------------------------------------------------------------------
+// Admin — avatar management
+// ---------------------------------------------------------------------------
+
+router.get('/admin/avatars', async (req: Request, res: Response): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  try {
+    const avatars = await AvatarModel.find().sort({ createdAt: 1 }).lean();
+    res.status(200).json({ avatars });
+  } catch {
+    res.status(500).json({ message: 'Failed to load avatars.' });
+  }
+});
+
+router.post('/admin/avatars', async (req: Request, res: Response): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  try {
+    const { name, imageUrl, defaultTheme, secret } = req.body as {
+      name?: string; imageUrl?: string; defaultTheme?: number; secret?: boolean;
+    };
+    if (!name?.trim() || !imageUrl?.trim()) {
+      res.status(400).json({ message: 'Name and imageUrl are required.' });
+      return;
+    }
+    const avatar = await AvatarModel.create({
+      name: name.trim(),
+      imageUrl: imageUrl.trim(),
+      defaultTheme: Number(defaultTheme ?? 0),
+      secret: secret === true,
+    });
+    res.status(201).json({ avatar });
+  } catch (error) {
+    res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to create avatar.' });
+  }
+});
+
+router.put('/admin/avatars/:id', async (req: Request, res: Response): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  try {
+    const { name, defaultTheme, secret } = req.body as {
+      name?: string; defaultTheme?: number; secret?: boolean;
+    };
+    const avatar = await AvatarModel.findByIdAndUpdate(
+      req.params.id,
+      { name: String(name || '').trim(), defaultTheme: Number(defaultTheme ?? 0), secret: secret === true },
+      { new: true }
+    );
+    if (!avatar) { res.status(404).json({ message: 'Avatar not found.' }); return; }
+    res.status(200).json({ avatar });
+  } catch {
+    res.status(400).json({ message: 'Failed to update avatar.' });
+  }
+});
+
+router.delete('/admin/avatars/:id', async (req: Request, res: Response): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  try {
+    await AvatarModel.findByIdAndDelete(req.params.id);
+    res.status(200).json({ message: 'Avatar deleted.' });
+  } catch {
+    res.status(400).json({ message: 'Failed to delete avatar.' });
+  }
+});
+
+// ---------------------------------------------------------------------------
 // Investor — login / logout
 // ---------------------------------------------------------------------------
 
@@ -920,6 +1010,35 @@ router.post('/investor/logout', async (req: Request, res: Response): Promise<voi
     await SessionModel.deleteOne({ token, role: 'investor' });
   }
   res.status(200).json({ message: 'Logged out.' });
+});
+
+// ---------------------------------------------------------------------------
+// Investor — password change
+// ---------------------------------------------------------------------------
+
+router.post('/investor/change-password', async (req: Request, res: Response): Promise<void> => {
+  const investorId = await requireInvestor(req, res);
+  if (!investorId) return;
+  try {
+    const { currentPassword, newPassword } = req.body as { currentPassword?: string; newPassword?: string };
+    if (!currentPassword || !newPassword) {
+      res.status(400).json({ message: 'Current and new passwords are required.' });
+      return;
+    }
+    if (newPassword.length < 6) {
+      res.status(400).json({ message: 'New password must be at least 6 characters.' });
+      return;
+    }
+    const investor = await InvestorModel.findById(investorId);
+    if (!investor) { res.status(404).json({ message: 'Investor not found.' }); return; }
+    const isValid = await bcrypt.compare(currentPassword, investor.password);
+    if (!isValid) { res.status(400).json({ message: 'Current password is incorrect.' }); return; }
+    const hashed = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
+    await InvestorModel.updateOne({ _id: investor._id }, { password: hashed });
+    res.status(200).json({ message: 'Password updated successfully.' });
+  } catch {
+    res.status(500).json({ message: 'Failed to update password.' });
+  }
 });
 
 // ---------------------------------------------------------------------------
