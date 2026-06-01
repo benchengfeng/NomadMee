@@ -3,68 +3,10 @@
 Each item is scoped small. Grouped by area: Security & Reliability first, then UX/First Impression, then Admin Quality of Life, then Polish.
 
 ---
-
-## 1. Security & Reliability (Ship blockers)
-
-### 1.1 — Plain-text passwords in MongoDB
-**Problem:** Investor passwords are stored and compared as literal strings. A DB leak = all credentials exposed.  
-**Fix:** Add `bcrypt` to the backend. Hash on `POST /admin/investors` creation and `PUT /admin/investors/:id` update. Compare with `bcrypt.compare()` on login. One-time migration: re-set all passwords via admin after deploy.  
-**Effort:** ~1 hour.
-
-### 1.2 — Hardcoded admin credentials in source code
-**Problem:** `ADMIN_USERNAME = 'admin'` and `ADMIN_PASSWORD = 'admin112233'` are in `portal.ts`, committed to git.  
-**Fix:** Move both to `process.env.ADMIN_USERNAME` and `process.env.ADMIN_PASSWORD`. Already have a `.env` file and CI secrets — just add two more vars.  
-**Effort:** 15 minutes.
-
-### 1.3 — In-memory token storage
-**Problem:** `adminTokens` and `investorTokens` are plain JS `Map` objects. Every server restart (deploy, crash, systemd reload) invalidates all active sessions. Investors get silently kicked out.  
-**Fix:** Persist tokens in MongoDB — a lightweight `Session` collection with `{ token, userId, role, createdAt }` + a TTL index (e.g., 7 days) for auto-expiry. Read from DB on each authenticated request. A 5-line model + a 5-line lookup change.  
-**Effort:** ~2 hours.
-
-### 1.4 — No rate limiting on login endpoints
-**Problem:** `/investor/login` and `/admin/login` accept unlimited attempts. Brute-force a 6-char password in seconds.  
-**Fix:** Add `express-rate-limit` — 10 attempts per 15 min per IP on login routes only. Tiny package, 5 lines of config.  
-**Effort:** 20 minutes.
-
 ---
 
 ## 2. First Impression & Investor UX
 
-### 2.1 — Investor login page has no path back to landing
-**Problem:** A visitor who lands on `/login` via direct link sees only the login form with no navigation back to the public landing page. Feels like a dead end.  
-**Fix:** Add a small "← Back to home" link (same style as `join-back-btn`) to the top-left of the investor login page.  
-**Effort:** 10 minutes.
-
-### 2.2 — Landing investments section: no skeleton while loading
-**Problem:** Clicking "Investments" in the nav shows a blank dark area for 1–2s while the fetch resolves. Looks broken.  
-**Fix:** Show 3 shimmering placeholder cards (CSS `animation: shimmer`) while `investments.length === 0` and before the fetch completes. Use a separate `loadingInvestments` boolean.  
-**Effort:** 30 minutes.
-
-### 2.3 — ETA progress bar on cargo cards (investor dashboard)
-**Problem:** Cargo cards in the "Cargos" panel show only an ETA date. The investor has no visual sense of where in the journey the cargo is right now.  
-**Fix:** Add a thin progress bar below the cargo card footer. Calculate `progress = (now - createdAt) / (ETA - createdAt)`, clamp 0–1, render as a colored bar with the percentage. Same logic already used in `CargoMap.tsx` for the jump-to-location button — reuse it.  
-**Effort:** 45 minutes.
-
-### 2.4 — "Portfolio Explorer" tier is always hardcoded
-**Problem:** The hero card in the Summary panel always shows "Portfolio Explorer" as the investor tier, with no logic behind it. Feels fake and breaks immersion.  
-**Fix Option A (easy):** Remove the tier label entirely — just show the investor name large.  
-**Fix Option B (small feature):** Derive tier from `investmentAmount` converted to USD. Example thresholds: < 5,000 = "Emerging Partner", 5k–25k = "Portfolio Explorer", 25k–100k = "Senior Partner", > 100k = "Lead Investor". Purely frontend logic, no backend change.  
-**Effort:** 20 minutes.
-
-### 2.5 — Support panel links to the wrong contact page
-**Problem:** The "Contact support" button in the investor dashboard links to `/contact`, which is the old legacy marketing page (a different visual style, no context of their investment). Confusing and jarring.  
-**Fix:** Replace the link target. Either point to `/join` (choose an investment to contact about) or open a `mailto:` with a pre-filled subject like `Support request — @${investor.username}`. No backend changes needed.  
-**Effort:** 10 minutes.
-
-### 2.6 — No success/error toast system
-**Problem:** Admin operations (save cargo, delete investor, update content) either silently succeed or show an error at the very top of the page — requiring a scroll up to notice. Investor settings save shows `✓ Saved!` on the button, which is fine, but admin has no equivalent feedback.  
-**Fix:** A simple CSS-animated toast div fixed at the bottom-right. One `showToast(message, 'success' | 'error')` function using a short `useState` + `setTimeout` to auto-dismiss. No library needed — ~40 lines of CSS + 20 lines of logic.  
-**Effort:** 1 hour.
-
-### 2.7 — `window.confirm()` for delete actions
-**Problem:** Cargo/investor/investment deletions use the native browser `window.confirm()` modal. It's styled by the OS, breaks the dark gamified aesthetic, and feels like a prototype.  
-**Fix:** Replace with an inline confirm row that appears in place of the item's action buttons: "Are you sure? [Delete] [Cancel]". No modal overlay needed — just inline state `confirmDeleteId`.  
-**Effort:** 45 minutes.
 
 ---
 

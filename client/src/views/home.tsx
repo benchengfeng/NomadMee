@@ -25,6 +25,7 @@ const LandingPage: React.FC = () => {
   const [section, setSection] = useState<LandingSection>('globe');
   const [selectedTheme, setSelectedTheme] = useState(0);
   const [investments, setInvestments] = useState<PublicInvestment[]>([]);
+  const [loadingInvestments, setLoadingInvestments] = useState(false);
   const [siteContent, setSiteContent] = useState<SiteContent | null>(null);
 
   const idx = Math.min(Math.max(selectedTheme, 0), landingThemes.length - 1);
@@ -32,7 +33,11 @@ const LandingPage: React.FC = () => {
 
   useEffect(() => {
     if (section === 'investments' && investments.length === 0) {
-      getPublicInvestments().then((r) => setInvestments(r.investments)).catch(() => {});
+      setLoadingInvestments(true);
+      getPublicInvestments()
+        .then((r) => setInvestments(r.investments))
+        .catch(() => {})
+        .finally(() => setLoadingInvestments(false));
     }
     if (section === 'who' && !siteContent) {
       getPublicSiteContent('who_are_we').then((r) => setSiteContent(r.content)).catch(() => {});
@@ -103,7 +108,13 @@ const LandingPage: React.FC = () => {
               Join an active investment round and start tracking your cargo across the globe.
             </p>
 
-            {investments.length === 0 ? (
+            {loadingInvestments ? (
+              <div className="investment-card-grid">
+                <div className="investment-card-skeleton" />
+                <div className="investment-card-skeleton" />
+                <div className="investment-card-skeleton" />
+              </div>
+            ) : investments.length === 0 ? (
               <p style={{ color: '#334155', textAlign: 'center', marginTop: 60, fontSize: '0.9rem' }}>
                 No active investments at the moment.
               </p>

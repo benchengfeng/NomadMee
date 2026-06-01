@@ -30,6 +30,7 @@ const InvestorLogin: React.FC = () => {
 	return (
 		<main className="auth-shell">
 			<section className="auth-card">
+				<Link to="/" className="auth-back-link">← Home</Link>
 				<h1>Investor Access</h1>
 				<p>Sign in to view your assigned cargos and investment summary.</p>
 

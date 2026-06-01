@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   createCargo,
@@ -89,6 +89,9 @@ const emptyInvestmentForm = {
   status: 'active' as InvestmentStatus,
 };
 
+type Toast = { id: number; message: string; type: 'success' | 'error' };
+type ConfirmDelete = { type: 'cargo' | 'investor' | 'investment'; id: string };
+
 const AdminDashboard: React.FC = () => {
   const navigate = useNavigate();
   const [data, setData] = useState<AdminDashboardResponse | null>(null);
@@ -111,6 +114,19 @@ const AdminDashboard: React.FC = () => {
   const [contactRequests, setContactRequests] = useState<ContactRequest[]>([]);
   const [contactsLoaded, setContactsLoaded] = useState(false);
   const [expandedContactId, setExpandedContactId] = useState<string | null>(null);
+
+  // Toast notifications
+  const toastIdRef = useRef(0);
+  const [toasts, setToasts] = useState<Toast[]>([]);
+
+  // Inline delete confirmation
+  const [confirmDelete, setConfirmDelete] = useState<ConfirmDelete | null>(null);
+
+  const showToast = useCallback((message: string, type: Toast['type'] = 'success') => {
+    const id = ++toastIdRef.current;
+    setToasts((prev) => [...prev, { id, message, type }]);
+    setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== id)), 3500);
+  }, []);
 
   const refresh = async () => {
     const response = await getAdminDashboard();
@@ -168,20 +184,21 @@ const AdminDashboard: React.FC = () => {
     storyMediaUrls: cargoForm.storyMediaUrls,
   });
 
-
   const submitCargo = async (event: React.FormEvent) => {
     event.preventDefault();
-    setSavingCargo(true); setError(null);
+    setSavingCargo(true);
     try {
       if (editingCargoId) {
         await updateCargo(editingCargoId, cargoPayload());
+        showToast('Cargo updated!');
       } else {
         await createCargo(cargoPayload());
+        showToast('Cargo created!');
       }
       resetCargoForm();
       await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save cargo');
+      showToast(err instanceof Error ? err.message : 'Failed to save cargo', 'error');
     } finally { setSavingCargo(false); }
   };
 
@@ -207,20 +224,19 @@ const AdminDashboard: React.FC = () => {
   };
 
   const removeCargo = async (cargoId: string) => {
-    if (!window.confirm('Delete this cargo? This action cannot be undone.')) return;
-    setError(null);
     try {
       await deleteCargo(cargoId);
       if (editingCargoId === cargoId) resetCargoForm();
       await refresh();
+      showToast('Cargo deleted');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete cargo');
+      showToast(err instanceof Error ? err.message : 'Failed to delete cargo', 'error');
     }
   };
 
   const submitInvestor = async (event: React.FormEvent) => {
     event.preventDefault();
-    setSavingInvestor(true); setError(null);
+    setSavingInvestor(true);
     try {
       if (editingInvestorId) {
         await updateInvestor(editingInvestorId, {
@@ -233,6 +249,7 @@ const AdminDashboard: React.FC = () => {
           location: investorForm.location || undefined,
           investmentIds: investorForm.investmentIds,
         });
+        showToast('Investor updated!');
       } else {
         await createInvestor({
           name: investorForm.name,
@@ -244,17 +261,18 @@ const AdminDashboard: React.FC = () => {
           location: investorForm.location || undefined,
           investmentIds: investorForm.investmentIds,
         });
+        showToast('Investor created!');
       }
       resetInvestorForm();
       await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save investor');
+      showToast(err instanceof Error ? err.message : 'Failed to save investor', 'error');
     } finally { setSavingInvestor(false); }
   };
 
   const submitInvestment = async (event: React.FormEvent) => {
     event.preventDefault();
-    setSavingInvestment(true); setError(null);
+    setSavingInvestment(true);
     try {
       if (editingInvestmentId) {
         await updateInvestment(editingInvestmentId, {
@@ -265,6 +283,7 @@ const AdminDashboard: React.FC = () => {
           cargoIds: investmentForm.cargoIds,
           status: investmentForm.status,
         });
+        showToast('Investment updated!');
       } else {
         await createInvestment({
           title: investmentForm.title,
@@ -274,11 +293,12 @@ const AdminDashboard: React.FC = () => {
           cargoIds: investmentForm.cargoIds,
           status: investmentForm.status,
         });
+        showToast('Investment created!');
       }
       resetInvestmentForm();
       await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save investment');
+      showToast(err instanceof Error ? err.message : 'Failed to save investment', 'error');
     } finally { setSavingInvestment(false); }
   };
 
@@ -329,23 +349,25 @@ const AdminDashboard: React.FC = () => {
   };
 
   const removeInvestor = async (investorId: string) => {
-    if (!window.confirm('Delete this investor? This action cannot be undone.')) return;
-    setError(null);
     try {
       await deleteInvestor(investorId);
       if (editingInvestorId === investorId) resetInvestorForm();
       await refresh();
-    } catch (err) { setError(err instanceof Error ? err.message : 'Failed to delete investor'); }
+      showToast('Investor deleted');
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Failed to delete investor', 'error');
+    }
   };
 
   const removeInvestment = async (investmentId: string) => {
-    if (!window.confirm('Delete this investment? This action cannot be undone.')) return;
-    setError(null);
     try {
       await deleteInvestment(investmentId);
       if (editingInvestmentId === investmentId) resetInvestmentForm();
       await refresh();
-    } catch (err) { setError(err instanceof Error ? err.message : 'Failed to delete investment'); }
+      showToast('Investment deleted');
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Failed to delete investment', 'error');
+    }
   };
 
   if (loading) return <div className="portal-loading">Loading admin dashboard...</div>;
@@ -371,8 +393,6 @@ const AdminDashboard: React.FC = () => {
         </div>
         <button type="button" onClick={handleLogout}>Logout</button>
       </header>
-
-      {error && <div className="portal-error">{error}</div>}
 
       {/* Section tabs */}
       <nav className="admin-nav">
@@ -483,10 +503,18 @@ const AdminDashboard: React.FC = () => {
                 <div className="portal-item" key={cargo._id}>
                   <div className="portal-item-head">
                     <h3>{cargo.productBeingShipped}</h3>
-                    <div className="portal-item-actions">
-                      <button type="button" className="portal-btn-edit" onClick={() => startEditCargo(cargo)}>Edit</button>
-                      <button type="button" className="portal-btn-delete" onClick={() => removeCargo(cargo._id)}>Delete</button>
-                    </div>
+                    {confirmDelete?.id === cargo._id ? (
+                      <div className="portal-inline-confirm">
+                        <span>Delete?</span>
+                        <button type="button" className="portal-btn-delete" onClick={() => { void removeCargo(cargo._id); setConfirmDelete(null); }}>Yes</button>
+                        <button type="button" className="portal-btn-cancel" onClick={() => setConfirmDelete(null)}>Cancel</button>
+                      </div>
+                    ) : (
+                      <div className="portal-item-actions">
+                        <button type="button" className="portal-btn-edit" onClick={() => startEditCargo(cargo)}>Edit</button>
+                        <button type="button" className="portal-btn-delete" onClick={() => setConfirmDelete({ type: 'cargo', id: cargo._id })}>Delete</button>
+                      </div>
+                    )}
                   </div>
                   <p className="portal-item-meta">
                     {cargo.shippingType === 'air' ? '✈️' : cargo.shippingType === 'land' ? '🚛' : '🚢'} {cargo.purchaseLocation} → {cargo.shippingDestination}
@@ -554,10 +582,18 @@ const AdminDashboard: React.FC = () => {
                 <div className="portal-item" key={inv._id}>
                   <div className="portal-item-head">
                     <h3>{inv.title}</h3>
-                    <div className="portal-item-actions">
-                      <button type="button" className="portal-btn-edit" onClick={() => startEditInvestment(inv)}>Edit</button>
-                      <button type="button" className="portal-btn-delete" onClick={() => removeInvestment(inv._id)}>Delete</button>
-                    </div>
+                    {confirmDelete?.id === inv._id ? (
+                      <div className="portal-inline-confirm">
+                        <span>Delete?</span>
+                        <button type="button" className="portal-btn-delete" onClick={() => { void removeInvestment(inv._id); setConfirmDelete(null); }}>Yes</button>
+                        <button type="button" className="portal-btn-cancel" onClick={() => setConfirmDelete(null)}>Cancel</button>
+                      </div>
+                    ) : (
+                      <div className="portal-item-actions">
+                        <button type="button" className="portal-btn-edit" onClick={() => startEditInvestment(inv)}>Edit</button>
+                        <button type="button" className="portal-btn-delete" onClick={() => setConfirmDelete({ type: 'investment', id: inv._id })}>Delete</button>
+                      </div>
+                    )}
                   </div>
                   <p className="portal-item-meta">{inv.description}</p>
                   <p className="portal-item-meta">
@@ -633,10 +669,18 @@ const AdminDashboard: React.FC = () => {
                 <div className="portal-item" key={investor._id}>
                   <div className="portal-item-head">
                     <h3>{investor.name}</h3>
-                    <div className="portal-item-actions">
-                      <button type="button" className="portal-btn-edit" onClick={() => startEditInvestor(investor)}>Edit</button>
-                      <button type="button" className="portal-btn-delete" onClick={() => removeInvestor(investor._id)}>Delete</button>
-                    </div>
+                    {confirmDelete?.id === investor._id ? (
+                      <div className="portal-inline-confirm">
+                        <span>Delete?</span>
+                        <button type="button" className="portal-btn-delete" onClick={() => { void removeInvestor(investor._id); setConfirmDelete(null); }}>Yes</button>
+                        <button type="button" className="portal-btn-cancel" onClick={() => setConfirmDelete(null)}>Cancel</button>
+                      </div>
+                    ) : (
+                      <div className="portal-item-actions">
+                        <button type="button" className="portal-btn-edit" onClick={() => startEditInvestor(investor)}>Edit</button>
+                        <button type="button" className="portal-btn-delete" onClick={() => setConfirmDelete({ type: 'investor', id: investor._id })}>Delete</button>
+                      </div>
+                    )}
                   </div>
                   <p className="portal-item-meta">@{investor.username} {investor.location ? `· 📍 ${investor.location}` : ''}</p>
                   <p className="portal-item-meta">
@@ -679,14 +723,21 @@ const AdminDashboard: React.FC = () => {
                     await updateContactRequestStatus(req._id, status);
                     setContactRequests((prev) => prev.map((r) => r._id === req._id ? { ...r, status } : r));
                     if (status !== 'new') setUnreadContactCount((n) => Math.max(0, n - (req.status === 'new' ? 1 : 0)));
-                  } catch { /* ignore */ }
+                    showToast(status === 'contacted' ? 'Marked as contacted ✓' : 'Marked as read');
+                  } catch {
+                    showToast('Failed to update status', 'error');
+                  }
                 };
 
                 return (
                   <div
                     key={req._id}
                     className={`msg-card${req.status === 'new' ? ' msg-card--new' : ''}`}
-                    onClick={() => setExpandedContactId(isExpanded ? null : req._id)}
+                    onClick={() => {
+                      const newId = isExpanded ? null : req._id;
+                      setExpandedContactId(newId);
+                      if (newId && req.status === 'new') void markStatus('read');
+                    }}
                   >
                     <div className="msg-card-header">
                       <div>
@@ -723,16 +774,11 @@ const AdminDashboard: React.FC = () => {
                           </div>
                         )}
                         <div className="msg-card-actions">
-                          {req.status === 'new' && (
-                            <button type="button" className="portal-btn-edit" onClick={() => markStatus('read')}>
-                              Mark as read
-                            </button>
-                          )}
                           {req.status !== 'contacted' && (
                             <button
                               type="button"
                               style={{ padding: '8px 16px', borderRadius: 10, border: 'none', background: 'rgba(56,189,248,0.15)', color: '#38bdf8', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer' }}
-                              onClick={() => markStatus('contacted')}
+                              onClick={() => void markStatus('contacted')}
                             >
                               ✓ Mark as contacted
                             </button>
@@ -778,8 +824,9 @@ const AdminDashboard: React.FC = () => {
               mediaUrls: siteContent.mediaUrls,
             });
             setSiteContent(res.content);
+            showToast('Content saved!');
           } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to save content');
+            showToast(err instanceof Error ? err.message : 'Failed to save content', 'error');
           } finally { setSavingSiteContent(false); }
         };
 
@@ -864,10 +911,18 @@ const AdminDashboard: React.FC = () => {
                           )}
                         </div>
                       </div>
-                      <div className="portal-item-actions">
-                        <button type="button" className="portal-btn-edit" onClick={() => startEditInvestment(inv)}>Edit</button>
-                        <button type="button" className="portal-btn-delete" onClick={() => removeInvestment(inv._id)}>Delete</button>
-                      </div>
+                      {confirmDelete?.id === inv._id ? (
+                        <div className="portal-inline-confirm">
+                          <span>Delete?</span>
+                          <button type="button" className="portal-btn-delete" onClick={() => { void removeInvestment(inv._id); setConfirmDelete(null); }}>Yes</button>
+                          <button type="button" className="portal-btn-cancel" onClick={() => setConfirmDelete(null)}>Cancel</button>
+                        </div>
+                      ) : (
+                        <div className="portal-item-actions">
+                          <button type="button" className="portal-btn-edit" onClick={() => startEditInvestment(inv)}>Edit</button>
+                          <button type="button" className="portal-btn-delete" onClick={() => setConfirmDelete({ type: 'investment', id: inv._id })}>Delete</button>
+                        </div>
+                      )}
                     </div>
 
                     <div className="relation-columns">
@@ -913,6 +968,16 @@ const AdminDashboard: React.FC = () => {
           )}
         </div>
       )}
+
+      {/* Toast notifications */}
+      <div className="toast-container">
+        {toasts.map((toast) => (
+          <div key={toast.id} className={`toast toast--${toast.type}`}>
+            <span>{toast.type === 'success' ? '✓' : '✕'}</span>
+            <span>{toast.message}</span>
+          </div>
+        ))}
+      </div>
     </main>
   );
 };

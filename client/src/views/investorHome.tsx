@@ -167,6 +167,12 @@ const InvestorHome: React.FC = () => {
     const expectedProfit = Number(((investedAmount * profitPct) / 100).toFixed(0));
     const projectedPayout = investedAmount + expectedProfit;
 
+    const investedUSD = convertCurrency(data.investor.investmentAmount || 0, investmentSourceCurrency, 'USD');
+    const tier = investedUSD >= 100_000 ? 'Lead Investor'
+      : investedUSD >= 25_000 ? 'Senior Partner'
+      : investedUSD >= 5_000 ? 'Portfolio Explorer'
+      : 'Emerging Partner';
+
     return (
       <div className="summary-panel">
         <div className="dashboard-section hero-card" style={{ background: theme.surface, color: theme.text, boxShadow: `0 24px 70px ${theme.panelGlow}` }}>
@@ -177,7 +183,7 @@ const InvestorHome: React.FC = () => {
           </div>
           <div className="hero-metric" style={{ borderColor: theme.accent }}>
             <span>Your tier</span>
-            <strong>Portfolio Explorer</strong>
+            <strong>{tier}</strong>
           </div>
         </div>
 
@@ -246,6 +252,28 @@ const InvestorHome: React.FC = () => {
                   <div className="cargo-card-footer">
                     {cargo.quantity} units · {formatCurrency(convertedTotal, investorCurrency)} total · ETA {formatDate(cargo.estimatedTimeOfArrival)}
                   </div>
+                  {(() => {
+                    const createdMs = cargo.createdAt ? new Date(cargo.createdAt).getTime() : 0;
+                    const etaMs = new Date(cargo.estimatedTimeOfArrival).getTime();
+                    const nowMs = Date.now();
+                    const progress = createdMs > 0 && etaMs > createdMs
+                      ? Math.max(0, Math.min(1, (nowMs - createdMs) / (etaMs - createdMs)))
+                      : 0;
+                    const pct = Math.round(progress * 100);
+                    return (
+                      <div className="cargo-journey-progress">
+                        <div className="cargo-journey-bar">
+                          <div
+                            className="cargo-journey-fill"
+                            style={{ width: `${pct}%`, background: isSelected ? theme.background : theme.accent }}
+                          />
+                        </div>
+                        <span className="cargo-journey-label" style={{ color: isSelected ? theme.background : theme.accent }}>
+                          {pct}%
+                        </span>
+                      </div>
+                    );
+                  })()}
                   <div className="cargo-card-actions">
                     <button
                       type="button"
@@ -425,9 +453,15 @@ const InvestorHome: React.FC = () => {
         <div className="support-card" style={{ background: theme.surface }}>
           <h3>Need help with a cargo?</h3>
           <p>Send a message to your account manager or review the most recent investment update.</p>
-          <Link className="support-button" to="/contact" style={{ background: theme.accent, color: theme.background }}>
+          <a
+            href={`mailto:contact@nomadmee.com?subject=Support%20%E2%80%94%20%40${data?.investor.username ?? ''}`}
+            target="_blank"
+            rel="noreferrer"
+            className="support-button"
+            style={{ background: theme.accent, color: theme.background }}
+          >
             Contact support
-          </Link>
+          </a>
         </div>
         <div className="support-actions" style={{ background: theme.surface }}>
           <button
