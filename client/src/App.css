@@ -2225,3 +2225,21 @@ responsive
   transition: background 0.16s;
 }
 .unsaved-dialog-actions button:hover { background: rgba(255,255,255,0.1); }
+
+/* ── Inline amount + currency row ── */
+.portal-amount-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+.portal-amount-row input[type="number"] {
+  flex: 1 !important;
+  width: auto !important;
+  min-width: 0;
+}
+.portal-amount-row select {
+  width: 80px !important;
+  flex-shrink: 0;
+  padding-left: 10px !important;
+  padding-right: 6px !important;
+}

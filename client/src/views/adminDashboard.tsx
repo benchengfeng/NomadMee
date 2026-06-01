@@ -484,11 +484,12 @@ const AdminDashboard: React.FC = () => {
               <label>Purchase location</label>
               <input value={cargoForm.purchaseLocation} onChange={(e) => setCargoForm({ ...cargoForm, purchaseLocation: e.target.value })} required />
               <label>Purchase price</label>
-              <input type="number" value={cargoForm.purchasePrice} onChange={(e) => setCargoForm({ ...cargoForm, purchasePrice: e.target.value })} required />
-              <label>Currency</label>
-              <select value={cargoForm.currency} onChange={(e) => setCargoForm({ ...cargoForm, currency: e.target.value })}>
-                {currencyOptions.map((c) => <option key={c} value={c}>{c}</option>)}
-              </select>
+              <div className="portal-amount-row">
+                <input type="number" value={cargoForm.purchasePrice} onChange={(e) => setCargoForm({ ...cargoForm, purchasePrice: e.target.value })} required />
+                <select value={cargoForm.currency} onChange={(e) => setCargoForm({ ...cargoForm, currency: e.target.value })}>
+                  {currencyOptions.map((c) => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
               <label>Shipping destination</label>
               <input value={cargoForm.shippingDestination} onChange={(e) => setCargoForm({ ...cargoForm, shippingDestination: e.target.value })} required />
               <label>Shipping type</label>
@@ -496,9 +497,19 @@ const AdminDashboard: React.FC = () => {
                 {shippingTypeOptions.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
               <label>Shipping price</label>
-              <input type="number" value={cargoForm.shippingPrice} onChange={(e) => setCargoForm({ ...cargoForm, shippingPrice: e.target.value })} required />
+              <div className="portal-amount-row">
+                <input type="number" value={cargoForm.shippingPrice} onChange={(e) => setCargoForm({ ...cargoForm, shippingPrice: e.target.value })} required />
+                <select value={cargoForm.currency} onChange={(e) => setCargoForm({ ...cargoForm, currency: e.target.value })}>
+                  {currencyOptions.map((c) => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
               <label>Other expenses</label>
-              <input type="number" value={cargoForm.otherExpenses} onChange={(e) => setCargoForm({ ...cargoForm, otherExpenses: e.target.value })} required />
+              <div className="portal-amount-row">
+                <input type="number" value={cargoForm.otherExpenses} onChange={(e) => setCargoForm({ ...cargoForm, otherExpenses: e.target.value })} required />
+                <select value={cargoForm.currency} onChange={(e) => setCargoForm({ ...cargoForm, currency: e.target.value })}>
+                  {currencyOptions.map((c) => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
               <label>ETA</label>
               <input type="date" value={cargoForm.estimatedTimeOfArrival} onChange={(e) => setCargoForm({ ...cargoForm, estimatedTimeOfArrival: e.target.value })} required />
               <label>Estimated time of selling</label>
@@ -590,12 +601,13 @@ const AdminDashboard: React.FC = () => {
               <input value={investmentForm.title} onChange={(e) => setInvestmentForm({ ...investmentForm, title: e.target.value })} required />
               <label>Description</label>
               <textarea value={investmentForm.description} onChange={(e) => setInvestmentForm({ ...investmentForm, description: e.target.value })} required />
-              <label>Currency</label>
-              <select value={investmentForm.currency} onChange={(e) => setInvestmentForm({ ...investmentForm, currency: e.target.value })}>
-                {currencyOptions.map((c) => <option key={c} value={c}>{c}</option>)}
-              </select>
               <label>Minimum investment</label>
-              <input type="number" value={investmentForm.minimumInvestment} onChange={(e) => setInvestmentForm({ ...investmentForm, minimumInvestment: e.target.value })} required />
+              <div className="portal-amount-row">
+                <input type="number" value={investmentForm.minimumInvestment} onChange={(e) => setInvestmentForm({ ...investmentForm, minimumInvestment: e.target.value })} required />
+                <select value={investmentForm.currency} onChange={(e) => setInvestmentForm({ ...investmentForm, currency: e.target.value })}>
+                  {currencyOptions.map((c) => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
               <label>Status</label>
               <select value={investmentForm.status} onChange={(e) => setInvestmentForm({ ...investmentForm, status: e.target.value as InvestmentStatus })}>
                 {STATUS_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
@@ -669,13 +681,14 @@ const AdminDashboard: React.FC = () => {
               <label>Password {editingInvestorId ? '(blank = keep current)' : ''}</label>
               <input type="password" value={investorForm.password} onChange={(e) => setInvestorForm({ ...investorForm, password: e.target.value })} {...(editingInvestorId ? {} : { required: true })} />
               <label>Investment amount</label>
-              <input type="number" value={investorForm.investmentAmount} onChange={(e) => setInvestorForm({ ...investorForm, investmentAmount: e.target.value })} required />
+              <div className="portal-amount-row">
+                <input type="number" value={investorForm.investmentAmount} onChange={(e) => setInvestorForm({ ...investorForm, investmentAmount: e.target.value })} required />
+                <select value={investorForm.currency} onChange={(e) => setInvestorForm({ ...investorForm, currency: e.target.value })}>
+                  {currencyOptions.map((c) => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
               <label>Profit % on investment</label>
               <input type="number" value={investorForm.profitPercentageOnInvestment} onChange={(e) => setInvestorForm({ ...investorForm, profitPercentageOnInvestment: e.target.value })} required />
-              <label>Currency</label>
-              <select value={investorForm.currency} onChange={(e) => setInvestorForm({ ...investorForm, currency: e.target.value })}>
-                {currencyOptions.map((c) => <option key={c} value={c}>{c}</option>)}
-              </select>
               <label>Location (country)</label>
               <input
                 list="country-list"
