@@ -1,9 +1,8 @@
 import { Router, Request, Response } from 'express';
 import crypto from 'crypto';
-import path from 'path';
-import fs from 'fs';
+import { Readable } from 'stream';
 import multer from 'multer';
-import { v4 as uuidv4 } from 'uuid';
+import { v2 as cloudinary } from 'cloudinary';
 import bcrypt from 'bcrypt';
 import rateLimit from 'express-rate-limit';
 import { CargoModel } from '../models/Cargo';
@@ -13,17 +12,14 @@ import { SiteContentModel } from '../models/SiteContent';
 import { ContactRequestModel } from '../models/ContactRequest';
 import { SessionModel } from '../models/Session';
 
-const uploadsDir = path.join(process.cwd(), 'uploads');
-if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 const upload = multer({
-  storage: multer.diskStorage({
-    destination: uploadsDir,
-    filename: (_req, file, cb) => {
-      const ext = path.extname(file.originalname).toLowerCase();
-      cb(null, `${uuidv4()}${ext}`);
-    },
-  }),
+  storage: multer.memoryStorage(),
   limits: { fileSize: 100 * 1024 * 1024 }, // 100 MB
   fileFilter: (_req, file, cb) => {
     if (/\.(jpg|jpeg|png|gif|webp|mp4|webm|mov)$/i.test(file.originalname)) {
@@ -33,6 +29,20 @@ const upload = multer({
     }
   },
 });
+
+function uploadToCloudinary(buffer: Buffer, originalname: string): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const resourceType: 'image' | 'video' = /\.(mp4|webm|mov)$/i.test(originalname) ? 'video' : 'image';
+    const stream = cloudinary.uploader.upload_stream(
+      { folder: 'home/nomadme', resource_type: resourceType },
+      (error, result) => {
+        if (error ?? !result) reject(error ?? new Error('Upload failed'));
+        else resolve(result!.secure_url);
+      }
+    );
+    Readable.from(buffer).pipe(stream);
+  });
+}
 
 const router = Router();
 
@@ -316,9 +326,12 @@ router.post('/admin/upload', upload.single('file'), async (req: Request, res: Re
     return;
   }
 
-  const baseUrl = (process.env.BASE_URL || 'http://localhost:8000').replace(/\/$/, '');
-  const url = `${baseUrl}/api/uploads/${req.file.filename}`;
-  res.status(200).json({ url, filename: req.file.filename });
+  try {
+    const url = await uploadToCloudinary(req.file.buffer, req.file.originalname);
+    res.status(200).json({ url });
+  } catch (error) {
+    res.status(500).json({ message: error instanceof Error ? error.message : 'Upload to Cloudinary failed.' });
+  }
 });
 
 // ---------------------------------------------------------------------------
