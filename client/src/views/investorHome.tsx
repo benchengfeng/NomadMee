@@ -53,13 +53,13 @@ function formatDate(value: string | null | undefined): string {
 }
 
 
-const panelButtons: Array<{ id: PanelId; label: string; Icon: IconType }> = [
-  { id: 'summary', label: 'Summary', Icon: FiHome },
-  { id: 'cargos', label: 'Cargos', Icon: FiPackage },
-  { id: 'map', label: 'Cargo map', Icon: FiMap },
-  { id: 'story', label: 'Investment story', Icon: FiTrendingUp },
-  { id: 'support', label: 'Support', Icon: FiHeadphones },
-  { id: 'settings', label: 'Settings', Icon: FiSettings },
+const panelButtons: Array<{ id: PanelId; label: string; mobileLabel: string; Icon: IconType }> = [
+  { id: 'summary',  label: 'Summary',           mobileLabel: 'Home',     Icon: FiHome },
+  { id: 'cargos',   label: 'Cargos',             mobileLabel: 'Cargos',   Icon: FiPackage },
+  { id: 'map',      label: 'Cargo map',          mobileLabel: 'Map',      Icon: FiMap },
+  { id: 'story',    label: 'Investment story',   mobileLabel: 'Story',    Icon: FiTrendingUp },
+  { id: 'support',  label: 'Support',            mobileLabel: 'Help',     Icon: FiHeadphones },
+  { id: 'settings', label: 'Settings',           mobileLabel: 'Settings', Icon: FiSettings },
 ];
 
 const InvestorHome: React.FC = () => {
@@ -744,7 +744,7 @@ const InvestorHome: React.FC = () => {
   const avatarBadgeSrc = data.investor.avatar ? (avatarBadgeMap[data.investor.avatar] ?? null) : null;
 
   return (
-    <main className="investor-dashboard-shell gamified-shell" style={{ background: theme.background, color: theme.text }}>
+    <main className={`investor-dashboard-shell gamified-shell${viewMode === 'globe' ? ' gamified-shell--globe' : ''}`} style={{ background: theme.background, color: theme.text }}>
       <div className="investor-topbar gamified-topbar">
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <img src="/logo192.png" className="topbar-brand-logo" alt="NomadMee" />
@@ -772,8 +772,18 @@ const InvestorHome: React.FC = () => {
               The Globe
             </button>
           </div>
+          {/* Mobile-only: compact globe toggle */}
+          <button
+            type="button"
+            className="mobile-globe-btn"
+            onClick={() => setViewMode(viewMode === 'globe' ? 'me' : 'globe')}
+            style={{ background: viewMode === 'globe' ? `${theme.accent}22` : 'rgba(255,255,255,0.06)', color: viewMode === 'globe' ? theme.accent : theme.secondaryText, borderColor: viewMode === 'globe' ? `${theme.accent}55` : 'rgba(255,255,255,0.12)' }}
+          >
+            🌍
+          </button>
           {avatarBadgeSrc ? (
             <div
+              className="topbar-avatar-badge"
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -802,7 +812,7 @@ const InvestorHome: React.FC = () => {
       </div>
 
       {viewMode === 'globe' && (
-        <div style={{ flex: 1, display: 'flex', minHeight: 0 }}>
+        <div className="globe-view-wrap" style={{ flex: 1, display: 'flex', minHeight: 0 }}>
           <WorldMap accentColor={theme.accent} />
         </div>
       )}
@@ -868,6 +878,37 @@ const InvestorHome: React.FC = () => {
           {activePanel === 'settings' && renderSettings()}
         </section>
       </div>}
+
+      {/* ── Mobile bottom navigation bar (hidden on desktop) ── */}
+      <nav
+        className="mobile-bottom-nav"
+        style={{ background: `${theme.surface}f4`, borderTopColor: `rgba(255,255,255,0.07)` }}
+      >
+        {panelButtons.map((panel) => {
+          const isActive = viewMode === 'me' && activePanel === panel.id;
+          return (
+            <button
+              key={panel.id}
+              type="button"
+              className={`mobile-nav-btn${isActive ? ' mobile-nav-btn--active' : ''}`}
+              style={{ color: isActive ? theme.accent : theme.secondaryText }}
+              onClick={() => { setViewMode('me'); handlePanelChange(panel.id); }}
+            >
+              <panel.Icon size={20} strokeWidth={isActive ? 2.5 : 1.8} />
+              <span>{panel.mobileLabel}</span>
+            </button>
+          );
+        })}
+        <button
+          type="button"
+          className={`mobile-nav-btn${viewMode === 'globe' ? ' mobile-nav-btn--active' : ''}`}
+          style={{ color: viewMode === 'globe' ? theme.accent : theme.secondaryText }}
+          onClick={() => setViewMode(viewMode === 'globe' ? 'me' : 'globe')}
+        >
+          <span style={{ fontSize: '20px', lineHeight: 1 }}>🌍</span>
+          <span>Globe</span>
+        </button>
+      </nav>
     </main>
   );
 };

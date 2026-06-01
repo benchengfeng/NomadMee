@@ -839,155 +839,404 @@
    Mobile responsive — investor dashboard
    ============================================================ */
 
+/* ============================================================
+   MOBILE ≤ 768px  —  Professional fintech-style redesign
+   ============================================================ */
 @media (max-width: 768px) {
-  /* Shell */
+
+  /* ── Shell: scrollable content, reserve space for bottom nav ── */
   .gamified-shell {
-    padding: 12px;
+    padding: 0;
+    padding-bottom: calc(60px + env(safe-area-inset-bottom, 0px));
     overflow-y: auto;
     overflow-x: hidden;
     height: auto;
-    min-height: 100vh;
+    min-height: 100dvh;
   }
 
-  /* Topbar */
-  .gamified-topbar {
+  /* Globe mode: fixed height so map fills screen cleanly */
+  .gamified-shell--globe {
+    height: 100dvh;
+    overflow: hidden;
+    padding-bottom: 0;
+    display: flex;
     flex-direction: column;
-    align-items: stretch;
-    padding: 16px;
-    gap: 12px;
-    border-radius: 18px;
-    margin-bottom: 14px;
+  }
+
+  .gamified-shell--globe .globe-view-wrap {
+    flex: 1;
+    min-height: 0;
+    margin-bottom: calc(60px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* ── Topbar: one tight row ── */
+  .gamified-topbar {
+    flex-direction: row;
+    align-items: center;
+    padding: 10px 14px;
+    margin: 0;
+    border-radius: 0;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    gap: 8px;
+    position: sticky;
+    top: 0;
+    z-index: 40;
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    min-height: 52px;
+  }
+
+  .mini-label,
+  .mini-description {
+    display: none;
+  }
+
+  .topbar-brand-logo {
+    width: 28px !important;
+    height: 28px !important;
   }
 
   .gamified-topbar h1 {
-    font-size: clamp(18px, 5vw, 24px);
-    margin-bottom: 2px;
+    font-size: 15px !important;
+    margin: 0 !important;
+    font-weight: 800;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;
+    flex: 1;
   }
 
-  /* Right side controls: wrap tightly */
-  .gamified-topbar > div:last-child {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
+  /* Hide desktop-only topbar elements on mobile */
+  .view-mode-toggle,
+  .topbar-avatar-badge {
+    display: none !important;
+  }
+
+  .logout-button {
+    padding: 7px 12px !important;
+    font-size: 0.72rem !important;
+    border-radius: 10px !important;
+    white-space: nowrap;
+  }
+
+  /* ── Grid: full-width single column with padding ── */
+  .gamified-grid {
+    grid-template-columns: 1fr;
+    gap: 0;
+    padding: 12px;
+    box-sizing: border-box;
+  }
+
+  /* ── Sidebar: hidden — replaced by bottom nav ── */
+  .dashboard-sidebar {
+    display: none;
+  }
+
+  .dashboard-content {
+    order: 1;
+    gap: 14px;
+  }
+
+  /* ── Summary panel ── */
+  .summary-panel {
+    gap: 12px;
+  }
+
+  .hero-card {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 16px;
+    border-radius: 20px;
+  }
+
+  .hero-metric {
+    min-width: 0;
+    padding: 14px 16px;
+    border-radius: 16px;
+  }
+
+  .dashboard-grid-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .stat-card {
+    padding: 14px;
+    border-radius: 18px;
+    min-height: auto;
     gap: 8px;
   }
 
-  /* Avatar badge: compact */
-  .gamified-topbar > div:last-child > div {
-    padding: 6px 10px !important;
+  /* ── Cargo cards ── */
+  .cargo-list {
+    gap: 10px;
   }
 
-  /* View toggle */
-  .view-mode-toggle {
-    flex: 1;
-  }
-
-  .view-mode-btn {
-    flex: 1;
-    text-align: center;
-    font-size: 0.74rem;
-    padding: 6px 10px;
-  }
-
-  /* Logout button */
-  .logout-button {
-    padding: 10px 14px !important;
-    font-size: 0.78rem;
-    border-radius: 12px;
-  }
-
-  /* Gamified grid: single column */
-  .gamified-grid {
-    grid-template-columns: 1fr;
-    gap: 14px;
-  }
-
-  /* Sidebar: compact */
-  .dashboard-sidebar {
-    padding: 14px;
-    gap: 14px;
-    border-radius: 18px;
-    order: 2;
-  }
-
-  .sidebar-section h2 {
-    font-size: 14px;
-    margin-bottom: 10px;
-  }
-
-  /* Content */
-  .dashboard-content {
-    order: 1;
-  }
-
-  /* Summary panel stats */
-  .summary-panel {
-    gap: 14px;
-  }
-
-  /* Cargo panel */
-  .cargo-panel {
-    padding: 14px;
-    border-radius: 18px;
-  }
-
-  /* Map canvas */
-  .cargo-map-canvas {
-    height: 220px !important;
-  }
-
-  /* Support panel */
-  .support-panel {
-    gap: 14px;
-  }
-
-  .support-card,
-  .support-action-item {
+  .cargo-card {
     padding: 14px;
     border-radius: 16px;
   }
 
-  /* Story panel */
-  .story-panel {
-    padding: 14px;
+  .cargo-card-title {
+    font-size: 15px;
+    margin-bottom: 5px;
+  }
+
+  .cargo-card-meta,
+  .cargo-card-footer {
+    font-size: 12px;
+  }
+
+  .cargo-card-cover {
+    width: calc(100% + 28px);
+    height: 75px;
+    margin: -14px -14px 10px;
+  }
+
+  .cargo-card-actions {
+    margin-top: 8px;
+  }
+
+  /* ── Map ── */
+  .cargo-map-wrap {
     border-radius: 18px;
   }
 
-  .story-step {
+  .cargo-map-canvas {
+    height: 240px !important;
+  }
+
+  .cargo-map-header {
+    padding: 10px 12px;
+    gap: 6px;
+  }
+
+  .cargo-map-controls {
+    gap: 6px;
+  }
+
+  .cargo-map-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  .cargo-map-footer {
+    padding: 8px 12px;
+  }
+
+  .map-details {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .route-visual {
     padding: 14px;
+    border-radius: 16px;
+  }
+
+  /* ── Story timeline ── */
+  .story-timeline {
+    gap: 10px;
+  }
+
+  .story-step {
+    padding: 12px;
     border-radius: 14px;
+    gap: 10px;
+  }
+
+  .story-step-number {
+    width: 36px;
+    height: 36px;
+    min-width: 36px;
+    border-radius: 12px;
+    font-size: 14px;
+  }
+
+  /* ── Support ── */
+  .support-panel {
     gap: 12px;
+  }
+
+  .support-card {
+    padding: 18px;
+    border-radius: 18px;
+  }
+
+  .support-actions {
+    border-radius: 18px;
+    padding: 8px;
+    gap: 2px;
+  }
+
+  .support-action-item {
+    padding: 12px 14px;
+    border-radius: 12px;
+  }
+
+  /* ── Settings form inputs ── */
+  .story-panel {
+    gap: 16px;
+  }
+
+  /* ── Map summary/details ── */
+  .map-summary,
+  .map-details,
+  .story-status,
+  .support-card {
+    padding: 16px;
+    border-radius: 18px;
   }
 }
 
+/* ============================================================
+   MOBILE ≤ 480px  —  Very small screens (≤ SE, Galaxy mini)
+   ============================================================ */
 @media (max-width: 480px) {
-  .gamified-shell {
+
+  .gamified-grid {
     padding: 8px;
   }
 
-  .gamified-topbar {
+  .gamified-topbar h1 {
+    font-size: 13px !important;
+    max-width: 120px;
+  }
+
+  .hero-card {
     padding: 14px;
+    border-radius: 16px;
+  }
+
+  .dashboard-grid-stats {
+    gap: 8px;
+  }
+
+  .stat-card {
+    padding: 12px;
     border-radius: 14px;
   }
 
-  .gamified-topbar h1 {
-    font-size: 18px;
+  .cargo-card {
+    padding: 12px;
+    border-radius: 14px;
   }
 
-  .mini-label {
-    font-size: 0.6rem;
+  .cargo-card-title {
+    font-size: 14px;
   }
 
-  /* Theme dots: smaller */
-  .theme-chip {
-    width: 20px !important;
-    height: 20px !important;
+  .cargo-map-canvas {
+    height: 200px !important;
   }
 
-  /* Tab buttons */
-  .dashboard-tab {
-    font-size: 13px;
-    padding: 10px 14px;
+  .mobile-nav-btn {
+    min-width: 44px !important;
+    padding: 8px 4px calc(4px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  .mobile-nav-btn span {
+    font-size: 0.5rem !important;
+  }
+}
+
+/* ============================================================
+   Mobile bottom navigation bar
+   (hidden on desktop, fixed bottom on mobile)
+   ============================================================ */
+.mobile-bottom-nav {
+  display: none;
+}
+
+.mobile-globe-btn {
+  display: none;
+}
+
+@media (max-width: 768px) {
+
+  /* Bottom nav */
+  .mobile-bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    border-top: 1px solid;
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  .mobile-nav-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    padding: 10px 4px 8px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    flex: 1;
+    min-width: 48px;
+    position: relative;
+    transition: opacity 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mobile-nav-btn span {
+    font-size: 0.54rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+  }
+
+  /* Active indicator pill above the icon */
+  .mobile-nav-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 28px;
+    height: 2px;
+    border-radius: 0 0 3px 3px;
+    background: currentColor;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+
+  .mobile-nav-btn--active::before {
+    opacity: 1;
+  }
+
+  .mobile-nav-btn:not(.mobile-nav-btn--active) {
+    opacity: 0.38;
+  }
+
+  /* Globe button in topbar (mobile only) */
+  .mobile-globe-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    border: 1px solid;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background 0.16s, opacity 0.16s;
+    flex-shrink: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .mobile-globe-btn:active {
+    opacity: 0.7;
   }
 }
 
