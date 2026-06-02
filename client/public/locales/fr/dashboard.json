@@ -1,0 +1,123 @@
+{
+  "nav": {
+    "summary": "Résumé",
+    "cargos": "Cargaisons",
+    "map": "Carte cargo",
+    "story": "Récit d'investissement",
+    "support": "Assistance",
+    "settings": "Paramètres",
+    "summaryShort": "Accueil",
+    "cargosShort": "Cargos",
+    "mapShort": "Carte",
+    "storyShort": "Récit",
+    "supportShort": "Aide",
+    "settingsShort": "Réglages",
+    "globe": "Globe"
+  },
+  "topbar": {
+    "portal": "NomadMee — portail investisseur",
+    "welcome": "Bon retour, {{name}}",
+    "subtitle": "Sélectionnez une section ci-dessous pour explorer votre portefeuille.",
+    "me": "Moi",
+    "globe": "Le Globe",
+    "logout": "Déconnexion",
+    "investor": "Investisseur"
+  },
+  "summary": {
+    "companion": "Compagnon investisseur",
+    "welcomeAmounts": "Bon retour. Tous les montants sont affichés en {{currency}}.",
+    "invested": "Investi",
+    "projectedProfit": "Profit projeté",
+    "profitRate": "Taux de profit",
+    "activeCargos": "Cargaisons actives",
+    "expectedPayout": "Gain attendu"
+  },
+  "cargos": {
+    "noneTitle": "Aucune cargaison assignée pour le moment.",
+    "noneBody": "Dès qu'une expédition vous est attribuée, elle apparaîtra ici avec l'itinéraire et le détail des coûts.",
+    "units": "unités",
+    "total": "total",
+    "eta": "ETA",
+    "viewRoute": "Voir l'itinéraire →"
+  },
+  "map": {
+    "selectPrompt": "Sélectionnez une cargaison dans l'onglet Cargaisons pour voir sa carte d'itinéraire en direct.",
+    "about": "À propos de cette cargaison",
+    "purchasePrice": "Prix d'achat",
+    "shippingCost": "Coût d'expédition",
+    "otherFees": "Autres frais",
+    "eta": "ETA",
+    "sellWindow": "Fenêtre de vente",
+    "quantity": "Quantité"
+  },
+  "story": {
+    "intro": "Chaque cargaison ci-dessous est un chapitre de votre parcours d'investissement.",
+    "currentMission": "Mission en cours",
+    "monitor_one": "Suivez votre {{count}} cargaison active à travers la chaîne logistique et suivez les retours attendus.",
+    "monitor_other": "Suivez vos {{count}} cargaisons actives à travers la chaîne logistique et suivez les retours attendus.",
+    "activeRoute": "Itinéraire actif",
+    "profitTracking": "Suivi du profit",
+    "realtimeEta": "ETA en temps réel",
+    "trackProgress": "Suivez la progression de votre portefeuille dans la chaîne d'approvisionnement.",
+    "stage": "Étape {{n}} sur {{total}}",
+    "eta": "ETA",
+    "beginsTitle": "Votre parcours commence ici",
+    "beginsBody": "Dès que des cargaisons sont attribuées, chaque expédition apparaîtra comme une étape de votre parcours.",
+    "ready": "Prêt",
+    "tracking": "Suivi",
+    "profit": "Profit",
+    "emptySteps": [
+      "Investissement financé",
+      "Produits sourcés",
+      "Expédition en transit",
+      "Préparation de la vente"
+    ]
+  },
+  "support": {
+    "needHelp": "Besoin d'aide pour une cargaison ?",
+    "sendMessage": "Envoyez un message à votre gestionnaire de compte ou consultez la dernière mise à jour.",
+    "contactSupport": "Contacter l'assistance",
+    "quickAction": "Action rapide",
+    "viewCargos": "Voir vos cargaisons →",
+    "reminder": "Rappel",
+    "exploreRoute": "Explorer l'itinéraire →"
+  },
+  "settings": {
+    "title": "Paramètres du profil",
+    "subtitle": "Mettez à jour votre nom affiché, votre avatar et vos préférences.",
+    "displayName": "Nom affiché",
+    "displayNamePlaceholder": "Votre nom d'investisseur",
+    "displayCurrency": "Devise d'affichage",
+    "currencyHint": "Tous les montants de votre tableau de bord seront convertis en {{currency}}.",
+    "chooseAvatar": "Choisir un avatar",
+    "secretAvatar": "Avatar secret",
+    "revealSecret": "🔒 Révéler l'avatar secret",
+    "saving": "Enregistrement...",
+    "saved": "✓ Enregistré !",
+    "save": "Enregistrer",
+    "changePassword": "Changer le mot de passe",
+    "currentPassword": "Mot de passe actuel",
+    "newPassword": "Nouveau mot de passe",
+    "confirmPassword": "Confirmer le nouveau mot de passe",
+    "updatePassword": "Mettre à jour",
+    "passwordUpdated": "✓ Mot de passe mis à jour !",
+    "pwMismatch": "Les nouveaux mots de passe ne correspondent pas.",
+    "pwTooShort": "Le mot de passe doit comporter au moins 6 caractères.",
+    "pwFailed": "Échec du changement de mot de passe."
+  },
+  "account": {
+    "username": "Nom d'utilisateur",
+    "investment": "Investissement",
+    "profitRate": "Taux de profit"
+  },
+  "sidebar": {
+    "explore": "Explorer",
+    "theme": "Thème",
+    "note": "Suivez vos expéditions Chine → Côte d'Ivoire, le ROI projeté et les détails des cargaisons en un seul endroit."
+  },
+  "loading": "Chargement de votre tableau de bord...",
+  "error": {
+    "unavailable": "Données du tableau de bord indisponibles.",
+    "backToLogin": "Retour à la connexion"
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "back": "Retour",
+  "backHome": "Retour à l'accueil",
+  "loading": "Chargement…",
+  "notFound": "Investissement introuvable.",
+  "status": { "active": "Actif", "in_progress": "En cours", "waiting": "En attente" },
+  "success": {
+    "title": "Demande reçue !",
+    "subWhatsapp": "Notre équipe vous contactera via WhatsApp avant votre rendez-vous.",
+    "subEmail": "Notre équipe vous contactera par e-mail avant votre rendez-vous.",
+    "rdv": "📅 RDV prévu le {{date}}"
+  },
+  "info": {
+    "eyebrow": "Vous postulez pour",
+    "minInvestment": "Investissement min.",
+    "activeCargos": "Cargaisons actives",
+    "investorsInRound": "Investisseurs dans le tour",
+    "note": "Après l'envoi, notre équipe vous contactera à la date choisie pour vous présenter les détails de l'investissement."
+  },
+  "form": {
+    "title": "Rejoindre ce tour",
+    "sub": "Renseignez vos informations et choisissez une date pour votre premier rendez-vous.",
+    "fullName": "Nom complet",
+    "fullNamePlaceholder": "Votre nom complet",
+    "contactMethod": "Méthode de contact préférée",
+    "whatsapp": "WhatsApp",
+    "whatsappDesc": "Rapide et personnel",
+    "email": "E-mail",
+    "emailDesc": "Formel et documenté",
+    "whatsappNumber": "Numéro WhatsApp",
+    "emailAddress": "Adresse e-mail",
+    "emailPlaceholder": "vous@exemple.com",
+    "countryCodeHint": "Incluez l'indicatif du pays, ex. +216 XX XXX XXX",
+    "meetingDate": "Date et heure du rendez-vous",
+    "message": "Message (facultatif)",
+    "messagePlaceholder": "Questions ou contexte que vous souhaitez partager...",
+    "submit": "✓ Envoyer la demande",
+    "submitting": "Envoi de la demande…"
+  },
+  "error": { "generic": "Une erreur s'est produite. Veuillez réessayer." }
+}

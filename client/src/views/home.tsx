@@ -1,27 +1,30 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { landingThemes } from '../utils/landingThemes';
 import WorldMap from '../components/WorldMap';
 import StoryMediaGallery from '../components/cargo/StoryMediaGallery';
+import LanguageSwitcher from '../components/common/LanguageSwitcher';
 import { getPublicInvestments, getPublicSiteContent, PublicInvestment, SiteContent } from '../api/portalApi';
 import '../styles/landing.css';
 
 type LandingSection = 'globe' | 'investments' | 'who';
 
-const STATUS_STYLE: Record<string, { label: string; color: string; bg: string }> = {
-  active:      { label: 'Active',      color: '#22c55e', bg: 'rgba(34,197,94,0.1)' },
-  in_progress: { label: 'In Progress', color: '#38bdf8', bg: 'rgba(56,189,248,0.1)' },
-  waiting:     { label: 'Waiting',     color: '#fbbf24', bg: 'rgba(251,191,36,0.1)' },
+const STATUS_STYLE: Record<string, { color: string; bg: string }> = {
+  active:      { color: '#22c55e', bg: 'rgba(34,197,94,0.1)' },
+  in_progress: { color: '#38bdf8', bg: 'rgba(56,189,248,0.1)' },
+  waiting:     { color: '#fbbf24', bg: 'rgba(251,191,36,0.1)' },
 };
 
-const NAV_ITEMS: Array<{ id: LandingSection; label: string }> = [
-  { id: 'globe', label: 'The Globe' },
-  { id: 'investments', label: 'Investments' },
-  { id: 'who', label: 'Who Are We?' },
+const NAV_ITEMS: Array<{ id: LandingSection; key: string }> = [
+  { id: 'globe', key: 'nav.globe' },
+  { id: 'investments', key: 'nav.investments' },
+  { id: 'who', key: 'nav.whoAreWe' },
 ];
 
 const LandingPage: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation('landing');
   const [section, setSection] = useState<LandingSection>('globe');
   const [selectedTheme, setSelectedTheme] = useState(0);
   const [investments, setInvestments] = useState<PublicInvestment[]>([]);
@@ -63,12 +66,13 @@ const LandingPage: React.FC = () => {
               style={section === item.id ? { background: palette.accent } : undefined}
               onClick={() => setSection(item.id)}
             >
-              {item.label}
+              {t(item.key)}
             </button>
           ))}
         </div>
 
         <div className="landing-nav-right">
+          <LanguageSwitcher variant="ghost" accentColor={palette.accent} />
           <div className="landing-theme-dots">
             {landingThemes.map((t, i) => (
               <button
@@ -91,7 +95,7 @@ const LandingPage: React.FC = () => {
             onClick={() => navigate('/login')}
             style={{ background: `linear-gradient(90deg, ${palette.accent}, ${palette.highlight})`, color: '#000' }}
           >
-            Login →
+            {t('cta.login')}
           </button>
         </div>
       </nav>
@@ -105,10 +109,10 @@ const LandingPage: React.FC = () => {
         {/* Investments */}
         {section === 'investments' && (
           <div className="landing-section-inner">
-            <p className="landing-section-eyebrow" style={{ color: palette.accent }}>Open rounds</p>
-            <h2 className="landing-section-title">Active investments</h2>
+            <p className="landing-section-eyebrow" style={{ color: palette.accent }}>{t('investments.eyebrow')}</p>
+            <h2 className="landing-section-title">{t('investments.title')}</h2>
             <p className="landing-section-sub">
-              Join an active investment round and start tracking your cargo across the globe.
+              {t('investments.sub')}
             </p>
 
             {loadingInvestments ? (
@@ -119,7 +123,7 @@ const LandingPage: React.FC = () => {
               </div>
             ) : investments.length === 0 ? (
               <p style={{ color: '#334155', textAlign: 'center', marginTop: 60, fontSize: '0.9rem' }}>
-                No active investments at the moment.
+                {t('investments.none')}
               </p>
             ) : (
               <div className="investment-card-grid">
@@ -147,16 +151,16 @@ const LandingPage: React.FC = () => {
                           whiteSpace: 'nowrap',
                           flexShrink: 0,
                         }}>
-                          {st.label}
+                          {t(`status.${inv.status}`)}
                         </span>
                       </div>
 
                       <p className="investment-card-desc">{inv.description}</p>
 
                       <div className="investment-card-tags">
-                        <span className="investment-card-tag">Min {inv.minimumInvestment.toLocaleString()} {inv.currency}</span>
-                        <span className="investment-card-tag">{inv.cargoCount} cargo{inv.cargoCount !== 1 ? 's' : ''}</span>
-                        <span className="investment-card-tag">{inv.investorCount} investor{inv.investorCount !== 1 ? 's' : ''}</span>
+                        <span className="investment-card-tag">{t('card.min')} {inv.minimumInvestment.toLocaleString()} {inv.currency}</span>
+                        <span className="investment-card-tag">{t('card.cargo', { count: inv.cargoCount })}</span>
+                        <span className="investment-card-tag">{t('card.investor', { count: inv.investorCount })}</span>
                       </div>
 
                       <button
@@ -167,7 +171,7 @@ const LandingPage: React.FC = () => {
                         onMouseEnter={(e) => { e.currentTarget.style.background = `${palette.accent}18`; }}
                         onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                       >
-                        Join this round →
+                        {t('card.join')}
                       </button>
                     </div>
                   );
@@ -180,14 +184,14 @@ const LandingPage: React.FC = () => {
         {/* Who Are We */}
         {section === 'who' && (
           <div className="landing-who-inner">
-            <p className="landing-section-eyebrow" style={{ color: palette.accent }}>Our story</p>
+            <p className="landing-section-eyebrow" style={{ color: palette.accent }}>{t('who.eyebrow')}</p>
             <h2 className="landing-section-title">
-              {siteContent?.title || 'Who Are We?'}
+              {siteContent?.title || t('who.titleFallback')}
             </h2>
             {siteContent?.body ? (
               <p className="landing-who-body">{siteContent.body}</p>
             ) : (
-              <p style={{ color: '#334155', fontSize: '0.9rem' }}>Content coming soon.</p>
+              <p style={{ color: '#334155', fontSize: '0.9rem' }}>{t('who.comingSoon')}</p>
             )}
             {(siteContent?.mediaUrls ?? []).length > 0 && (
               <StoryMediaGallery urls={siteContent!.mediaUrls ?? []} accentColor={palette.accent} />

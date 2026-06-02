@@ -1,0 +1,41 @@
+{
+  "back": "Back",
+  "backHome": "Back to home",
+  "loading": "Loading…",
+  "notFound": "Investment not found.",
+  "status": { "active": "Active", "in_progress": "In Progress", "waiting": "Waiting" },
+  "success": {
+    "title": "Request received!",
+    "subWhatsapp": "Our team will reach out to you via WhatsApp before your scheduled meeting.",
+    "subEmail": "Our team will reach out to you via email before your scheduled meeting.",
+    "rdv": "📅 RDV scheduled for {{date}}"
+  },
+  "info": {
+    "eyebrow": "You're applying for",
+    "minInvestment": "Min. investment",
+    "activeCargos": "Active cargos",
+    "investorsInRound": "Investors in round",
+    "note": "After submitting, our team will contact you on the date you choose to walk you through the investment details."
+  },
+  "form": {
+    "title": "Join this round",
+    "sub": "Fill in your details and choose a date for your first meeting.",
+    "fullName": "Full name",
+    "fullNamePlaceholder": "Your full name",
+    "contactMethod": "Preferred contact method",
+    "whatsapp": "WhatsApp",
+    "whatsappDesc": "Quick & personal",
+    "email": "Email",
+    "emailDesc": "Formal & documented",
+    "whatsappNumber": "WhatsApp number",
+    "emailAddress": "Email address",
+    "emailPlaceholder": "you@example.com",
+    "countryCodeHint": "Include country code, e.g. +216 XX XXX XXX",
+    "meetingDate": "Preferred meeting date & time",
+    "message": "Message (optional)",
+    "messagePlaceholder": "Any questions or context you'd like to share...",
+    "submit": "✓ Submit contact request",
+    "submitting": "Sending request…"
+  },
+  "error": { "generic": "Something went wrong. Please try again." }
+}

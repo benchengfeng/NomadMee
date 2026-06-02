@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { FiHome, FiPackage, FiMap, FiTrendingUp, FiHeadphones, FiSettings } from 'react-icons/fi';
 import type { IconType } from 'react-icons';
 import { getInvestorHome, logoutInvestor, completeInvestorKyc, getPublicAvatars, changeInvestorPassword, AvatarData, InvestorHomeResponse } from '../api/portalApi';
@@ -11,6 +12,7 @@ import { dashboardThemes } from '../theme';
 import CargoMap from '../components/cargo/CargoMap';
 import WorldMap from '../components/WorldMap';
 import StoryMediaGallery from '../components/cargo/StoryMediaGallery';
+import LanguageSwitcher from '../components/common/LanguageSwitcher';
 
 const currencyRatesToUSD: Record<string, number> = {
   USD: 1,
@@ -53,17 +55,18 @@ function formatDate(value: string | null | undefined): string {
 }
 
 
-const panelButtons: Array<{ id: PanelId; label: string; mobileLabel: string; Icon: IconType }> = [
-  { id: 'summary',  label: 'Summary',           mobileLabel: 'Home',     Icon: FiHome },
-  { id: 'cargos',   label: 'Cargos',             mobileLabel: 'Cargos',   Icon: FiPackage },
-  { id: 'map',      label: 'Cargo map',          mobileLabel: 'Map',      Icon: FiMap },
-  { id: 'story',    label: 'Investment story',   mobileLabel: 'Story',    Icon: FiTrendingUp },
-  { id: 'support',  label: 'Support',            mobileLabel: 'Help',     Icon: FiHeadphones },
-  { id: 'settings', label: 'Settings',           mobileLabel: 'Settings', Icon: FiSettings },
+const panelButtons: Array<{ id: PanelId; labelKey: string; mobileKey: string; Icon: IconType }> = [
+  { id: 'summary',  labelKey: 'nav.summary', mobileKey: 'nav.summaryShort',  Icon: FiHome },
+  { id: 'cargos',   labelKey: 'nav.cargos',  mobileKey: 'nav.cargosShort',   Icon: FiPackage },
+  { id: 'map',      labelKey: 'nav.map',     mobileKey: 'nav.mapShort',      Icon: FiMap },
+  { id: 'story',    labelKey: 'nav.story',   mobileKey: 'nav.storyShort',    Icon: FiTrendingUp },
+  { id: 'support',  labelKey: 'nav.support', mobileKey: 'nav.supportShort',  Icon: FiHeadphones },
+  { id: 'settings', labelKey: 'nav.settings',mobileKey: 'nav.settingsShort', Icon: FiSettings },
 ];
 
 const InvestorHome: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation('dashboard');
   const dispatch = useAppDispatch();
   const activeTheme = useAppSelector((state: any) => state.theme.activeTheme);
   const activePanel = useAppSelector((state: any) => state.dashboardUi.activePanel);
@@ -175,9 +178,9 @@ const InvestorHome: React.FC = () => {
       <div className="summary-panel">
         <div className="dashboard-section hero-card" style={{ background: theme.surface, color: theme.text, boxShadow: `0 24px 70px ${theme.panelGlow}` }}>
           <div>
-            <p className="hero-label">Investor companion</p>
+            <p className="hero-label">{t('summary.companion')}</p>
             <h2>{data.investor.displayName || data.investor.name}</h2>
-            <p className="hero-subtitle">Welcome back. All amounts shown in {displayCurrency}.</p>
+            <p className="hero-subtitle">{t('summary.welcomeAmounts', { currency: displayCurrency })}</p>
           </div>
           <div className="hero-metric hero-metric--avatar" style={{ borderColor: theme.accent, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '16px 20px' }}>
             {avatarBadgeSrc && (
@@ -195,23 +198,23 @@ const InvestorHome: React.FC = () => {
 
         <div className="dashboard-grid-stats">
           <div className="stat-card" style={{ background: theme.surface, color: theme.text }}>
-            <span>Invested</span>
+            <span>{t('summary.invested')}</span>
             <strong>{formatCurrency(investedAmount, displayCurrency)}</strong>
           </div>
           <div className="stat-card" style={{ background: theme.surface, color: theme.text }}>
-            <span>Projected profit</span>
+            <span>{t('summary.projectedProfit')}</span>
             <strong>{formatCurrency(expectedProfit, displayCurrency)}</strong>
           </div>
           <div className="stat-card" style={{ background: theme.surface, color: theme.text }}>
-            <span>Profit rate</span>
+            <span>{t('summary.profitRate')}</span>
             <strong>{data.investor.profitPercentageOnInvestment ?? 0}%</strong>
           </div>
           <div className="stat-card" style={{ background: theme.surface, color: theme.text }}>
-            <span>Active cargos</span>
+            <span>{t('summary.activeCargos')}</span>
             <strong>{data.cargos.length}</strong>
           </div>
           <div className="stat-card stat-card-wide" style={{ background: theme.surface, color: theme.text }}>
-            <span>Expected payout</span>
+            <span>{t('summary.expectedPayout')}</span>
             <strong>{formatCurrency(projectedPayout, displayCurrency)}</strong>
           </div>
         </div>
@@ -228,8 +231,8 @@ const InvestorHome: React.FC = () => {
       <div className="cargo-panel" style={{ color: theme.text }}>
         {data.cargos.length === 0 ? (
           <div className="empty-state" style={{ borderColor: theme.accent }}>
-            <p>No cargos assigned yet.</p>
-            <p>Once you have a shipment, it will appear here with route details and cost breakdown.</p>
+            <p>{t('cargos.noneTitle')}</p>
+            <p>{t('cargos.noneBody')}</p>
           </div>
         ) : (
           <div className="cargo-list">
@@ -262,7 +265,7 @@ const InvestorHome: React.FC = () => {
                     {cargo.purchaseLocation} → {cargo.shippingDestination}
                   </div>
                   <div className="cargo-card-footer">
-                    {cargo.quantity} units · {formatCurrency(convertedTotal, investorCurrency)} total · ETA {formatDate(cargo.estimatedTimeOfArrival)}
+                    {cargo.quantity} {t('cargos.units')} · {formatCurrency(convertedTotal, investorCurrency)} {t('cargos.total')} · {t('cargos.eta')} {formatDate(cargo.estimatedTimeOfArrival)}
                   </div>
                   {(() => {
                     const createdMs = cargo.purchaseDate ? new Date(cargo.purchaseDate).getTime() : cargo.createdAt ? new Date(cargo.createdAt).getTime() : 0;
@@ -300,7 +303,7 @@ const InvestorHome: React.FC = () => {
                         dispatch(setActivePanel('map'));
                       }}
                     >
-                      View route →
+                      {t('cargos.viewRoute')}
                     </button>
                   </div>
                 </div>
@@ -317,7 +320,7 @@ const InvestorHome: React.FC = () => {
       return (
         <div className="map-panel" style={{ color: theme.text }}>
           <div className="empty-state" style={{ borderColor: theme.accent }}>
-            <p>Select a cargo from the Cargos tab to see its live route map and journey animation.</p>
+            <p>{t('map.selectPrompt')}</p>
           </div>
         </div>
       );
@@ -330,7 +333,7 @@ const InvestorHome: React.FC = () => {
         {/* Admin-set cargo description */}
         {selectedCargo.cargoDescription && (
           <div className="cargo-desc-card" style={{ background: theme.surface }}>
-            <p className="cargo-desc-label">About this cargo</p>
+            <p className="cargo-desc-label">{t('map.about')}</p>
             <p className="cargo-desc-text">{selectedCargo.cargoDescription}</p>
           </div>
         )}
@@ -345,28 +348,28 @@ const InvestorHome: React.FC = () => {
         {/* Cost breakdown */}
         <div className="map-details" style={{ background: theme.surface }}>
           <div>
-            <span>Purchase price</span>
+            <span>{t('map.purchasePrice')}</span>
             <strong>{formatCurrency(convertCurrency(selectedCargo.purchasePrice, selectedCargo.currency, investorCurrency), investorCurrency)}</strong>
           </div>
           <div>
-            <span>Shipping cost</span>
+            <span>{t('map.shippingCost')}</span>
             <strong>{formatCurrency(convertCurrency(selectedCargo.shippingPrice, selectedCargo.currency, investorCurrency), investorCurrency)}</strong>
           </div>
           <div>
-            <span>Other fees</span>
+            <span>{t('map.otherFees')}</span>
             <strong>{formatCurrency(convertCurrency(selectedCargo.otherExpenses, selectedCargo.currency, investorCurrency), investorCurrency)}</strong>
           </div>
           <div>
-            <span>ETA</span>
+            <span>{t('map.eta')}</span>
             <strong>{formatDate(selectedCargo.estimatedTimeOfArrival)}</strong>
           </div>
           <div>
-            <span>Sell window</span>
+            <span>{t('map.sellWindow')}</span>
             <strong>{formatDate(selectedCargo.estimatedTimeOfSelling)}</strong>
           </div>
           <div>
-            <span>Quantity</span>
-            <strong>{selectedCargo.quantity} units</strong>
+            <span>{t('map.quantity')}</span>
+            <strong>{selectedCargo.quantity} {t('cargos.units')}</strong>
           </div>
         </div>
       </div>
@@ -381,7 +384,7 @@ const InvestorHome: React.FC = () => {
     if (cargoSteps.length > 0) {
       return (
         <div className="story-panel" style={{ color: theme.text }}>
-          <p className="story-intro">Each cargo below is a chapter in your investment journey.</p>
+          <p className="story-intro">{t('story.intro')}</p>
           <div className="story-timeline">
             {cargoSteps.map((cargo, index) => {
               const hasStory = cargo.story?.text || (cargo.story?.mediaUrls?.length ?? 0) > 0;
@@ -391,7 +394,7 @@ const InvestorHome: React.FC = () => {
                   <div style={{ flex: 1 }}>
                     <strong>{cargo.productBeingShipped}</strong>
                     <p className="story-step-eta">{cargo.purchaseLocation} → {cargo.shippingDestination}</p>
-                    <p className="story-step-eta">ETA {formatDate(cargo.estimatedTimeOfArrival)}</p>
+                    <p className="story-step-eta">{t('story.eta')} {formatDate(cargo.estimatedTimeOfArrival)}</p>
                     {hasStory && (
                       <div style={{ marginTop: 16 }}>
                         {cargo.story?.text && (
@@ -411,48 +414,43 @@ const InvestorHome: React.FC = () => {
             })}
           </div>
           <div className="story-status" style={{ background: theme.surface }}>
-            <h3>Current mission</h3>
+            <h3>{t('story.currentMission')}</h3>
             <p>
-              Monitor your {cargoSteps.length} active cargo{cargoSteps.length !== 1 ? 's' : ''} through the supply chain and track expected returns.
+              {t('story.monitor', { count: cargoSteps.length })}
             </p>
             <div className="story-badges">
-              <span style={{ borderColor: theme.accent }}>Active route</span>
-              <span style={{ borderColor: theme.accent }}>Profit tracking</span>
-              <span style={{ borderColor: theme.accent }}>Real-time ETA</span>
+              <span style={{ borderColor: theme.accent }}>{t('story.activeRoute')}</span>
+              <span style={{ borderColor: theme.accent }}>{t('story.profitTracking')}</span>
+              <span style={{ borderColor: theme.accent }}>{t('story.realtimeEta')}</span>
             </div>
           </div>
         </div>
       );
     }
 
-    const steps = [
-      'Investment funded',
-      'Products sourced',
-      'Shipment in transit',
-      'Selling preparation',
-    ];
+    const steps = t('story.emptySteps', { returnObjects: true }) as string[];
 
     return (
       <div className="story-panel" style={{ color: theme.text }}>
-        <p className="story-intro">Track your portfolio progress through the supply chain.</p>
+        <p className="story-intro">{t('story.trackProgress')}</p>
         <div className="story-timeline">
           {steps.map((stepLabel, index) => (
             <div key={stepLabel} className="story-step" style={{ background: theme.surface }}>
               <div className="story-step-number" style={{ background: theme.accent }}>{index + 1}</div>
               <div>
                 <strong>{stepLabel}</strong>
-                <p className="story-step-eta">Stage {index + 1} of {steps.length}</p>
+                <p className="story-step-eta">{t('story.stage', { n: index + 1, total: steps.length })}</p>
               </div>
             </div>
           ))}
         </div>
         <div className="story-status" style={{ background: theme.surface }}>
-          <h3>Your journey begins here</h3>
-          <p>Once cargos are assigned, each shipment will appear as a step in your investment journey.</p>
+          <h3>{t('story.beginsTitle')}</h3>
+          <p>{t('story.beginsBody')}</p>
           <div className="story-badges">
-            <span style={{ borderColor: theme.accent }}>Ready</span>
-            <span style={{ borderColor: theme.accent }}>Tracking</span>
-            <span style={{ borderColor: theme.accent }}>Profit</span>
+            <span style={{ borderColor: theme.accent }}>{t('story.ready')}</span>
+            <span style={{ borderColor: theme.accent }}>{t('story.tracking')}</span>
+            <span style={{ borderColor: theme.accent }}>{t('story.profit')}</span>
           </div>
         </div>
       </div>
@@ -463,8 +461,8 @@ const InvestorHome: React.FC = () => {
     return (
       <div className="support-panel" style={{ color: theme.text }}>
         <div className="support-card" style={{ background: theme.surface }}>
-          <h3>Need help with a cargo?</h3>
-          <p>Send a message to your account manager or review the most recent investment update.</p>
+          <h3>{t('support.needHelp')}</h3>
+          <p>{t('support.sendMessage')}</p>
           <a
             href={`mailto:contact@nomadmee.com?subject=Support%20%E2%80%94%20%40${data?.investor.username ?? ''}`}
             target="_blank"
@@ -472,7 +470,7 @@ const InvestorHome: React.FC = () => {
             className="support-button"
             style={{ background: theme.accent, color: theme.background }}
           >
-            Contact support
+            {t('support.contactSupport')}
           </a>
         </div>
         <div className="support-actions" style={{ background: theme.surface }}>
@@ -481,16 +479,16 @@ const InvestorHome: React.FC = () => {
             className="support-action-item"
             onClick={() => dispatch(setActivePanel('cargos'))}
           >
-            <span style={{ fontSize: '11px', color: theme.secondaryText, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>Quick action</span>
-            <p style={{ color: theme.text }}>View your cargos →</p>
+            <span style={{ fontSize: '11px', color: theme.secondaryText, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>{t('support.quickAction')}</span>
+            <p style={{ color: theme.text }}>{t('support.viewCargos')}</p>
           </button>
           <button
             type="button"
             className="support-action-item"
             onClick={() => dispatch(setActivePanel('map'))}
           >
-            <span style={{ fontSize: '11px', color: theme.secondaryText, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>Reminder</span>
-            <p style={{ color: theme.text }}>Explore shipment route →</p>
+            <span style={{ fontSize: '11px', color: theme.secondaryText, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 700 }}>{t('support.reminder')}</span>
+            <p style={{ color: theme.text }}>{t('support.exploreRoute')}</p>
           </button>
         </div>
       </div>
@@ -513,7 +511,7 @@ const InvestorHome: React.FC = () => {
         setSettingsSaved(true);
         setTimeout(() => setSettingsSaved(false), 3000);
       } catch (err) {
-        setSettingsError(err instanceof Error ? err.message : 'Failed to save settings.');
+        setSettingsError(err instanceof Error ? err.message : t('settings.pwFailed'));
       } finally {
         setSettingsSaving(false);
       }
@@ -526,8 +524,8 @@ const InvestorHome: React.FC = () => {
     const handlePasswordChange = async (e: React.FormEvent) => {
       e.preventDefault();
       setPwError('');
-      if (pwNew !== pwConfirm) { setPwError('New passwords do not match.'); return; }
-      if (pwNew.length < 6) { setPwError('New password must be at least 6 characters.'); return; }
+      if (pwNew !== pwConfirm) { setPwError(t('settings.pwMismatch')); return; }
+      if (pwNew.length < 6) { setPwError(t('settings.pwTooShort')); return; }
       setPwSaving(true);
       try {
         await changeInvestorPassword({ currentPassword: pwCurrent, newPassword: pwNew });
@@ -535,7 +533,7 @@ const InvestorHome: React.FC = () => {
         setPwCurrent(''); setPwNew(''); setPwConfirm('');
         setTimeout(() => setPwSaved(false), 3000);
       } catch (err) {
-        setPwError(err instanceof Error ? err.message : 'Failed to change password.');
+        setPwError(err instanceof Error ? err.message : t('settings.pwFailed'));
       } finally {
         setPwSaving(false);
       }
@@ -545,19 +543,19 @@ const InvestorHome: React.FC = () => {
       <div className="story-panel" style={{ color: theme.text }}>
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) auto', gap: 24, alignItems: 'start' }}>
           <div>
-            <h2 style={{ margin: '0 0 4px', fontSize: '1.2rem', fontWeight: 800 }}>Profile settings</h2>
+            <h2 style={{ margin: '0 0 4px', fontSize: '1.2rem', fontWeight: 800 }}>{t('settings.title')}</h2>
             <p style={{ margin: '0 0 24px', color: theme.secondaryText, fontSize: '0.85rem' }}>
-              Update your display name and avatar anytime.
+              {t('settings.subtitle')}
             </p>
 
             <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {/* Display name */}
               <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <span style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: theme.secondaryText }}>Display name</span>
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: theme.secondaryText }}>{t('settings.displayName')}</span>
                 <input
                   value={settingsName}
                   onChange={(e) => setSettingsName(e.target.value)}
-                  placeholder="Your investor name"
+                  placeholder={t('settings.displayNamePlaceholder')}
                   style={{
                     padding: '12px 14px',
                     borderRadius: 12,
@@ -573,7 +571,7 @@ const InvestorHome: React.FC = () => {
 
               {/* Display currency */}
               <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                <span style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: theme.secondaryText }}>Display currency</span>
+                <span style={{ fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: theme.secondaryText }}>{t('settings.displayCurrency')}</span>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
                   {['USD', 'EUR', 'TND', 'CNY'].map((cur) => (
                     <button
@@ -597,14 +595,14 @@ const InvestorHome: React.FC = () => {
                   ))}
                 </div>
                 <p style={{ margin: 0, fontSize: '0.72rem', color: theme.secondaryText, opacity: 0.7 }}>
-                  All amounts in your dashboard will be converted to {settingsCurrency}.
+                  {t('settings.currencyHint', { currency: settingsCurrency })}
                 </p>
               </label>
 
               {/* Avatar picker — dynamic */}
               <div>
                 <p style={{ margin: '0 0 10px', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: theme.secondaryText }}>
-                  Choose avatar
+                  {t('settings.chooseAvatar')}
                 </p>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 10 }}>
                   {visibleAvatars.map((av) => (
@@ -623,7 +621,7 @@ const InvestorHome: React.FC = () => {
                       <img src={av.imageUrl} alt={av.name} style={{ width: 40, height: 40, borderRadius: '50%', objectFit: 'cover', flexShrink: 0, border: `2px solid ${settingsAvatar === av._id ? theme.accent : 'transparent'}` }} />
                       <span style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                         <span style={{ fontWeight: 700, fontSize: '0.88rem' }}>{av.name}</span>
-                        {av.secret && <span style={{ fontSize: '0.68rem', color: theme.secondaryText }}>Secret avatar</span>}
+                        {av.secret && <span style={{ fontSize: '0.68rem', color: theme.secondaryText }}>{t('settings.secretAvatar')}</span>}
                       </span>
                       {settingsAvatar === av._id && <span style={{ marginLeft: 'auto', color: theme.accent, fontSize: '1rem' }}>✓</span>}
                     </button>
@@ -631,7 +629,7 @@ const InvestorHome: React.FC = () => {
                   {hasSecrets && !showSecretAvatar && (
                     <button type="button" onClick={() => setShowSecretAvatar(true)}
                       style={{ padding: '10px 12px', borderRadius: 16, border: '1px dashed rgba(255,255,255,0.2)', background: 'transparent', color: theme.secondaryText, cursor: 'pointer', fontSize: '0.82rem', gridColumn: '1 / -1' }}>
-                      🔒 Reveal secret avatar
+                      {t('settings.revealSecret')}
                     </button>
                   )}
                 </div>
@@ -656,17 +654,17 @@ const InvestorHome: React.FC = () => {
                   transition: 'background 0.3s',
                 }}
               >
-                {settingsSaving ? 'Saving...' : settingsSaved ? '✓ Saved!' : 'Save changes'}
+                {settingsSaving ? t('settings.saving') : settingsSaved ? t('settings.saved') : t('settings.save')}
               </button>
             </form>
 
             {/* Password change */}
             <form onSubmit={handlePasswordChange} style={{ marginTop: 28, paddingTop: 20, borderTop: `1px solid rgba(255,255,255,0.08)`, display: 'flex', flexDirection: 'column', gap: 12 }}>
-              <p style={{ margin: 0, fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: theme.secondaryText }}>Change password</p>
+              <p style={{ margin: 0, fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: theme.secondaryText }}>{t('settings.changePassword')}</p>
               {[
-                { label: 'Current password', value: pwCurrent, set: setPwCurrent, id: 'pw-current' },
-                { label: 'New password', value: pwNew, set: setPwNew, id: 'pw-new' },
-                { label: 'Confirm new password', value: pwConfirm, set: setPwConfirm, id: 'pw-confirm' },
+                { label: t('settings.currentPassword'), value: pwCurrent, set: setPwCurrent, id: 'pw-current' },
+                { label: t('settings.newPassword'), value: pwNew, set: setPwNew, id: 'pw-new' },
+                { label: t('settings.confirmPassword'), value: pwConfirm, set: setPwConfirm, id: 'pw-confirm' },
               ].map(({ label, value, set, id }) => (
                 <label key={id} style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                   <span style={{ fontSize: '0.72rem', fontWeight: 700, color: theme.secondaryText, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label}</span>
@@ -676,7 +674,7 @@ const InvestorHome: React.FC = () => {
               ))}
               {pwError && <p style={{ margin: 0, color: '#f87171', fontSize: '0.82rem' }}>{pwError}</p>}
               <button type="submit" disabled={pwSaving} style={{ padding: '11px', borderRadius: 10, border: 'none', background: pwSaved ? '#22c55e' : 'rgba(255,255,255,0.08)', color: pwSaved ? '#000' : theme.text, fontWeight: 700, fontSize: '0.85rem', cursor: pwSaving ? 'wait' : 'pointer', transition: 'background 0.3s' }}>
-                {pwSaving ? 'Saving...' : pwSaved ? '✓ Password updated!' : 'Update password'}
+                {pwSaving ? t('settings.saving') : pwSaved ? t('settings.passwordUpdated') : t('settings.updatePassword')}
               </button>
             </form>
           </div>
@@ -702,9 +700,9 @@ const InvestorHome: React.FC = () => {
         {/* Read-only account info */}
         <div style={{ marginTop: 28, paddingTop: 20, borderTop: `1px solid rgba(255,255,255,0.08)`, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12 }}>
           {[
-            { label: 'Username', value: `@${data?.investor.username ?? '—'}` },
-            { label: 'Investment', value: data ? formatCurrency(convertCurrency(data.investor.investmentAmount ?? 0, data.investor.currency, settingsCurrency || data.investor.preferredCurrency || 'USD'), settingsCurrency || data.investor.preferredCurrency || 'USD') : '—' },
-            { label: 'Profit rate', value: data ? `${data.investor.profitPercentageOnInvestment ?? 0}%` : '—' },
+            { label: t('account.username'), value: `@${data?.investor.username ?? '—'}` },
+            { label: t('account.investment'), value: data ? formatCurrency(convertCurrency(data.investor.investmentAmount ?? 0, data.investor.currency, settingsCurrency || data.investor.preferredCurrency || 'USD'), settingsCurrency || data.investor.preferredCurrency || 'USD') : '—' },
+            { label: t('account.profitRate'), value: data ? `${data.investor.profitPercentageOnInvestment ?? 0}%` : '—' },
           ].map(({ label, value }) => (
             <div key={label} style={{ background: theme.surface, borderRadius: 12, padding: '12px 14px' }}>
               <p style={{ margin: 0, fontSize: '0.68rem', textTransform: 'uppercase', letterSpacing: '0.1em', color: theme.secondaryText, fontWeight: 700 }}>{label}</p>
@@ -721,7 +719,7 @@ const InvestorHome: React.FC = () => {
       <div className="investor-loading" style={{ background: '#06131F' }}>
         <div className="investor-loading-inner">
           <div className="investor-loading-spinner" />
-          <p>Loading your dashboard...</p>
+          <p>{t('loading')}</p>
         </div>
       </div>
     );
@@ -730,8 +728,8 @@ const InvestorHome: React.FC = () => {
   if (error || !data) {
     return (
       <div className="investor-loading">
-        <p>{error || 'Dashboard data not available.'}</p>
-        <Link to="/">Back to login</Link>
+        <p>{error || t('error.unavailable')}</p>
+        <Link to="/">{t('error.backToLogin')}</Link>
       </div>
     );
   }
@@ -746,9 +744,9 @@ const InvestorHome: React.FC = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <img src="/logo192.png" className="topbar-brand-logo" alt="NomadMee" />
           <div>
-            <p className="mini-label">NomadMee — investor portal</p>
-            <h1>Welcome back, {data.investor.displayName || data.investor.name}</h1>
-            <p className="mini-description">Select a section below to explore your portfolio.</p>
+            <p className="mini-label">{t('topbar.portal')}</p>
+            <h1>{t('topbar.welcome', { name: data.investor.displayName || data.investor.name })}</h1>
+            <p className="mini-description">{t('topbar.subtitle')}</p>
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -759,16 +757,17 @@ const InvestorHome: React.FC = () => {
               className={`view-mode-btn${viewMode === 'me' ? ' view-mode-btn--active' : ''}`}
               onClick={() => setViewMode('me')}
             >
-              Me
+              {t('topbar.me')}
             </button>
             <button
               type="button"
               className={`view-mode-btn${viewMode === 'globe' ? ' view-mode-btn--active' : ''}`}
               onClick={() => setViewMode('globe')}
             >
-              The Globe
+              {t('topbar.globe')}
             </button>
           </div>
+          <LanguageSwitcher variant="ghost" accentColor={theme.accent} />
           {/* Mobile-only: compact globe toggle */}
           <button
             type="button"
@@ -797,13 +796,13 @@ const InvestorHome: React.FC = () => {
                 style={{ width: '28px', height: '28px', borderRadius: '999px', objectFit: 'cover' }}
               />
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                <span style={{ fontSize: '0.68rem', color: theme.secondaryText, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Investor</span>
+                <span style={{ fontSize: '0.68rem', color: theme.secondaryText, textTransform: 'uppercase', letterSpacing: '0.08em' }}>{t('topbar.investor')}</span>
                 <strong style={{ fontSize: '0.8rem', color: theme.text }}>{data.investor.displayName || data.investor.name}</strong>
               </div>
             </div>
           ) : null}
           <button type="button" className="logout-button" onClick={handleLogout} style={{ background: theme.accent, color: theme.background }}>
-            Logout
+            {t('topbar.logout')}
           </button>
         </div>
       </div>
@@ -817,7 +816,7 @@ const InvestorHome: React.FC = () => {
       {viewMode === 'me' && <div className="gamified-grid">
         <aside className="dashboard-sidebar" style={{ background: theme.surface }}>
           <div className="sidebar-section">
-            <h2>Explore</h2>
+            <h2>{t('sidebar.explore')}</h2>
             <div className="dashboard-tabs">
               {panelButtons.map((panel) => (
                 <button
@@ -835,14 +834,14 @@ const InvestorHome: React.FC = () => {
                   }}
                 >
                   <panel.Icon size={15} />
-                  {panel.label}
+                  {t(panel.labelKey)}
                 </button>
               ))}
             </div>
           </div>
 
           <div className="sidebar-section">
-            <h2>Theme</h2>
+            <h2>{t('sidebar.theme')}</h2>
             <p style={{ margin: '-8px 0 10px', fontSize: '0.72rem', color: theme.secondaryText, opacity: 0.7 }}>
               {dashboardThemes[activeTheme]?.name}
             </p>
@@ -865,7 +864,7 @@ const InvestorHome: React.FC = () => {
           </div>
 
           <div className="sidebar-note" style={{ borderColor: theme.accentSoft }}>
-            <p>Monitor your China → Côte d'Ivoire shipments, projected ROI, and cargo details in one place.</p>
+            <p>{t('sidebar.note')}</p>
           </div>
         </aside>
 
@@ -895,7 +894,7 @@ const InvestorHome: React.FC = () => {
               onClick={() => { setViewMode('me'); handlePanelChange(panel.id); }}
             >
               <panel.Icon size={20} strokeWidth={isActive ? 2.5 : 1.8} />
-              <span>{panel.mobileLabel}</span>
+              <span>{t(panel.mobileKey)}</span>
             </button>
           );
         })}
@@ -906,7 +905,7 @@ const InvestorHome: React.FC = () => {
           onClick={() => setViewMode(viewMode === 'globe' ? 'me' : 'globe')}
         >
           <span style={{ fontSize: '20px', lineHeight: 1 }}>🌍</span>
-          <span>Globe</span>
+          <span>{t('nav.globe')}</span>
         </button>
       </nav>
     </main>

@@ -1,0 +1,123 @@
+{
+  "nav": {
+    "summary": "Summary",
+    "cargos": "Cargos",
+    "map": "Cargo map",
+    "story": "Investment story",
+    "support": "Support",
+    "settings": "Settings",
+    "summaryShort": "Home",
+    "cargosShort": "Cargos",
+    "mapShort": "Map",
+    "storyShort": "Story",
+    "supportShort": "Help",
+    "settingsShort": "Settings",
+    "globe": "Globe"
+  },
+  "topbar": {
+    "portal": "NomadMee — investor portal",
+    "welcome": "Welcome back, {{name}}",
+    "subtitle": "Select a section below to explore your portfolio.",
+    "me": "Me",
+    "globe": "The Globe",
+    "logout": "Logout",
+    "investor": "Investor"
+  },
+  "summary": {
+    "companion": "Investor companion",
+    "welcomeAmounts": "Welcome back. All amounts shown in {{currency}}.",
+    "invested": "Invested",
+    "projectedProfit": "Projected profit",
+    "profitRate": "Profit rate",
+    "activeCargos": "Active cargos",
+    "expectedPayout": "Expected payout"
+  },
+  "cargos": {
+    "noneTitle": "No cargos assigned yet.",
+    "noneBody": "Once you have a shipment, it will appear here with route details and cost breakdown.",
+    "units": "units",
+    "total": "total",
+    "eta": "ETA",
+    "viewRoute": "View route →"
+  },
+  "map": {
+    "selectPrompt": "Select a cargo from the Cargos tab to see its live route map and journey animation.",
+    "about": "About this cargo",
+    "purchasePrice": "Purchase price",
+    "shippingCost": "Shipping cost",
+    "otherFees": "Other fees",
+    "eta": "ETA",
+    "sellWindow": "Sell window",
+    "quantity": "Quantity"
+  },
+  "story": {
+    "intro": "Each cargo below is a chapter in your investment journey.",
+    "currentMission": "Current mission",
+    "monitor_one": "Monitor your {{count}} active cargo through the supply chain and track expected returns.",
+    "monitor_other": "Monitor your {{count}} active cargos through the supply chain and track expected returns.",
+    "activeRoute": "Active route",
+    "profitTracking": "Profit tracking",
+    "realtimeEta": "Real-time ETA",
+    "trackProgress": "Track your portfolio progress through the supply chain.",
+    "stage": "Stage {{n}} of {{total}}",
+    "eta": "ETA",
+    "beginsTitle": "Your journey begins here",
+    "beginsBody": "Once cargos are assigned, each shipment will appear as a step in your investment journey.",
+    "ready": "Ready",
+    "tracking": "Tracking",
+    "profit": "Profit",
+    "emptySteps": [
+      "Investment funded",
+      "Products sourced",
+      "Shipment in transit",
+      "Selling preparation"
+    ]
+  },
+  "support": {
+    "needHelp": "Need help with a cargo?",
+    "sendMessage": "Send a message to your account manager or review the most recent investment update.",
+    "contactSupport": "Contact support",
+    "quickAction": "Quick action",
+    "viewCargos": "View your cargos →",
+    "reminder": "Reminder",
+    "exploreRoute": "Explore shipment route →"
+  },
+  "settings": {
+    "title": "Profile settings",
+    "subtitle": "Update your display name, avatar and preferences.",
+    "displayName": "Display name",
+    "displayNamePlaceholder": "Your investor name",
+    "displayCurrency": "Display currency",
+    "currencyHint": "All amounts in your dashboard will be converted to {{currency}}.",
+    "chooseAvatar": "Choose avatar",
+    "secretAvatar": "Secret avatar",
+    "revealSecret": "🔒 Reveal secret avatar",
+    "saving": "Saving...",
+    "saved": "✓ Saved!",
+    "save": "Save changes",
+    "changePassword": "Change password",
+    "currentPassword": "Current password",
+    "newPassword": "New password",
+    "confirmPassword": "Confirm new password",
+    "updatePassword": "Update password",
+    "passwordUpdated": "✓ Password updated!",
+    "pwMismatch": "New passwords do not match.",
+    "pwTooShort": "New password must be at least 6 characters.",
+    "pwFailed": "Failed to change password."
+  },
+  "account": {
+    "username": "Username",
+    "investment": "Investment",
+    "profitRate": "Profit rate"
+  },
+  "sidebar": {
+    "explore": "Explore",
+    "theme": "Theme",
+    "note": "Monitor your China → Côte d'Ivoire shipments, projected ROI, and cargo details in one place."
+  },
+  "loading": "Loading your dashboard...",
+  "error": {
+    "unavailable": "Dashboard data not available.",
+    "backToLogin": "Back to login"
+  }
+}

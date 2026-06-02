@@ -1,0 +1,20 @@
+{
+  "nav": { "globe": "The Globe", "investments": "Investments", "whoAreWe": "Who Are We?" },
+  "cta": { "login": "Login →" },
+  "investments": {
+    "eyebrow": "Open rounds",
+    "title": "Active investments",
+    "sub": "Join an active investment round and start tracking your cargo across the globe.",
+    "none": "No active investments at the moment."
+  },
+  "status": { "active": "Active", "in_progress": "In Progress", "waiting": "Waiting" },
+  "card": {
+    "min": "Min",
+    "cargo_one": "{{count}} cargo",
+    "cargo_other": "{{count}} cargos",
+    "investor_one": "{{count}} investor",
+    "investor_other": "{{count}} investors",
+    "join": "Join this round →"
+  },
+  "who": { "eyebrow": "Our story", "titleFallback": "Who Are We?", "comingSoon": "Content coming soon." }
+}

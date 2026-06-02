@@ -1,0 +1,20 @@
+{
+  "nav": { "globe": "地球", "investments": "投资项目", "whoAreWe": "关于我们" },
+  "cta": { "login": "登录 →" },
+  "investments": {
+    "eyebrow": "开放轮次",
+    "title": "进行中的投资",
+    "sub": "加入一个进行中的投资轮次，开始追踪您的货物在全球的运输。",
+    "none": "目前没有进行中的投资。"
+  },
+  "status": { "active": "进行中", "in_progress": "运输中", "waiting": "等待中" },
+  "card": {
+    "min": "最低",
+    "cargo_one": "{{count}} 件货物",
+    "cargo_other": "{{count}} 件货物",
+    "investor_one": "{{count}} 位投资者",
+    "investor_other": "{{count}} 位投资者",
+    "join": "加入此轮次 →"
+  },
+  "who": { "eyebrow": "我们的故事", "titleFallback": "关于我们", "comingSoon": "内容即将推出。" }
+}

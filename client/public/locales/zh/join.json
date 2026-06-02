@@ -1,0 +1,41 @@
+{
+  "back": "返回",
+  "backHome": "返回首页",
+  "loading": "加载中…",
+  "notFound": "未找到该投资项目。",
+  "status": { "active": "进行中", "in_progress": "运输中", "waiting": "等待中" },
+  "success": {
+    "title": "申请已收到！",
+    "subWhatsapp": "我们的团队将在您预约的会议前通过 WhatsApp 与您联系。",
+    "subEmail": "我们的团队将在您预约的会议前通过电子邮件与您联系。",
+    "rdv": "📅 会议预约时间：{{date}}"
+  },
+  "info": {
+    "eyebrow": "您正在申请",
+    "minInvestment": "最低投资额",
+    "activeCargos": "进行中的货物",
+    "investorsInRound": "本轮投资者",
+    "note": "提交后，我们的团队将在您选择的日期与您联系，为您详细介绍投资细节。"
+  },
+  "form": {
+    "title": "加入此轮次",
+    "sub": "填写您的信息并选择首次会议的日期。",
+    "fullName": "全名",
+    "fullNamePlaceholder": "您的全名",
+    "contactMethod": "首选联系方式",
+    "whatsapp": "WhatsApp",
+    "whatsappDesc": "快捷且私密",
+    "email": "电子邮件",
+    "emailDesc": "正式且有记录",
+    "whatsappNumber": "WhatsApp 号码",
+    "emailAddress": "电子邮件地址",
+    "emailPlaceholder": "you@example.com",
+    "countryCodeHint": "请包含国家代码，例如 +216 XX XXX XXX",
+    "meetingDate": "首选会议日期和时间",
+    "message": "留言（可选）",
+    "messagePlaceholder": "任何您想分享的问题或背景信息...",
+    "submit": "✓ 提交联系申请",
+    "submitting": "正在发送申请…"
+  },
+  "error": { "generic": "出现错误，请重试。" }
+}

@@ -1,0 +1,20 @@
+{
+  "nav": { "globe": "Le Globe", "investments": "Investissements", "whoAreWe": "Qui sommes-nous ?" },
+  "cta": { "login": "Connexion →" },
+  "investments": {
+    "eyebrow": "Tours ouverts",
+    "title": "Investissements actifs",
+    "sub": "Rejoignez un tour d'investissement actif et suivez votre cargaison à travers le monde.",
+    "none": "Aucun investissement actif pour le moment."
+  },
+  "status": { "active": "Actif", "in_progress": "En cours", "waiting": "En attente" },
+  "card": {
+    "min": "Min",
+    "cargo_one": "{{count}} cargaison",
+    "cargo_other": "{{count}} cargaisons",
+    "investor_one": "{{count}} investisseur",
+    "investor_other": "{{count}} investisseurs",
+    "join": "Rejoindre ce tour →"
+  },
+  "who": { "eyebrow": "Notre histoire", "titleFallback": "Qui sommes-nous ?", "comingSoon": "Contenu à venir." }
+}
