@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { completeInvestorKyc, getInvestorHome, getPublicAvatars, AvatarData } from '../api/portalApi';
+import LanguageSwitcher from '../components/common/LanguageSwitcher';
 
 const CURRENCIES = ['USD', 'EUR', 'TND', 'CNY'] as const;
 
 const KycOnboarding: React.FC = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation('auth');
   const [avatars, setAvatars] = useState<AvatarData[]>([]);
   const [selectedAvatarId, setSelectedAvatarId] = useState('');
   const [showSecretAvatars, setShowSecretAvatars] = useState(false);
@@ -36,13 +39,14 @@ const KycOnboarding: React.FC = () => {
           setSelectedAvatarId(fetched[0]!._id);
         }
       } catch (err) {
-        if (isMounted) setError(err instanceof Error ? err.message : 'Unable to load your investor profile.');
+        if (isMounted) setError(err instanceof Error ? err.message : t('kyc.loadError'));
       } finally {
         if (isMounted) setLoading(false);
       }
     };
     void bootstrap();
     return () => { isMounted = false; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -53,13 +57,13 @@ const KycOnboarding: React.FC = () => {
       await completeInvestorKyc({ avatar: selectedAvatarId, displayName: displayName.trim() || 'Future investor', preferredCurrency });
       navigate('/home');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unable to complete your onboarding.');
+      setError(err instanceof Error ? err.message : t('kyc.saveError'));
     } finally {
       setSaving(false);
     }
   };
 
-  if (loading) return <div className="portal-loading">Loading your onboarding...</div>;
+  if (loading) return <div className="portal-loading">{t('kyc.saving')}</div>;
 
   const visibleAvatars = avatars.filter((a) => !a.secret || showSecretAvatars);
   const selectedAvatar = avatars.find((a) => a._id === selectedAvatarId);
@@ -67,13 +71,16 @@ const KycOnboarding: React.FC = () => {
 
   return (
     <main className="kyc-shell">
+      <div className="kyc-topbar">
+        <LanguageSwitcher variant="ghost" />
+      </div>
       <section className="kyc-card">
 
         {/* ── Left: form ── */}
         <div className="kyc-form-col">
-          <p className="kyc-eyebrow">Initial KYC</p>
-          <h1 className="kyc-title">Welcome futur investor</h1>
-          <p className="kyc-subtitle">Choose your adventure buddy, set your investor name, and we'll take you straight into your portfolio.</p>
+          <p className="kyc-eyebrow">{t('kyc.eyebrow')}</p>
+          <h1 className="kyc-title">{t('kyc.title')}</h1>
+          <p className="kyc-subtitle">{t('kyc.subtitle')}</p>
 
           {/* Mobile-only compact avatar preview */}
           {selectedAvatar && (
@@ -85,18 +92,18 @@ const KycOnboarding: React.FC = () => {
 
           <form onSubmit={handleSubmit} className="kyc-form">
             <label className="kyc-field">
-              <span>Investor name</span>
+              <span>{t('kyc.investorName')}</span>
               <input
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
-                placeholder="Your investor name"
+                placeholder={t('kyc.investorNamePlaceholder')}
                 autoComplete="name"
               />
             </label>
 
             <div className="kyc-field">
-              <span className="kyc-field-label">Display currency</span>
-              <p className="kyc-field-hint">All amounts in your dashboard will be shown in this currency.</p>
+              <span className="kyc-field-label">{t('kyc.displayCurrency')}</span>
+              <p className="kyc-field-hint">{t('kyc.currencyHint')}</p>
               <div className="kyc-currency-grid">
                 {CURRENCIES.map((cur) => (
                   <button
@@ -112,9 +119,9 @@ const KycOnboarding: React.FC = () => {
             </div>
 
             <div className="kyc-field">
-              <span className="kyc-field-label">Choose your avatar</span>
+              <span className="kyc-field-label">{t('kyc.chooseAvatar')}</span>
               {avatars.length === 0 ? (
-                <p className="kyc-field-hint">No avatars available yet — contact support.</p>
+                <p className="kyc-field-hint">{t('kyc.noAvatars')}</p>
               ) : (
                 <div className="kyc-avatar-grid">
                   {visibleAvatars.map((av) => (
@@ -127,7 +134,7 @@ const KycOnboarding: React.FC = () => {
                       <img src={av.imageUrl} alt={av.name} />
                       <span className="kyc-avatar-btn-info">
                         <span>{av.name}</span>
-                        {av.secret && <span className="kyc-secret-label">Secret avatar</span>}
+                        {av.secret && <span className="kyc-secret-label">{t('kyc.secretAvatar')}</span>}
                       </span>
                       {selectedAvatarId === av._id && <span className="kyc-check">✓</span>}
                     </button>
@@ -138,7 +145,7 @@ const KycOnboarding: React.FC = () => {
                       onClick={() => setShowSecretAvatars(true)}
                       className="kyc-reveal-btn"
                     >
-                      🔒 Reveal secret avatar
+                      {t('kyc.revealSecret')}
                     </button>
                   )}
                 </div>
@@ -152,7 +159,7 @@ const KycOnboarding: React.FC = () => {
               disabled={saving || !selectedAvatarId}
               className="kyc-submit"
             >
-              {saving ? 'Saving...' : 'Finish KYC →'}
+              {saving ? t('kyc.saving') : `${t('kyc.finish')} →`}
             </button>
           </form>
         </div>
@@ -163,14 +170,14 @@ const KycOnboarding: React.FC = () => {
             {selectedAvatar ? (
               <img src={selectedAvatar.imageUrl} alt={selectedAvatar.name} />
             ) : (
-              <div className="kyc-preview-placeholder">No avatar</div>
+              <div className="kyc-preview-placeholder">{t('kyc.noAvatar')}</div>
             )}
           </div>
           <div className="kyc-preview-stats">
             {[
-              { label: 'Name', value: displayName || 'Future investor' },
-              { label: 'Avatar', value: selectedAvatar?.name || '—' },
-              { label: 'Currency', value: preferredCurrency },
+              { label: t('kyc.previewName'), value: displayName || 'Future investor' },
+              { label: t('kyc.previewAvatar'), value: selectedAvatar?.name || '—' },
+              { label: t('kyc.previewCurrency'), value: preferredCurrency },
             ].map(({ label, value }) => (
               <div key={label} className="kyc-preview-stat">
                 <p>{label}</p>

@@ -1,0 +1,20 @@
+{
+  "brand": "NomadMee",
+  "nav": {
+    "home": "首页",
+    "investments": "投资项目",
+    "whoAreWe": "关于我们",
+    "login": "登录",
+    "adminLogin": "管理员登录",
+    "backHome": "首页",
+    "back": "返回"
+  },
+  "actions": {
+    "save": "保存",
+    "cancel": "取消",
+    "logout": "退出登录",
+    "continue": "继续",
+    "loading": "加载中…"
+  },
+  "language": "语言"
+}

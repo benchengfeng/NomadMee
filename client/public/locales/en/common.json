@@ -1,0 +1,20 @@
+{
+  "brand": "NomadMee",
+  "nav": {
+    "home": "Home",
+    "investments": "Investments",
+    "whoAreWe": "Who Are We?",
+    "login": "Login",
+    "adminLogin": "Admin login",
+    "backHome": "Home",
+    "back": "Back"
+  },
+  "actions": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "logout": "Logout",
+    "continue": "Continue",
+    "loading": "Loading…"
+  },
+  "language": "Language"
+}

@@ -2278,6 +2278,13 @@ responsive
   position: relative;
   overflow: hidden;
 }
+.investor-login-topbar {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  z-index: 5;
+}
+html[dir="rtl"] .investor-login-topbar { right: auto; left: 18px; }
 .investor-login-shell::before {
   content: '';
   position: absolute;
@@ -2680,7 +2687,15 @@ responsive
   color: #fff;
   padding: 24px 16px;
   box-sizing: border-box;
+  position: relative;
 }
+.kyc-topbar {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 10;
+}
+html[dir="rtl"] .kyc-topbar { right: auto; left: 16px; }
 
 .kyc-card {
   width: 100%;
@@ -3070,3 +3085,106 @@ responsive
     grid-column: 1;
   }
 }
+
+/* ============================================================
+   i18n — font per language + RTL foundation
+   ============================================================ */
+
+/* When Arabic/Chinese active, applyDocumentLanguage() sets --app-font on <html> */
+:root { --app-font: ''; }
+html[lang="ar"] body,
+html[lang="zh"] body,
+html[lang="ar"] button,
+html[lang="zh"] button,
+html[lang="ar"] input,
+html[lang="zh"] input,
+html[lang="ar"] textarea,
+html[lang="zh"] textarea {
+  font-family: var(--app-font), Arial, sans-serif !important;
+}
+
+/* RTL: mirror flex rows that rely on document flow, and text alignment.
+   We keep the globe/map LTR (geographic), so scope RTL to content shells. */
+html[dir="rtl"] body { text-align: right; }
+html[dir="rtl"] .auth-back-link,
+html[dir="rtl"] .lang-switcher-option { flex-direction: row-reverse; }
+
+/* Inputs / placeholders read naturally in RTL */
+html[dir="rtl"] input,
+html[dir="rtl"] textarea { text-align: right; }
+
+/* The MapLibre canvas + markers must always stay LTR */
+html[dir="rtl"] .maplibregl-map { direction: ltr; }
+
+/* ── Language switcher ── */
+.lang-switcher { position: relative; flex-shrink: 0; }
+
+.lang-switcher-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.06);
+  color: #e2e8f0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.16s, border-color 0.16s;
+  -webkit-tap-highlight-color: transparent;
+}
+.lang-switcher-trigger:hover { background: rgba(255,255,255,0.12); }
+
+.lang-switcher--pill .lang-switcher-trigger {
+  background: rgba(0,0,0,0.04);
+  border-color: rgba(0,0,0,0.1);
+  color: #1f2937;
+}
+.lang-switcher--pill .lang-switcher-trigger:hover { background: rgba(0,0,0,0.07); }
+
+.lang-switcher-flag { font-size: 0.95rem; line-height: 1; }
+.lang-switcher-code { letter-spacing: 0.04em; }
+.lang-switcher-caret { font-size: 0.6rem; opacity: 0.7; }
+
+.lang-switcher-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  min-width: 168px;
+  background: #0f1117;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 14px;
+  box-shadow: 0 18px 50px rgba(0,0,0,0.5);
+  z-index: 1000;
+  animation: langMenuIn 0.16s ease-out;
+}
+html[dir="rtl"] .lang-switcher-menu { right: auto; left: 0; }
+
+@keyframes langMenuIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.lang-switcher-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 12px;
+  border: none;
+  background: transparent;
+  color: #cbd5e1;
+  font-size: 0.84rem;
+  font-weight: 600;
+  border-radius: 9px;
+  cursor: pointer;
+  text-align: start;
+  transition: background 0.14s;
+}
+.lang-switcher-option:hover { background: rgba(255,255,255,0.07); }
+.lang-switcher-option--active { font-weight: 800; }
+.lang-switcher-check { margin-inline-start: auto; font-size: 0.9rem; }

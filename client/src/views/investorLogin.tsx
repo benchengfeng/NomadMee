@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { getInvestorHome, loginInvestor } from '../api/portalApi';
 import { saveInvestorToken } from '../utils/auth';
+import LanguageSwitcher from '../components/common/LanguageSwitcher';
 
 const InvestorLogin: React.FC = () => {
 	const navigate = useNavigate();
+	const { t } = useTranslation(['auth', 'common']);
 	const [username, setUsername] = useState('');
 	const [password, setPassword] = useState('');
 	const [isLoading, setIsLoading] = useState(false);
@@ -21,7 +24,7 @@ const InvestorLogin: React.FC = () => {
 			const profile = await getInvestorHome();
 			navigate(profile.investor.kycCompleted ? '/home' : '/onboarding');
 		} catch (err) {
-			setError(err instanceof Error ? err.message : 'Login failed');
+			setError(err instanceof Error ? err.message : t('login.failed'));
 		} finally {
 			setIsLoading(false);
 		}
@@ -29,38 +32,42 @@ const InvestorLogin: React.FC = () => {
 
 	return (
 		<main className="investor-login-shell">
+			<div className="investor-login-topbar">
+				<LanguageSwitcher variant="ghost" />
+			</div>
+
 			<div className="investor-login-logo">
 				<img src="/logo192.png" alt="NomadMee" />
 			</div>
-			<p className="investor-login-brand">NomadMee</p>
+			<p className="investor-login-brand">{t('common:brand')}</p>
 
 			<section className="investor-login-card">
-				<Link to="/" className="auth-back-link">← Home</Link>
-				<h2>Investor Access</h2>
-				<p className="investor-login-subtitle">Sign in to track your cargos and investment portfolio.</p>
+				<Link to="/" className="auth-back-link">← {t('common:nav.backHome')}</Link>
+				<h2>{t('login.title')}</h2>
+				<p className="investor-login-subtitle">{t('login.subtitle')}</p>
 
 				<form className="investor-login-form" onSubmit={handleSubmit}>
 					<div className="investor-login-field">
-						<label htmlFor="username">Username</label>
+						<label htmlFor="username">{t('login.username')}</label>
 						<input
 							id="username"
 							type="text"
 							value={username}
 							onChange={(event) => setUsername(event.target.value)}
-							placeholder="Enter your username"
+							placeholder={t('login.usernamePlaceholder')}
 							required
 							autoComplete="username"
 						/>
 					</div>
 
 					<div className="investor-login-field">
-						<label htmlFor="password">Password</label>
+						<label htmlFor="password">{t('login.password')}</label>
 						<input
 							id="password"
 							type="password"
 							value={password}
 							onChange={(event) => setPassword(event.target.value)}
-							placeholder="Enter your password"
+							placeholder={t('login.passwordPlaceholder')}
 							required
 							autoComplete="current-password"
 						/>
@@ -69,12 +76,12 @@ const InvestorLogin: React.FC = () => {
 					{error && <p className="investor-login-error">{error}</p>}
 
 					<button type="submit" disabled={isLoading} className="investor-login-btn">
-						{isLoading ? 'Signing in…' : 'Login →'}
+						{isLoading ? t('login.submitting') : t('login.submit')}
 					</button>
 				</form>
 
 				<div className="investor-login-footer">
-					<Link to="/admin">Admin login</Link>
+					<Link to="/admin">{t('common:nav.adminLogin')}</Link>
 				</div>
 			</section>
 		</main>

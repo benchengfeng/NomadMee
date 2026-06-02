@@ -1,0 +1,264 @@
+{
+  "welcome": "Bienvenue",
+  "language": "Langue",
+  "headerTitle": "Relier le commerce à travers les continents",
+  "home": "Accueil",
+  "hotDealsHeader": "Bonnes Affaires",
+  "aboutUsHeader": "À propos de nous",
+  "contactHeader": "Contact",
+
+  "hotDeals": {
+    "buyOneGetOne": "Achetez-en un, obtenez-en un gratuitement !",
+    "exclusiveOpportunities": "Opportunités Exclusives",
+    "truck": "Camions",
+    "excavator": "Excavatrices",
+    "mixerTruck": "Camions Malaxeurs",
+    "manufacturingEquipment": "Équipements de Fabrication",
+    "printers": "Imprimantes",
+    "motorcycleParts": "Pièces Détachées de Moto",
+    "discoverMore": "Découvrez-en plus dans notre vidéo",
+    "exclusiveOpportunitiesVideo": "Vidéo des Opportunités Exclusives",
+    "hotPicks": "Sélections Coup de Cœur",
+    "advantages": "Découvrez les avantages qui distinguent notre plateforme."
+  },
+
+  "showcase": {
+    "headerTitle": "Rationaliser l'approvisionnement et le commerce mondiaux à travers les continents",
+    "headerSubtitle": "Nous aidons les entreprises africaines en les connectant aux meilleurs produits et machines en provenance de Chine, à des prix imbattables. Nous simplifions l'approvisionnement, débloquons des opportunités commerciales et vous aidons à croître avec les solutions les plus adaptées.",
+    "clientSourcing": {
+      "title": "Approvisionnement des clients",
+      "description": "Nous vous aidons à trouver et à vous connecter avec les bons partenaires pour vos besoins commerciaux."
+    },
+    "purchaseAssistance": {
+      "title": "Assistance à l'achat",
+      "description": "Offrir un support expert pour garantir des transactions fluides et des achats de qualité supérieure."
+    },
+    "facilitationServices": {
+      "title": "Services de facilitation",
+      "description": "Simplifier votre voyage avec la logistique, les conseils et l'expertise locale."
+    },
+    "getInTouch": "Contactez-nous dès aujourd'hui pour commencer votre voyage avec nous !"
+  },
+
+  "header": {
+    "title": "Explorez, Connectez-vous et Commercez avec Confiance",
+    "subtitle": "Nous nous occupons des détails, vous concentrez sur la croissance"
+  },
+  "deals": {
+    "businessNegotiations": "Négociations commerciales",
+    "hotelAndAirport": "Services hôteliers et aéroportuaires",
+    "guidedBusinessTour": "Visites guidées d'affaires",
+    "businessNegotiationDescription": "Le processus de négociation commerciale joue un rôle crucial dans la facilitation des partenariats transfrontaliers et permet aux entreprises d'identifier des fournisseurs et partenaires fiables. Ce service offre une guidance experte à chaque étape de la négociation, garantissant que toutes les parties atteignent des conditions favorables. En comprenant les pratiques et stratégies commerciales locales, les entreprises peuvent débloquer des opportunités précieuses pour leur croissance et leur expansion sur les marchés mondiaux.",
+    "hotelAndAirportDescription": "Nos services hôteliers et aéroportuaires offrent une assistance complète pour les voyageurs d'affaires se rendant en Chine. De la réservation d'hébergements confortables et pratiques à l'organisation de transferts aéroportuaires sans tracas, nous veillons à ce que chaque aspect de votre expérience de voyage soit pris en charge. Notre objectif est de rendre votre voyage aussi fluide et efficace que possible, afin que vous puissiez vous concentrer sur vos affaires sans le stress de la logistique.",
+    "guidedBusinessTourDescription": "Découvrez de première main l'environnement dynamique et en constante évolution des affaires en Chine avec nos visites guidées. Ces visites vous offrent un aperçu approfondi des usines chinoises, des centres commerciaux et des hubs industriels clés. Nos guides experts vous feront découvrir les processus de fabrication locaux, les opérations de chaîne d'approvisionnement et les opportunités commerciales, vous aidant à établir des connexions significatives et à mieux comprendre le paysage des affaires pour améliorer vos décisions stratégiques."
+  },
+
+  "about": {
+    "title": "À propos de nous",
+    "description": "Au cœur du commerce international, nous comblons les lacunes, construisons des relations et simplifions votre parcours d'approvisionnement à travers les continents.",
+    "items": {
+      "personalizedSourcing": {
+        "title": "Approvisionnement personnalisé",
+        "content": "Nous vous connectons avec les bons fournisseurs et garantissons les meilleures offres adaptées à vos besoins spécifiques."
+      },
+      "seamlessNavigation": {
+        "title": "Navigation sans effort",
+        "content": "Explorez les marchés en toute confiance. Nous fournissons des visites guidées et des informations locales pour vous aider à naviguer facilement."
+      },
+      "efficientFacilitation": {
+        "title": "Facilitation efficace",
+        "content": "Notre soutien de bout en bout simplifie chaque étape du processus, de la négociation à la livraison, vous faisant gagner du temps et des efforts."
+      }
+    }
+  },
+
+  "contact": {
+    "title": "Nous Contacter",
+    "description": "Nous sommes là pour vous aider avec l'approvisionnement et la facilitation de vos besoins commerciaux. Contactez-nous à tout moment !",
+    "successMessage": "E-mail envoyé avec succès !",
+    "failureMessage": "Échec de l'envoi de l'e-mail.",
+    "errorMessage": "Erreur lors de l'envoi de l'e-mail",
+    "form": {
+      "fullName": {
+        "label": "Nom Complet",
+        "placeholder": "Entrez votre nom complet",
+        "error": "Veuillez entrer votre nom complet !"
+      },
+      "email": {
+        "label": "Adresse e-mail",
+        "placeholder": "Entrez votre adresse e-mail",
+        "invalid": "L'entrée n'est pas un e-mail valide !",
+        "error": "Veuillez entrer votre e-mail !"
+      },
+      "telephone": {
+        "label": "Téléphone",
+        "placeholder": "Entrez votre numéro de téléphone"
+      },
+      "subject": {
+        "label": "Sujet",
+        "placeholder": "Entrez le sujet"
+      },
+      "message": {
+        "label": "Message",
+        "placeholder": "Écrivez votre message ici",
+        "error": "Veuillez entrer votre message !"
+      },
+      "submit": "Soumettre"
+    }
+  },
+
+  "footer": {
+    "privacyPolicy": "Politique de confidentialité",
+    "termsOfService": "Conditions d'utilisation",
+    "copyright": "Copyright © {{year}} {{company}}",
+    "backToTop": "Retour en haut"
+  },
+
+  "privacyPolicy": {
+    "title": "Politique de confidentialité",
+    "introduction": "Chez NomadMee, votre confidentialité est d'une importance capitale pour nous. Ce document de Politique de confidentialité décrit les types d'informations personnelles qui sont reçues et collectées par NomadMee et comment nous les utilisons.",
+    "section1": {
+      "title": "1. Informations que nous collectons",
+      "description": "Nous collectons différents types d'informations afin de fournir et améliorer nos services :",
+      "item1": {
+        "title": "Informations personnelles",
+        "description": "Cela peut inclure votre nom, votre adresse e-mail, votre numéro de téléphone, etc., que vous fournissez volontairement lors de votre inscription sur notre plateforme ou lorsque vous nous contactez."
+      },
+      "item2": {
+        "title": "Données d'utilisation",
+        "description": "Cela peut inclure des informations telles que votre adresse IP, le type de votre navigateur et votre système d'exploitation, collectées automatiquement lorsque vous accédez à notre plateforme."
+      },
+      "item3": {
+        "title": "Cookies",
+        "description": "Nous utilisons des cookies pour personnaliser votre expérience, suivre les habitudes d'utilisation et améliorer les fonctionnalités de notre site web."
+      }
+    },
+    "section2": {
+      "title": "2. Comment nous utilisons vos informations",
+      "description": "Les informations que nous collectons sont utilisées à diverses fins :",
+      "item1": "Pour fournir et maintenir nos services",
+      "item2": "Pour vous informer des modifications apportées à nos services",
+      "item3": "Pour améliorer notre site web et nos services en fonction des retours des utilisateurs",
+      "item4": "Pour fournir un support client et des communications"
+    },
+    "section3": {
+      "title": "3. Partage et divulgation des données",
+      "description": "Nous ne vendons ni ne partageons vos informations personnelles avec des tiers, sauf dans les circonstances suivantes :",
+      "item1": {
+        "title": "Avec des prestataires de services",
+        "description": "Nous pouvons partager vos données avec des prestataires de services tiers de confiance qui nous aident à exploiter notre plateforme."
+      },
+      "item2": {
+        "title": "Pour des raisons légales",
+        "description": "Si la loi l'exige, nous pouvons divulguer vos informations pour nous conformer aux obligations légales ou pour protéger nos droits."
+      },
+      "item3": {
+        "title": "Transferts d'entreprises",
+        "description": "Si nous procédons à une fusion d'entreprise, à une acquisition ou à une vente d'actifs, vos informations peuvent être transférées dans le cadre de ce processus."
+      }
+    },
+    "section4": {
+      "title": "4. Vos droits en matière de protection des données",
+      "description": "En fonction de votre emplacement, vous pouvez disposer de certains droits en matière de protection des données en vertu des lois applicables."
+    },
+    "section5": {
+      "title": "5. Sécurité des données",
+      "description": "Nous prenons la sécurité de vos données personnelles très au sérieux. Nous mettons en œuvre des mesures de sécurité conformes aux normes industrielles pour protéger vos informations contre tout accès, divulgation, altération ou destruction non autorisés."
+    },
+    "section6": {
+      "title": "6. Modifications de cette Politique de confidentialité",
+      "description": "Nous pouvons mettre à jour notre Politique de confidentialité de temps à autre. Toutes les modifications seront publiées sur cette page, et nous vous informerons de tout changement important."
+    },
+    "section7": {
+      "title": "7. Contactez-nous",
+      "description": "Si vous avez des questions ou des préoccupations concernant cette Politique de confidentialité ou nos pratiques, n'hésitez pas à nous contacter."
+    },
+    "contact": {
+      "title": "Contactez-nous",
+      "email": "Email"
+    }
+  },
+
+  "termsOfService": {
+    "title": "Conditions d'utilisation",
+    "introduction": "Bienvenue sur NomadMee. Ces conditions d'utilisation définissent les règles et réglementations relatives à l'utilisation de notre plateforme.",
+    "section1": {
+      "title": "1. Responsabilités des utilisateurs",
+      "description": "En tant qu'utilisateur, vous êtes responsable de vous assurer que vos activités respectent les points suivants :",
+      "item1": "Fournir des informations exactes et à jour.",
+      "item2": "Utiliser la plateforme de manière légale.",
+      "item3": "Respecter les droits et la vie privée des autres utilisateurs."
+    },
+    "section2": {
+      "title": "2. Création de compte et sécurité",
+      "description": "Pour accéder à certaines fonctionnalités, vous devez créer un compte et en assurer la sécurité.",
+      "item1": "Choisir un mot de passe fort et le garder confidentiel.",
+      "item2": "Nous informer immédiatement en cas d'accès non autorisé.",
+      "item3": "Vous êtes responsable de toute activité sur votre compte."
+    },
+    "section3": {
+      "title": "3. Utilisation de la plateforme",
+      "description": "En utilisant notre plateforme, vous acceptez les termes suivants :",
+      "item1": "Vous ne vous livrerez pas à des activités illégales ou nuisibles.",
+      "item2": "Vous respecterez les droits de propriété intellectuelle.",
+      "item3": "Vous ne ferez pas un usage abusif de la plateforme pour des spams ou des fraudes."
+    },
+    "section4": {
+      "title": "4. Conditions de paiement",
+      "description": "Certaines fonctionnalités ou services peuvent nécessiter un paiement, sous réserve des conditions suivantes :"
+    },
+    "section5": {
+      "title": "5. Confidentialité et protection des données",
+      "description": "Nous nous engageons à protéger votre vie privée et vos données personnelles. Veuillez consulter notre Politique de confidentialité pour plus de détails."
+    },
+    "section6": {
+      "title": "6. Résiliation",
+      "description": "Nous nous réservons le droit de suspendre ou de résilier votre compte en cas de violation de ces conditions."
+    },
+    "section7": {
+      "title": "7. Contactez-nous",
+      "description": "Si vous avez des questions ou des préoccupations concernant nos conditions, veuillez nous contacter à :",
+      "contact": "Si vous avez des questions ou des préoccupations, veuillez nous contacter."
+    }
+  },
+
+  "company": {
+    "tagline": "Là où l'innovation rencontre l'expérience."
+  },
+
+    "aboutUs": {
+      "title": "À propos de nous",
+      "introduction": "Nous sommes un groupe dynamique et diversifié d'entreprises de commerce basées en Chine, dédié à combler le fossé entre les entreprises africaines et les produits et services de haute qualité en provenance de Chine. Forts de nombreuses années d'expérience et d'une compréhension approfondie du commerce international, nous nous engageons à autonomiser les entreprises à travers l'Afrique en leur offrant un accès inégalé aux produits, machines et technologies de pointe en provenance de l'un des plus grands et innovants centres de fabrication du monde.",
+      "missionTitle": "Notre mission",
+      "missionDescription": "Notre mission est de simplifier l'approvisionnement mondial et le commerce, en permettant aux entreprises africaines de prospérer en les connectant aux meilleurs produits et machines disponibles sur le marché mondial. Nous nous concentrons sur la fourniture de solutions commerciales transparentes, fiables et efficaces qui favorisent la croissance, permettent des partenariats à long terme et ouvrent de nouvelles opportunités dans un marché mondial en constante évolution.",
+      "companyOverviewTitle": "Présentation de l'entreprise",
+      "companyOverviewDescription": "Fondé par un groupe de professionnels passionnés ayant une grande expérience dans le commerce international et la logistique, nous opérons en tant que groupe d'entreprises commerciales étroitement liées et stratégiquement situées en Chine. Notre expertise couvre plusieurs industries, allant des équipements de fabrication et des machines industrielles à l'électronique, la mode et les biens de consommation. Nous travaillons sans relâche pour garantir que nos clients aient un accès direct aux meilleures offres, aux fournisseurs les plus fiables et aux dernières tendances du marché, tout en naviguant dans les complexités du commerce transfrontalier.",
+      "whyChooseUsTitle": "Pourquoi nous choisir ?",
+      "whyChooseUsDescription": "Nous nous distinguons par une combinaison d'expertise, de service personnalisé et une profonde compréhension des marchés que nous servons. Notre équipe dédiée offre des services sur mesure pour aider les entreprises à trouver les bons fournisseurs, à négocier de meilleures offres et à gérer la logistique sans accroc. Que vous cherchiez des solutions économiques ou des technologies de pointe, nous fournissons les bons outils, ressources et soutien pour aider votre entreprise à réussir.",
+      "whyChooseUsExpertKnowledge": "Expertise",
+      "whyChooseUsExpertKnowledgeDescription": "Fort de nombreuses années d'expérience dans le commerce mondial, nous offrons une connaissance approfondie de l'approvisionnement en produits et de la gestion des chaînes d'approvisionnement internationales.",
+      "whyChooseUsTailoredSolutions": "Solutions sur mesure",
+      "whyChooseUsTailoredSolutionsDescription": "Nous comprenons que chaque entreprise est unique. C'est pourquoi nous offrons des solutions personnalisées pour répondre aux besoins spécifiques de nos clients.",
+      "whyChooseUsReliablePartnerships": "Partenariats fiables",
+      "whyChooseUsReliablePartnershipsDescription": "Notre vaste réseau de fournisseurs, fabricants et partenaires logistiques garantit que nous pouvons offrir à nos clients les meilleurs services et produits possibles.",
+      "whyChooseUsStreamlinedProcess": "Processus rationalisé",
+      "whyChooseUsStreamlinedProcessDescription": "De l'approvisionnement au contrôle qualité, en passant par l'expédition et la livraison, nous gérons tous les aspects de la chaîne d'approvisionnement, vous permettant ainsi de vous concentrer sur la croissance de votre entreprise.",
+      "ourValuesTitle": "Nos valeurs fondamentales",
+      "ourValuesDescription": "Au cœur de notre entreprise, nous sommes guidés par un ensemble de valeurs fondamentales qui influencent tout ce que nous faisons. Ces valeurs définissent la manière dont nous interagissons avec nos clients, fournisseurs et partenaires, et comment nous cherchons constamment à exceller.",
+      "integrity": "Intégrité",
+      "integrityDescription": "Nous agissons avec transparence et honnêteté, en veillant à ce que toutes nos transactions soient menées de manière éthique et professionnelle.",
+      "commitment": "Engagement",
+      "commitmentDescription": "Nous nous engageons à aider nos clients à réussir en offrant des services fiables et constants.",
+      "innovation": "Innovation",
+      "innovationDescription": "Nous cherchons constamment de nouvelles manières d'améliorer le processus d'approvisionnement et de commerce, le rendant ainsi plus facile et plus efficace pour nos clients.",
+      "customerCentric": "Centricité client",
+      "customerCentricDescription": "La satisfaction de nos clients est notre priorité. Nous allons au-delà de leurs attentes pour répondre à leurs besoins.",
+      "futureVisionTitle": "Notre vision pour l'avenir",
+      "futureVisionDescription": "Nous nous concentrons sur l'expansion de notre réseau et de nos capacités pour améliorer encore nos services. Alors que le paysage commercial mondial évolue, nous visons à rester à la pointe en adaptant continuellement nos stratégies et nos offres. Nous envisageons un avenir où nos clients auront un accès fluide aux meilleurs produits, partenaires fiables et solutions logistiques efficaces, leur permettant de rivaliser et de prospérer sur la scène mondiale.",
+      "contactCallToActionTitle": "Prêt à faire passer votre entreprise au niveau supérieur ?",
+      "contactCallToActionDescription": "Contactez-nous aujourd'hui pour en savoir plus sur la manière dont nous pouvons vous aider à débloquer de nouvelles opportunités et développer votre entreprise à l'échelle mondiale.",
+      "contactButtonText": "Contactez-nous",
+      "learnMore": "En savoir plus",
+      "closeModal": "Fermer"
+    }  
+}
