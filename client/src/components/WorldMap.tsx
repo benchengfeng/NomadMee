@@ -78,22 +78,40 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor = '#38bdf8', onDataLoad
       setDataLoaded(true);
 
       // ---- Investor markers ----
+      // Group investors by country so we can deterministically fan out
+      // those sharing the same location instead of randomly jittering them.
+      const investorsByLocation = new Map<string, number>();
+
       let visibleInvestors = 0;
       for (const inv of investors) {
         const coords = findCountryCoords(inv.location);
         if (!coords) continue;
         visibleInvestors++;
 
-        // Slight jitter so investors in the same country don't perfectly overlap
-        const jitter: [number, number] = [
-          coords[0] + (Math.random() - 0.5) * 2,
-          coords[1] + (Math.random() - 0.5) * 2,
-        ];
+        // Stable index of this investor within its country (0, 1, 2, …)
+        const locKey = inv.location.trim().toLowerCase();
+        const indexInCountry = investorsByLocation.get(locKey) ?? 0;
+        investorsByLocation.set(locKey, indexInCountry + 1);
 
-        // Wrapper — MapLibre owns this element's transform for positioning
+        // Deterministic position: the first investor sits exactly on the
+        // country coordinate; additional ones fan out in a small fixed circle.
+        let position: [number, number] = [coords[0], coords[1]];
+        if (indexInCountry > 0) {
+          const ring = Math.floor((indexInCountry - 1) / 8) + 1; // 8 per ring
+          const slot = (indexInCountry - 1) % 8;
+          const angle = (slot / 8) * Math.PI * 2;
+          const radius = 0.45 * ring; // ~0.45° per ring — tight cluster near country
+          position = [
+            coords[0] + Math.cos(angle) * radius,
+            coords[1] + Math.sin(angle) * radius,
+          ];
+        }
+
+        // Wrapper — MapLibre owns this element's position/transform.
+        // Do NOT set position here: MapLibre's .maplibregl-marker class sets
+        // position:absolute, and overriding it breaks marker placement.
         const wrapper = document.createElement('div');
         wrapper.style.cssText = `
-          position:relative;
           width:36px;height:36px;
           cursor:pointer;
         `;
@@ -155,7 +173,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor = '#38bdf8', onDataLoad
         });
 
         new maplibregl.Marker({ element: wrapper, anchor: 'center' })
-          .setLngLat(jitter)
+          .setLngLat(position)
           .addTo(map);
       }
       setInvestorCount(visibleInvestors);
@@ -172,20 +190,25 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor = '#38bdf8', onDataLoad
 
         visibleCargos++;
 
-        // Cargo icon marker (ship / plane / truck)
+        // Cargo icon marker (ship / plane / truck).
+        // ROOT element is owned entirely by MapLibre (position + transform).
+        // All visuals + hover scaling live on an INNER element so we never
+        // overwrite MapLibre's positioning transform.
         const emojiIcon = shippingType === 'air' ? '✈️' : shippingType === 'land' ? '🚛' : '🚢';
         const pulseEl = document.createElement('div');
-        pulseEl.style.cssText = `
+        pulseEl.style.cssText = `width:32px;height:32px;cursor:pointer;`;
+        const cargoInner = document.createElement('div');
+        cargoInner.style.cssText = `
           width:32px;height:32px;border-radius:50%;
           background:rgba(8,10,18,0.88);
           border:2px solid ${color};
           display:flex;align-items:center;justify-content:center;
           font-size:15px;line-height:1;
-          cursor:pointer;
           box-shadow:0 0 10px ${color}55, 0 3px 10px rgba(0,0,0,0.75);
           transition:transform 0.15s, box-shadow 0.15s;
         `;
-        pulseEl.textContent = emojiIcon;
+        cargoInner.textContent = emojiIcon;
+        pulseEl.appendChild(cargoInner);
 
         const icon = shippingType === 'air' ? '✈' : shippingType === 'land' ? '🚛' : '🚢';
         const eta = new Date(cargo.estimatedTimeOfArrival).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
@@ -203,8 +226,8 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor = '#38bdf8', onDataLoad
           `<span style="color:${color}">${statusText}</span>`
         );
 
-        pulseEl.addEventListener('mouseenter', () => { pulseEl.style.transform = 'scale(1.2)'; pulseEl.style.boxShadow = `0 0 16px ${color}88, 0 4px 14px rgba(0,0,0,0.9)`; });
-        pulseEl.addEventListener('mouseleave', () => { pulseEl.style.transform = 'scale(1)'; pulseEl.style.boxShadow = `0 0 10px ${color}55, 0 3px 10px rgba(0,0,0,0.75)`; });
+        pulseEl.addEventListener('mouseenter', () => { cargoInner.style.transform = 'scale(1.2)'; cargoInner.style.boxShadow = `0 0 16px ${color}88, 0 4px 14px rgba(0,0,0,0.9)`; });
+        pulseEl.addEventListener('mouseleave', () => { cargoInner.style.transform = 'scale(1)'; cargoInner.style.boxShadow = `0 0 10px ${color}55, 0 3px 10px rgba(0,0,0,0.75)`; });
 
         new maplibregl.Marker({ element: pulseEl, anchor: 'center' })
           .setLngLat(pos as [number, number])
@@ -223,10 +246,12 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor = '#38bdf8', onDataLoad
 
         const invColor = '#38bdf8';
 
-        // Pulsing dot — same visual style as cargo was before
+        // Pulsing dot — same visual style as cargo was before.
+        // No position:relative — MapLibre's .maplibregl-marker sets
+        // position:absolute, which also serves as the ring's containing block.
         const invEl = document.createElement('div');
         invEl.style.cssText = `
-          position:relative;width:22px;height:22px;
+          width:22px;height:22px;
           display:flex;align-items:center;justify-content:center;
           cursor:pointer;
         `;
