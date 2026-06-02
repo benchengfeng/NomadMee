@@ -1,13 +1,30 @@
 {
-  "nav": { "globe": "Le Globe", "investments": "Investissements", "whoAreWe": "Qui sommes-nous ?" },
-  "cta": { "login": "Connexion →" },
+  "nav": {
+    "globe": "Le Globe",
+    "investments": "Investissements",
+    "whoAreWe": "Qui sommes-nous ?",
+    "shop": "Boutique"
+  },
+  "cta": {
+    "login": "Connexion →"
+  },
   "investments": {
     "eyebrow": "Tours ouverts",
     "title": "Investissements actifs",
     "sub": "Rejoignez un tour d'investissement actif et suivez votre cargaison à travers le monde.",
     "none": "Aucun investissement actif pour le moment."
   },
-  "status": { "active": "Actif", "in_progress": "En cours", "waiting": "En attente" },
+  "shop": {
+    "eyebrow": "En direct du producteur",
+    "title": "À la source",
+    "sub": "Des produits bio d'Afrique de l'Ouest, sourcés en direct et expédiés via le même réseau de fret que vous financez.",
+    "none": "Produits bientôt disponibles."
+  },
+  "status": {
+    "active": "Actif",
+    "in_progress": "En cours",
+    "waiting": "En attente"
+  },
   "card": {
     "min": "Min",
     "cargo_one": "{{count}} cargaison",
@@ -16,5 +33,9 @@
     "investor_other": "{{count}} investisseurs",
     "join": "Rejoindre ce tour →"
   },
-  "who": { "eyebrow": "Notre histoire", "titleFallback": "Qui sommes-nous ?", "comingSoon": "Contenu à venir." }
+  "who": {
+    "eyebrow": "Notre histoire",
+    "titleFallback": "Qui sommes-nous ?",
+    "comingSoon": "Contenu à venir."
+  }
 }

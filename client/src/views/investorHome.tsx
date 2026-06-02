@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { FiHome, FiPackage, FiMap, FiTrendingUp, FiHeadphones, FiSettings } from 'react-icons/fi';
+import { FiHome, FiPackage, FiMap, FiTrendingUp, FiHeadphones, FiSettings, FiShoppingBag } from 'react-icons/fi';
 import type { IconType } from 'react-icons';
-import { getInvestorHome, logoutInvestor, completeInvestorKyc, getPublicAvatars, changeInvestorPassword, AvatarData, InvestorHomeResponse } from '../api/portalApi';
+import { getInvestorHome, logoutInvestor, completeInvestorKyc, getPublicAvatars, changeInvestorPassword, getInvestorProducts, AvatarData, InvestorHomeResponse, PublicProduct } from '../api/portalApi';
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { setTheme } from '../redux/slices/themeSlice';
 import { PanelId, setActivePanel, setSelectedCargoId } from '../redux/slices/dashboardUiSlice';
@@ -13,6 +13,7 @@ import CargoMap from '../components/cargo/CargoMap';
 import WorldMap from '../components/WorldMap';
 import StoryMediaGallery from '../components/cargo/StoryMediaGallery';
 import LanguageSwitcher from '../components/common/LanguageSwitcher';
+import ShopSection from '../components/shop/ShopSection';
 import { track } from '../utils/analytics';
 
 const currencyRatesToUSD: Record<string, number> = {
@@ -60,6 +61,7 @@ const panelButtons: Array<{ id: PanelId; labelKey: string; mobileKey: string; Ic
   { id: 'summary',  labelKey: 'nav.summary', mobileKey: 'nav.summaryShort',  Icon: FiHome },
   { id: 'cargos',   labelKey: 'nav.cargos',  mobileKey: 'nav.cargosShort',   Icon: FiPackage },
   { id: 'map',      labelKey: 'nav.map',     mobileKey: 'nav.mapShort',      Icon: FiMap },
+  { id: 'shop',     labelKey: 'nav.shop',    mobileKey: 'nav.shopShort',     Icon: FiShoppingBag },
   { id: 'story',    labelKey: 'nav.story',   mobileKey: 'nav.storyShort',    Icon: FiTrendingUp },
   { id: 'support',  labelKey: 'nav.support', mobileKey: 'nav.supportShort',  Icon: FiHeadphones },
   { id: 'settings', labelKey: 'nav.settings',mobileKey: 'nav.settingsShort', Icon: FiSettings },
@@ -81,6 +83,11 @@ const InvestorHome: React.FC = () => {
   // Avatar data
   const [avatarOptions, setAvatarOptions] = useState<AvatarData[]>([]);
   const [showSecretAvatar, setShowSecretAvatar] = useState(false);
+
+  // Shop products
+  const [products, setProducts] = useState<PublicProduct[]>([]);
+  const [productsLoaded, setProductsLoaded] = useState(false);
+  const [loadingProducts, setLoadingProducts] = useState(false);
 
   // Settings panel state
   const [settingsName, setSettingsName] = useState('');
@@ -167,6 +174,18 @@ const InvestorHome: React.FC = () => {
   useEffect(() => {
     if (viewMode === 'globe') track('globe-open');
   }, [viewMode]);
+
+  // Lazy-load shop products the first time the Shop panel is opened
+  useEffect(() => {
+    if (activePanel === 'shop' && !productsLoaded) {
+      track('shop-open');
+      setLoadingProducts(true);
+      getInvestorProducts()
+        .then((r) => { setProducts(r.products); setProductsLoaded(true); })
+        .catch(() => {})
+        .finally(() => setLoadingProducts(false));
+    }
+  }, [activePanel, productsLoaded]);
 
   const renderSummary = () => {
     if (!data) return null;
@@ -379,6 +398,36 @@ const InvestorHome: React.FC = () => {
             <strong>{selectedCargo.quantity} {t('cargos.units')}</strong>
           </div>
         </div>
+      </div>
+    );
+  };
+
+  const renderShop = () => {
+    return (
+      <div className="shop-investor-panel" style={{ color: theme.text }}>
+        <div style={{ marginBottom: 22 }}>
+          <p style={{ margin: 0, fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: theme.accent }}>
+            {t('shop.eyebrow')}
+          </p>
+          <h2 style={{ margin: '6px 0 6px', fontSize: '1.35rem', fontWeight: 800 }}>{t('shop.title')}</h2>
+          <p style={{ margin: 0, fontSize: '0.85rem', color: theme.secondaryText, lineHeight: 1.6, maxWidth: 560 }}>
+            {t('shop.sub')}
+          </p>
+        </div>
+        <ShopSection
+          products={products}
+          loading={loadingProducts}
+          emptyLabel={t('shop.none')}
+          theme={{
+            accent: theme.accent,
+            card: theme.surface,
+            text: theme.text,
+            muted: theme.secondaryText,
+            border: 'rgba(255,255,255,0.08)',
+            modalBg: theme.background,
+          }}
+          onOrdered={(p) => track('order-submit', { product: p.name })}
+        />
       </div>
     );
   };
@@ -879,6 +928,7 @@ const InvestorHome: React.FC = () => {
           {activePanel === 'summary' && renderSummary()}
           {activePanel === 'cargos' && renderCargos()}
           {activePanel === 'map' && renderMap()}
+          {activePanel === 'shop' && renderShop()}
           {activePanel === 'story' && renderStory()}
           {activePanel === 'support' && renderSupport()}
           {activePanel === 'settings' && renderSettings()}

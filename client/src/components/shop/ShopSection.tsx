@@ -1,0 +1,293 @@
+import React, { useMemo, useState } from 'react';
+import { PublicProduct, ProductVariant, submitProductOrder } from '../../api/portalApi';
+import { COUNTRIES } from '../../utils/countries';
+import '../../styles/shop.css';
+
+interface ShopTheme {
+  accent?: string;
+  surface?: string;
+  card?: string;
+  text?: string;
+  muted?: string;
+  border?: string;
+  modalBg?: string;
+}
+
+interface ShopSectionProps {
+  products: PublicProduct[];
+  loading?: boolean;
+  theme?: ShopTheme;
+  emptyLabel?: string;
+  /** Fired when a buyer successfully places an order (for analytics). */
+  onOrdered?: (product: PublicProduct) => void;
+}
+
+function formatPrice(price: number, currency: string): string {
+  return `${price.toLocaleString()} ${currency}`;
+}
+
+const ShopSection: React.FC<ShopSectionProps> = ({ products, loading, theme, emptyLabel, onOrdered }) => {
+  const [active, setActive] = useState<PublicProduct | null>(null);
+
+  const rootStyle = useMemo(() => {
+    const s: Record<string, string> = {};
+    if (theme?.accent) s['--shop-accent'] = theme.accent;
+    if (theme?.surface) s['--shop-surface'] = theme.surface;
+    if (theme?.card) s['--shop-card'] = theme.card;
+    if (theme?.text) s['--shop-text'] = theme.text;
+    if (theme?.muted) s['--shop-muted'] = theme.muted;
+    if (theme?.border) s['--shop-border'] = theme.border;
+    if (theme?.modalBg) s['--shop-modal-bg'] = theme.modalBg;
+    return s as React.CSSProperties;
+  }, [theme]);
+
+  return (
+    <div className="shop-root" style={rootStyle}>
+      {loading ? (
+        <div className="shop-grid">
+          <div className="shop-skeleton" />
+          <div className="shop-skeleton" />
+          <div className="shop-skeleton" />
+        </div>
+      ) : products.length === 0 ? (
+        <p className="shop-empty">{emptyLabel ?? 'Products coming soon.'}</p>
+      ) : (
+        <div className="shop-grid">
+          {products.map((p) => {
+            const out = p.stock <= 0;
+            return (
+              <button key={p._id} type="button" className="shop-card" onClick={() => setActive(p)}>
+                <div className="shop-card-media">
+                  {p.coverImageUrl ? (
+                    <img src={p.coverImageUrl} alt={p.name} loading="lazy" />
+                  ) : (
+                    <div className="shop-card-media-empty">🌿</div>
+                  )}
+                  {p.category && <span className="shop-card-cat">{p.category}</span>}
+                  {out && <span className="shop-card-out">Out of stock</span>}
+                </div>
+                <div className="shop-card-body">
+                  <h3 className="shop-card-name">{p.name}</h3>
+                  <p className="shop-card-desc">{p.description}</p>
+                  <div className="shop-card-footer">
+                    <span className="shop-card-price">
+                      {p.price.toLocaleString()}<small>{p.currency}</small>
+                    </span>
+                    <span className="shop-card-btn">Order Now</span>
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {active && (
+        <ProductModal
+          product={active}
+          onClose={() => setActive(null)}
+          onOrdered={() => onOrdered?.(active)}
+        />
+      )}
+    </div>
+  );
+};
+
+// ---------------------------------------------------------------------------
+// Product detail + order modal
+// ---------------------------------------------------------------------------
+
+interface ProductModalProps {
+  product: PublicProduct;
+  onClose: () => void;
+  onOrdered: () => void;
+}
+
+const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onOrdered }) => {
+  const gallery = useMemo(
+    () => [product.coverImageUrl, ...(product.images || [])].filter(Boolean),
+    [product]
+  );
+  const [activeImg, setActiveImg] = useState(0);
+  const [variant, setVariant] = useState<ProductVariant | null>(product.variants?.[0] ?? null);
+  const [qty, setQty] = useState(1);
+  const [step, setStep] = useState<'detail' | 'form' | 'done'>('detail');
+
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [country, setCountry] = useState('');
+  const [message, setMessage] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+
+  const unitPrice = variant ? variant.price : product.price;
+  const total = unitPrice * qty;
+  const out = product.stock <= 0;
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    setError('');
+    try {
+      await submitProductOrder({
+        productId: product._id,
+        variant: variant?.label,
+        quantity: qty,
+        fullName: fullName.trim(),
+        email: email.trim(),
+        country: country.trim(),
+        message: message.trim(),
+      });
+      onOrdered();
+      setStep('done');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not submit your order. Please try again.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <div className="shop-modal-overlay" onClick={onClose}>
+      <div className="shop-modal" onClick={(e) => e.stopPropagation()}>
+        <button type="button" className="shop-modal-close" onClick={onClose} aria-label="Close">✕</button>
+
+        {step === 'done' ? (
+          <div className="shop-success">
+            <div className="shop-success-icon">✓</div>
+            <h3 style={{ margin: '0 0 8px', fontSize: '1.25rem', fontWeight: 800 }}>Order received!</h3>
+            <p style={{ margin: '0 auto', maxWidth: 380, fontSize: '0.88rem', color: 'var(--shop-muted)', lineHeight: 1.6 }}>
+              Thank you, {fullName.split(' ')[0] || 'friend'}. We’ve received your request for <strong style={{ color: 'var(--shop-text)' }}>{product.name}</strong> and
+              will reach out at <strong style={{ color: 'var(--shop-text)' }}>{email}</strong> to confirm the details.
+            </p>
+            <button type="button" className="shop-order-btn" style={{ marginTop: 22, width: '100%', maxWidth: 240 }} onClick={onClose}>
+              Done
+            </button>
+          </div>
+        ) : (
+          <div className="shop-modal-grid">
+            {/* Media */}
+            <div className="shop-modal-media">
+              {gallery.length > 0 ? (
+                <img className="shop-modal-cover" src={gallery[activeImg]} alt={product.name} />
+              ) : (
+                <div className="shop-modal-cover-empty">🌿</div>
+              )}
+              {gallery.length > 1 && (
+                <div className="shop-modal-thumbs">
+                  {gallery.map((src, i) => (
+                    <img
+                      key={src + i}
+                      src={src}
+                      alt=""
+                      className={`shop-modal-thumb${i === activeImg ? ' shop-modal-thumb--active' : ''}`}
+                      onClick={() => setActiveImg(i)}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Body */}
+            <div className="shop-modal-body">
+              {product.category && <span className="shop-modal-cat">{product.category}</span>}
+              <h2 className="shop-modal-name">{product.name}</h2>
+
+              {step === 'detail' ? (
+                <>
+                  <div className="shop-modal-price">
+                    {formatPrice(unitPrice, product.currency)}
+                    {variant && <small>· {variant.label}</small>}
+                  </div>
+
+                  {product.description && <p className="shop-modal-desc">{product.description}</p>}
+
+                  {product.originStory && (
+                    <>
+                      <p className="shop-modal-section-label">🌍 From the source</p>
+                      <p className="shop-modal-origin">{product.originStory}</p>
+                    </>
+                  )}
+
+                  {product.variants && product.variants.length > 0 && (
+                    <>
+                      <p className="shop-modal-section-label">Choose a size</p>
+                      <div className="shop-variants">
+                        {product.variants.map((v) => (
+                          <button
+                            key={v.label}
+                            type="button"
+                            className={`shop-variant${variant?.label === v.label ? ' shop-variant--active' : ''}`}
+                            onClick={() => setVariant(v)}
+                          >
+                            {v.label} · {formatPrice(v.price, product.currency)}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  )}
+
+                  <p className="shop-modal-section-label">Quantity</p>
+                  <div className="shop-qty">
+                    <button type="button" onClick={() => setQty((q) => Math.max(1, q - 1))} disabled={qty <= 1}>−</button>
+                    <span>{qty}</span>
+                    <button type="button" onClick={() => setQty((q) => Math.min(99, q + 1))}>+</button>
+                  </div>
+
+                  <button
+                    type="button"
+                    className="shop-order-btn"
+                    disabled={out}
+                    onClick={() => setStep('form')}
+                  >
+                    {out ? 'Out of stock' : `Order Now · ${formatPrice(total, product.currency)}`}
+                  </button>
+                </>
+              ) : (
+                <form className="shop-form" onSubmit={submit}>
+                  <button type="button" className="shop-form-back" onClick={() => setStep('detail')}>← Back to product</button>
+
+                  <div className="shop-order-summary">
+                    <strong>{product.name}</strong>{variant ? ` · ${variant.label}` : ''} × {qty}
+                    <br />Total: <strong>{formatPrice(total, product.currency)}</strong>
+                  </div>
+
+                  <div>
+                    <label>Full name</label>
+                    <input value={fullName} onChange={(e) => setFullName(e.target.value)} required autoFocus />
+                  </div>
+                  <div>
+                    <label>Email</label>
+                    <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                  </div>
+                  <div>
+                    <label>Country</label>
+                    <input list="shop-country-list" value={country} onChange={(e) => setCountry(e.target.value)} required autoComplete="off" placeholder="Where should we ship?" />
+                    <datalist id="shop-country-list">
+                      {COUNTRIES.map((c) => <option key={c.code} value={c.name} />)}
+                    </datalist>
+                  </div>
+                  <div>
+                    <label>Message (optional)</label>
+                    <textarea value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Anything we should know?" />
+                  </div>
+
+                  {error && <p className="shop-error">{error}</p>}
+
+                  <button type="submit" className="shop-order-btn" disabled={submitting}>
+                    {submitting ? 'Sending…' : 'Place order'}
+                  </button>
+                  <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--shop-muted)', textAlign: 'center', lineHeight: 1.5 }}>
+                    No payment now — we’ll email you to confirm &amp; arrange delivery.
+                  </p>
+                </form>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default ShopSection;

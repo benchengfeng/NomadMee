@@ -131,6 +131,55 @@ export type PublicInvestment = {
   coverImageUrl?: string;
 };
 
+export type ProductVariant = {
+  label: string;
+  price: number;
+};
+
+export type Product = {
+  _id: string;
+  name: string;
+  description: string;
+  originStory: string;
+  price: number;
+  currency: string;
+  variants: ProductVariant[];
+  stock: number;
+  coverImageUrl: string;
+  images: string[];
+  category: string;
+  active: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+/** Public-facing product (no `active` flag — only active products are returned). */
+export type PublicProduct = Omit<Product, 'active' | 'createdAt' | 'updatedAt'>;
+
+export type ProductInput = {
+  name: string;
+  description: string;
+  originStory: string;
+  price: number;
+  currency: string;
+  variants: ProductVariant[];
+  stock: number;
+  coverImageUrl: string;
+  images: string[];
+  category: string;
+  active: boolean;
+};
+
+export type ProductOrderInput = {
+  productId: string;
+  variant?: string;
+  quantity: number;
+  fullName: string;
+  email: string;
+  country: string;
+  message?: string;
+};
+
 export type SiteContent = {
   key: string;
   title?: string;
@@ -457,4 +506,47 @@ export async function changeInvestorPassword(payload: { currentPassword: string;
     method: 'POST',
     body: JSON.stringify(payload),
   }, getInvestorToken());
+}
+
+// ---------------------------------------------------------------------------
+// Shop — products
+// ---------------------------------------------------------------------------
+
+export async function getPublicProducts(): Promise<{ products: PublicProduct[] }> {
+  return request<{ products: PublicProduct[] }>('/public/products', { method: 'GET' });
+}
+
+export async function getInvestorProducts(): Promise<{ products: PublicProduct[] }> {
+  return request<{ products: PublicProduct[] }>('/investor/products', { method: 'GET' }, getInvestorToken());
+}
+
+export async function submitProductOrder(payload: ProductOrderInput): Promise<{ ok: boolean }> {
+  return request<{ ok: boolean }>('/public/product-order', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function getAdminProducts(): Promise<{ products: Product[] }> {
+  return request<{ products: Product[] }>('/admin/products', { method: 'GET' }, getAdminToken());
+}
+
+export async function createProduct(payload: ProductInput): Promise<Product> {
+  const res = await request<{ product: Product }>('/admin/products', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  }, getAdminToken());
+  return res.product;
+}
+
+export async function updateProduct(id: string, payload: ProductInput): Promise<Product> {
+  const res = await request<{ product: Product }>(`/admin/products/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  }, getAdminToken());
+  return res.product;
+}
+
+export async function deleteProduct(id: string): Promise<void> {
+  await request<unknown>(`/admin/products/${id}`, { method: 'DELETE' }, getAdminToken());
 }

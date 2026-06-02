@@ -1,13 +1,30 @@
 {
-  "nav": { "globe": "地球", "investments": "投资项目", "whoAreWe": "关于我们" },
-  "cta": { "login": "登录 →" },
+  "nav": {
+    "globe": "地球",
+    "investments": "投资项目",
+    "whoAreWe": "关于我们",
+    "shop": "商店"
+  },
+  "cta": {
+    "login": "登录 →"
+  },
   "investments": {
     "eyebrow": "开放轮次",
     "title": "进行中的投资",
     "sub": "加入一个进行中的投资轮次，开始追踪您的货物在全球的运输。",
     "none": "目前没有进行中的投资。"
   },
-  "status": { "active": "进行中", "in_progress": "运输中", "waiting": "等待中" },
+  "shop": {
+    "eyebrow": "直采直供",
+    "title": "源头直达",
+    "sub": "来自西非的有机优质食材，源头直采，通过您所投资的同一货运网络发货。",
+    "none": "商品即将上线。"
+  },
+  "status": {
+    "active": "进行中",
+    "in_progress": "运输中",
+    "waiting": "等待中"
+  },
   "card": {
     "min": "最低",
     "cargo_one": "{{count}} 件货物",
@@ -16,5 +33,9 @@
     "investor_other": "{{count}} 位投资者",
     "join": "加入此轮次 →"
   },
-  "who": { "eyebrow": "我们的故事", "titleFallback": "关于我们", "comingSoon": "内容即将推出。" }
+  "who": {
+    "eyebrow": "我们的故事",
+    "titleFallback": "关于我们",
+    "comingSoon": "内容即将推出。"
+  }
 }

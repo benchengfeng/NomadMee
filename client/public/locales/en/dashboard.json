@@ -5,12 +5,14 @@
     "map": "Cargo map",
     "story": "Investment story",
     "support": "Support",
+    "shop": "Shop",
     "settings": "Settings",
     "summaryShort": "Home",
     "cargosShort": "Cargos",
     "mapShort": "Map",
     "storyShort": "Story",
     "supportShort": "Help",
+    "shopShort": "Shop",
     "settingsShort": "Settings",
     "globe": "Globe"
   },
@@ -119,5 +121,11 @@
   "error": {
     "unavailable": "Dashboard data not available.",
     "backToLogin": "Back to login"
+  },
+  "shop": {
+    "eyebrow": "Sourced directly",
+    "title": "The Shop",
+    "sub": "Organic West African staples, sourced directly and shipped with the same cargo network you invest in.",
+    "none": "Products coming soon."
   }
 }

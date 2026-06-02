@@ -23,12 +23,18 @@ import {
   updateAvatarMeta,
   deleteAvatar,
   uploadMedia,
+  getAdminProducts,
+  createProduct,
+  updateProduct,
+  deleteProduct,
   AdminDashboardResponse,
   Investment,
   InvestmentStatus,
   SiteContent,
   ContactRequest,
   AvatarData,
+  Product,
+  ProductInput,
 } from '../api/portalApi';
 import { dashboardThemes } from '../theme';
 import { COUNTRIES } from '../utils/countries';
@@ -68,17 +74,20 @@ const shippingTypeOptions = [
   { value: 'land', label: '🚛 Land freight' },
 ] as const;
 
-type AdminSection = 'cargos' | 'investments' | 'investors' | 'relations' | 'content' | 'messages' | 'avatars';
+type AdminSection = 'cargos' | 'investments' | 'investors' | 'products' | 'relations' | 'content' | 'messages' | 'avatars';
 
 const SECTIONS: Array<{ id: AdminSection; label: string }> = [
   { id: 'cargos', label: '📦 Cargos' },
   { id: 'investments', label: '💼 Investments' },
   { id: 'investors', label: '👤 Investors' },
+  { id: 'products', label: '🛒 Products' },
   { id: 'relations', label: '🔗 Relations' },
   { id: 'content', label: '✏️ Site Content' },
   { id: 'messages', label: '💬 Messages' },
   { id: 'avatars', label: '🎭 Avatars' },
 ];
+
+const PRODUCT_CATEGORIES = ['Superfood', 'Herbal tea', 'Spice', 'Grain', 'Snack', 'Oil', 'Other'];
 
 const STATUS_OPTIONS: Array<{ value: InvestmentStatus; label: string }> = [
   { value: 'active', label: '🟢 Active' },
@@ -129,6 +138,20 @@ const emptyInvestmentForm = {
   hidden: false,
   coverImageUrl: '',
   location: '',
+};
+
+const emptyProductForm = {
+  name: '',
+  description: '',
+  originStory: '',
+  price: '',
+  currency: 'USD',
+  stock: '',
+  category: '',
+  coverImageUrl: '',
+  active: true,
+  variants: [] as Array<{ label: string; price: string }>,
+  images: [] as string[],
 };
 
 const currencyRatesToUSD: Record<string, number> = { USD: 1, EUR: 1.09, TND: 0.33, CNY: 0.14 };
@@ -196,6 +219,15 @@ const AdminDashboard: React.FC = () => {
   const [avSaving, setAvSaving] = useState(false);
   const avFileRef = useRef<HTMLInputElement>(null);
 
+  // Product manager state
+  const [products, setProducts] = useState<Product[]>([]);
+  const [productsLoaded, setProductsLoaded] = useState(false);
+  const [productForm, setProductForm] = useState(emptyProductForm);
+  const [editingProductId, setEditingProductId] = useState<string | null>(null);
+  const [savingProduct, setSavingProduct] = useState(false);
+  const [productSearch, setProductSearch] = useState('');
+  const [confirmDeleteProduct, setConfirmDeleteProduct] = useState<string | null>(null);
+
   const showToast = useCallback((message: string, type: Toast['type'] = 'success') => {
     const id = ++toastIdRef.current;
     setToasts((prev) => [...prev, { id, message, type }]);
@@ -206,8 +238,9 @@ const AdminDashboard: React.FC = () => {
     if (activeSection === 'cargos') return JSON.stringify(cargoForm) !== JSON.stringify(emptyCargoForm);
     if (activeSection === 'investments') return JSON.stringify(investmentForm) !== JSON.stringify(emptyInvestmentForm);
     if (activeSection === 'investors') return JSON.stringify(investorForm) !== JSON.stringify(emptyInvestorForm);
+    if (activeSection === 'products') return JSON.stringify(productForm) !== JSON.stringify(emptyProductForm);
     return false;
-  }, [activeSection, cargoForm, investorForm, investmentForm]);
+  }, [activeSection, cargoForm, investorForm, investmentForm, productForm]);
 
   const refresh = async () => {
     const response = await getAdminDashboard();
@@ -244,7 +277,10 @@ const AdminDashboard: React.FC = () => {
     if (activeSection === 'avatars' && !avatarsLoaded) {
       getAdminAvatars().then((r) => { setAvatars(r.avatars); setAvatarsLoaded(true); }).catch(() => {});
     }
-  }, [activeSection, avatarsLoaded]);
+    if (activeSection === 'products' && !productsLoaded) {
+      getAdminProducts().then((r) => { setProducts(r.products); setProductsLoaded(true); }).catch(() => {});
+    }
+  }, [activeSection, avatarsLoaded, productsLoaded]);
 
   const cargoOptions = useMemo(() => data?.cargos ?? [], [data]);
   const investmentOptions = useMemo(() => data?.investments ?? [], [data]);
@@ -471,6 +507,92 @@ const AdminDashboard: React.FC = () => {
       showToast(err instanceof Error ? err.message : 'Failed to delete investment', 'error');
     }
   };
+
+  // ── Products ──
+  const resetProductForm = () => { setProductForm(emptyProductForm); setEditingProductId(null); };
+
+  const refreshProducts = async () => {
+    const r = await getAdminProducts();
+    setProducts(r.products);
+  };
+
+  const productPayload = (): ProductInput => ({
+    name: productForm.name.trim(),
+    description: productForm.description.trim(),
+    originStory: productForm.originStory.trim(),
+    price: Number(productForm.price),
+    currency: productForm.currency,
+    variants: productForm.variants
+      .filter((v) => v.label.trim())
+      .map((v) => ({ label: v.label.trim(), price: Number(v.price) || 0 })),
+    stock: Number(productForm.stock) || 0,
+    coverImageUrl: productForm.coverImageUrl,
+    images: productForm.images,
+    category: productForm.category.trim(),
+    active: productForm.active,
+  });
+
+  const submitProduct = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setSavingProduct(true);
+    try {
+      if (editingProductId) {
+        await updateProduct(editingProductId, productPayload());
+        showToast('Product updated!');
+      } else {
+        await createProduct(productPayload());
+        showToast('Product created!');
+      }
+      resetProductForm();
+      await refreshProducts();
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Failed to save product', 'error');
+    } finally { setSavingProduct(false); }
+  };
+
+  const startEditProduct = (p: Product) => {
+    setEditingProductId(p._id);
+    setProductForm({
+      name: p.name,
+      description: p.description ?? '',
+      originStory: p.originStory ?? '',
+      price: p.price.toString(),
+      currency: p.currency,
+      stock: (p.stock ?? 0).toString(),
+      category: p.category ?? '',
+      coverImageUrl: p.coverImageUrl ?? '',
+      active: p.active !== false,
+      variants: (p.variants ?? []).map((v) => ({ label: v.label, price: v.price.toString() })),
+      images: p.images ?? [],
+    });
+  };
+
+  const removeProduct = async (id: string) => {
+    try {
+      await deleteProduct(id);
+      if (editingProductId === id) resetProductForm();
+      await refreshProducts();
+      showToast('Product deleted');
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Failed to delete product', 'error');
+    }
+  };
+
+  const addVariant = () => setProductForm((f) => ({ ...f, variants: [...f.variants, { label: '', price: '' }] }));
+  const updateVariant = (i: number, key: 'label' | 'price', value: string) =>
+    setProductForm((f) => ({ ...f, variants: f.variants.map((v, idx) => idx === i ? { ...v, [key]: value } : v) }));
+  const removeVariant = (i: number) =>
+    setProductForm((f) => ({ ...f, variants: f.variants.filter((_, idx) => idx !== i) }));
+  const addProductImage = (url: string) =>
+    setProductForm((f) => f.images.length >= 4 ? f : ({ ...f, images: [...f.images, url] }));
+  const removeProductImage = (i: number) =>
+    setProductForm((f) => ({ ...f, images: f.images.filter((_, idx) => idx !== i) }));
+
+  const filteredProducts = productSearch
+    ? products.filter((p) =>
+        p.name.toLowerCase().includes(productSearch.toLowerCase()) ||
+        (p.category ?? '').toLowerCase().includes(productSearch.toLowerCase()))
+    : products;
 
   if (loading) return <div className="portal-loading">Loading admin dashboard...</div>;
 
@@ -1166,6 +1288,146 @@ const AdminDashboard: React.FC = () => {
           </div>
         );
       })()}
+
+      {/* ── PRODUCTS ── */}
+      {activeSection === 'products' && (
+        <div className="admin-section-grid">
+          <article className="portal-card">
+            <h2>{editingProductId ? 'Edit Product' : 'New Product'}</h2>
+            <form className="portal-form" onSubmit={submitProduct}>
+              <label>Product name</label>
+              <input value={productForm.name} onChange={(e) => setProductForm({ ...productForm, name: e.target.value })} required />
+
+              <label>Description</label>
+              <textarea value={productForm.description} onChange={(e) => setProductForm({ ...productForm, description: e.target.value })} placeholder="Short description shown on the card…" />
+
+              <label>Origin / sourcing story</label>
+              <textarea value={productForm.originStory} onChange={(e) => setProductForm({ ...productForm, originStory: e.target.value })} placeholder="Where it comes from, who grows it, why it's special…" />
+
+              <ImageCropUploader
+                value={productForm.coverImageUrl}
+                onChange={(url) => setProductForm({ ...productForm, coverImageUrl: url })}
+                aspect={4 / 3}
+                label="Cover image"
+              />
+
+              <label>Additional images <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 400 }}>(up to 4)</span></label>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+                {productForm.images.map((url, i) => (
+                  <div key={url + i} style={{ position: 'relative', width: 72, height: 72, borderRadius: 8, overflow: 'hidden', background: '#0a0c14' }}>
+                    <img src={url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                    <button type="button" onClick={() => removeProductImage(i)} style={{ position: 'absolute', top: 2, right: 2, width: 20, height: 20, borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.7)', color: '#fff', cursor: 'pointer', fontSize: '0.7rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
+                  </div>
+                ))}
+                {productForm.images.length < 4 && (
+                  <div style={{ width: 180 }}>
+                    <ImageCropUploader value="" onChange={addProductImage} aspect={1} label="image" previewHeight={72} />
+                  </div>
+                )}
+              </div>
+
+              <label>Price</label>
+              <div className="portal-amount-row">
+                <input type="number" min="0" step="0.01" value={productForm.price} onChange={(e) => setProductForm({ ...productForm, price: e.target.value })} required />
+                <select value={productForm.currency} onChange={(e) => setProductForm({ ...productForm, currency: e.target.value })}>
+                  {currencyOptions.map((c) => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+
+              <label>Weight / size variants <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 400 }}>(optional — e.g. 250g, 500g, 1kg)</span></label>
+              <div className="portal-multiselect" style={{ gap: 8 }}>
+                {productForm.variants.length === 0 && (
+                  <p className="relation-empty" style={{ margin: 0 }}>No variants — the base price is used.</p>
+                )}
+                {productForm.variants.map((v, i) => (
+                  <div key={i} className="portal-amount-row" style={{ gridTemplateColumns: '1fr 1fr auto', display: 'grid', gap: 8, alignItems: 'center' }}>
+                    <input placeholder="Label (e.g. 500g)" value={v.label} onChange={(e) => updateVariant(i, 'label', e.target.value)} />
+                    <input type="number" min="0" step="0.01" placeholder="Price" value={v.price} onChange={(e) => updateVariant(i, 'price', e.target.value)} />
+                    <button type="button" className="portal-btn-delete" onClick={() => removeVariant(i)} style={{ whiteSpace: 'nowrap' }}>✕</button>
+                  </div>
+                ))}
+                <button type="button" className="portal-btn-edit" onClick={addVariant} style={{ width: 'fit-content' }}>+ Add variant</button>
+              </div>
+
+              <label>Stock quantity</label>
+              <input type="number" min="0" value={productForm.stock} onChange={(e) => setProductForm({ ...productForm, stock: e.target.value })} placeholder="0" />
+
+              <label>Category tag</label>
+              <input
+                list="product-category-list"
+                value={productForm.category}
+                onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
+                placeholder="e.g. Superfood, Herbal tea, Spice…"
+                autoComplete="off"
+              />
+              <datalist id="product-category-list">
+                {PRODUCT_CATEGORIES.map((c) => <option key={c} value={c} />)}
+              </datalist>
+
+              <label className="portal-hidden-toggle">
+                <input type="checkbox" checked={productForm.active} onChange={(e) => setProductForm({ ...productForm, active: e.target.checked })} />
+                <span>Active — visible in the shop</span>
+              </label>
+
+              <div className="portal-form-actions">
+                <button type="submit" disabled={savingProduct}>{savingProduct ? 'Saving...' : editingProductId ? 'Update Product' : 'Create Product'}</button>
+                {editingProductId && <button type="button" onClick={resetProductForm}>Cancel</button>}
+              </div>
+            </form>
+          </article>
+
+          <article className="portal-card">
+            <h2>All Products <span className="portal-item-badge">{products.length}</span></h2>
+            {products.length > 0 && (
+              <input
+                className="admin-search"
+                placeholder="Search products…"
+                value={productSearch}
+                onChange={(e) => setProductSearch(e.target.value)}
+                style={{ marginBottom: 12 }}
+              />
+            )}
+            <div className="portal-stack">
+              {products.length === 0 ? (
+                <p className="relation-empty">No products yet — create your first one.</p>
+              ) : filteredProducts.length === 0 ? (
+                <p className="relation-empty">No products match “{productSearch}”.</p>
+              ) : filteredProducts.map((p) => (
+                <div className="portal-item" key={p._id}>
+                  <div className="portal-item-head">
+                    <h3 style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      {p.coverImageUrl
+                        ? <img src={p.coverImageUrl} alt="" style={{ width: 38, height: 38, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }} />
+                        : <span style={{ fontSize: '1.3rem' }}>🌿</span>}
+                      {p.name}
+                      {!p.active && <span className="hidden-badge">Inactive</span>}
+                    </h3>
+                    {confirmDeleteProduct === p._id ? (
+                      <div className="portal-inline-confirm">
+                        <span>Delete?</span>
+                        <button type="button" className="portal-btn-delete" onClick={() => { void removeProduct(p._id); setConfirmDeleteProduct(null); }}>Yes</button>
+                        <button type="button" className="portal-btn-cancel" onClick={() => setConfirmDeleteProduct(null)}>Cancel</button>
+                      </div>
+                    ) : (
+                      <div className="portal-item-actions">
+                        <button type="button" className="portal-btn-edit" onClick={() => startEditProduct(p)}>Edit</button>
+                        <button type="button" className="portal-btn-delete" onClick={() => setConfirmDeleteProduct(p._id)}>Delete</button>
+                      </div>
+                    )}
+                  </div>
+                  {p.description && <p className="portal-item-meta">{p.description}</p>}
+                  <p className="portal-item-meta">
+                    {p.price.toLocaleString()} {p.currency}
+                    {p.category && <span className="portal-item-badge">{p.category}</span>}
+                    <span className="portal-item-badge">Stock {p.stock ?? 0}</span>
+                    {p.variants?.length > 0 && <span className="portal-item-badge">{p.variants.length} variants</span>}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </article>
+        </div>
+      )}
 
       {/* ── RELATIONS ── */}
       {activeSection === 'relations' && (

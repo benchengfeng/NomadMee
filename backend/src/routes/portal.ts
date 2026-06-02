@@ -12,6 +12,10 @@ import { SiteContentModel } from '../models/SiteContent';
 import { ContactRequestModel } from '../models/ContactRequest';
 import { SessionModel } from '../models/Session';
 import { AvatarModel } from '../models/Avatar';
+import { ProductModel, ProductVariant } from '../models/Product';
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const nodemailer = require('nodemailer');
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -131,6 +135,70 @@ function normalizeCurrency(value: unknown): string {
 
 function normalizeAvatar(value: unknown): string {
   return String(value || '').trim();
+}
+
+function normalizeVariants(value: unknown): ProductVariant[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((v) => {
+      const raw = v as { label?: unknown; price?: unknown };
+      const label = String(raw?.label ?? '').trim();
+      const price = Number(raw?.price);
+      if (!label) return null;
+      return { label, price: Number.isFinite(price) && price >= 0 ? price : 0 };
+    })
+    .filter((v): v is ProductVariant => v !== null);
+}
+
+function normalizeImages(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return value.map((u) => String(u || '').trim()).filter(Boolean).slice(0, 4);
+}
+
+// Best-effort admin notification for a new product order. Never throws —
+// an SMTP hiccup must not fail the customer's order acknowledgement.
+async function sendOrderNotification(order: {
+  productName: string;
+  variant: string;
+  quantity: number;
+  unitPrice: string;
+  fullName: string;
+  email: string;
+  country: string;
+  message: string;
+}): Promise<void> {
+  try {
+    const transporter = nodemailer.createTransport({
+      host: 'smtp.qiye.aliyun.com',
+      port: 465,
+      secureConnection: true,
+      auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
+    });
+
+    const lines = [
+      '🛒 New NomadMee shop order',
+      '',
+      `Product:  ${order.productName}`,
+      order.variant ? `Variant:  ${order.variant}` : '',
+      `Quantity: ${order.quantity}`,
+      order.unitPrice ? `Unit:     ${order.unitPrice}` : '',
+      '',
+      `Name:     ${order.fullName}`,
+      `Email:    ${order.email}`,
+      `Country:  ${order.country}`,
+      order.message ? `Message:  ${order.message}` : '',
+    ].filter(Boolean).join('\n');
+
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: process.env.EMAIL_USER,
+      replyTo: order.email || undefined,
+      subject: `🛒 Order — ${order.productName} (${order.fullName})`,
+      text: lines,
+    });
+  } catch (error) {
+    console.error('Failed to send order notification email:', error);
+  }
 }
 
 const LEGACY_AVATAR_URLS: Record<string, string> = {
@@ -309,6 +377,73 @@ router.post('/public/contact-request', async (req: Request, res: Response): Prom
     res.status(201).json({ request: { _id: request._id } });
   } catch (error) {
     res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to submit request.' });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Public — shop products
+// ---------------------------------------------------------------------------
+
+function mapPublicProduct(p: Record<string, unknown> & { _id: unknown }) {
+  return {
+    _id: p['_id'],
+    name: p['name'],
+    description: p['description'] ?? '',
+    originStory: p['originStory'] ?? '',
+    price: p['price'],
+    currency: p['currency'],
+    variants: Array.isArray(p['variants']) ? p['variants'] : [],
+    stock: p['stock'] ?? 0,
+    coverImageUrl: p['coverImageUrl'] ?? '',
+    images: Array.isArray(p['images']) ? p['images'] : [],
+    category: p['category'] ?? '',
+  };
+}
+
+router.get('/public/products', async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const products = await ProductModel.find({ active: true }).sort({ createdAt: -1 }).lean();
+    res.status(200).json({ products: products.map((p) => mapPublicProduct(p as never)) });
+  } catch {
+    res.status(500).json({ message: 'Failed to load products.' });
+  }
+});
+
+router.post('/public/product-order', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { productId, variant, quantity, fullName, email, country, message } =
+      req.body as Record<string, string>;
+
+    if (!productId || !fullName?.trim() || !email?.trim() || !country?.trim()) {
+      res.status(400).json({ message: 'Name, email and country are required.' });
+      return;
+    }
+
+    const product = await ProductModel.findById(productId).lean();
+    if (!product) {
+      res.status(404).json({ message: 'Product not found.' });
+      return;
+    }
+
+    const qty = Math.max(1, Math.min(9999, Number(quantity) || 1));
+    const chosen = (product.variants || []).find((v) => v.label === variant);
+    const unit = chosen ? chosen.price : product.price;
+    const unitPrice = `${unit} ${product.currency}`;
+
+    await sendOrderNotification({
+      productName: product.name,
+      variant: (variant || '').trim(),
+      quantity: qty,
+      unitPrice,
+      fullName: fullName.trim(),
+      email: email.trim(),
+      country: country.trim(),
+      message: (message ?? '').trim(),
+    });
+
+    res.status(201).json({ ok: true });
+  } catch (error) {
+    res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to submit order.' });
   }
 });
 
@@ -1132,6 +1267,85 @@ router.post('/investor/kyc', async (req: Request, res: Response): Promise<void> 
     res.status(400).json({
       message: error instanceof Error ? error.message : 'Failed to complete KYC.',
     });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Investor — shop products (auth required)
+// ---------------------------------------------------------------------------
+
+router.get('/investor/products', async (req: Request, res: Response): Promise<void> => {
+  const investorId = await requireInvestor(req, res);
+  if (!investorId) return;
+  try {
+    const products = await ProductModel.find({ active: true }).sort({ createdAt: -1 }).lean();
+    res.status(200).json({ products: products.map((p) => mapPublicProduct(p as never)) });
+  } catch {
+    res.status(500).json({ message: 'Failed to load products.' });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Admin — products
+// ---------------------------------------------------------------------------
+
+function buildProductPayload(body: Record<string, unknown>) {
+  return {
+    name: String(body['name'] || '').trim(),
+    description: String(body['description'] || '').trim(),
+    originStory: String(body['originStory'] || '').trim(),
+    price: normalizeNumber(body['price'], 'price'),
+    currency: normalizeCurrency(body['currency']),
+    variants: normalizeVariants(body['variants']),
+    stock: Number.isFinite(Number(body['stock'])) ? Math.max(0, Number(body['stock'])) : 0,
+    coverImageUrl: String(body['coverImageUrl'] || '').trim(),
+    images: normalizeImages(body['images']),
+    category: String(body['category'] || '').trim(),
+    active: body['active'] !== false,
+  };
+}
+
+router.get('/admin/products', async (req: Request, res: Response): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  const products = await ProductModel.find().sort({ createdAt: -1 }).lean();
+  res.status(200).json({ products });
+});
+
+router.post('/admin/products', async (req: Request, res: Response): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  try {
+    const product = await ProductModel.create(buildProductPayload(req.body as Record<string, unknown>));
+    res.status(201).json({ product });
+  } catch (error) {
+    res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to create product.' });
+  }
+});
+
+router.put('/admin/products/:id', async (req: Request, res: Response): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  try {
+    const product = await ProductModel.findByIdAndUpdate(
+      req.params.id,
+      buildProductPayload(req.body as Record<string, unknown>),
+      { new: true, runValidators: true }
+    );
+    if (!product) {
+      res.status(404).json({ message: 'Product not found.' });
+      return;
+    }
+    res.status(200).json({ product });
+  } catch (error) {
+    res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to update product.' });
+  }
+});
+
+router.delete('/admin/products/:id', async (req: Request, res: Response): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  try {
+    await ProductModel.findByIdAndDelete(req.params.id);
+    res.status(200).json({ message: 'Product deleted.' });
+  } catch (error) {
+    res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to delete product.' });
   }
 });
 

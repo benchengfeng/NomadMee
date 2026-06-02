@@ -38,7 +38,10 @@ export type AnalyticsEvent =
   // ── Landing interactions ──
   | 'landing-section'
   | 'join-click'
-  | 'login-cta';
+  | 'login-cta'
+  // ── Shop ──
+  | 'shop-open'
+  | 'order-submit';
 
 /** Inject the Umami script once, on app boot. No-op if unconfigured. */
 export function initAnalytics(): void {

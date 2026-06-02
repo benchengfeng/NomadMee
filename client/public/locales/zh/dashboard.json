@@ -5,12 +5,14 @@
     "map": "货运地图",
     "story": "投资故事",
     "support": "支持",
+    "shop": "商店",
     "settings": "设置",
     "summaryShort": "主页",
     "cargosShort": "货物",
     "mapShort": "地图",
     "storyShort": "故事",
     "supportShort": "帮助",
+    "shopShort": "商店",
     "settingsShort": "设置",
     "globe": "地球"
   },
@@ -119,5 +121,11 @@
   "error": {
     "unavailable": "仪表板数据不可用。",
     "backToLogin": "返回登录"
+  },
+  "shop": {
+    "eyebrow": "直采直供",
+    "title": "商店",
+    "sub": "来自西非的有机优质食材，源头直采，通过您所投资的同一货运网络发货。",
+    "none": "商品即将上线。"
   }
 }

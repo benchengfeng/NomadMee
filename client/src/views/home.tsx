@@ -5,11 +5,12 @@ import { landingThemes } from '../utils/landingThemes';
 import WorldMap from '../components/WorldMap';
 import StoryMediaGallery from '../components/cargo/StoryMediaGallery';
 import LanguageSwitcher from '../components/common/LanguageSwitcher';
+import ShopSection from '../components/shop/ShopSection';
 import { track } from '../utils/analytics';
-import { getPublicInvestments, getPublicSiteContent, PublicInvestment, SiteContent } from '../api/portalApi';
+import { getPublicInvestments, getPublicSiteContent, getPublicProducts, PublicInvestment, PublicProduct, SiteContent } from '../api/portalApi';
 import '../styles/landing.css';
 
-type LandingSection = 'globe' | 'investments' | 'who';
+type LandingSection = 'globe' | 'investments' | 'shop' | 'who';
 
 const STATUS_STYLE: Record<string, { color: string; bg: string }> = {
   active:      { color: '#22c55e', bg: 'rgba(34,197,94,0.1)' },
@@ -20,6 +21,7 @@ const STATUS_STYLE: Record<string, { color: string; bg: string }> = {
 const NAV_ITEMS: Array<{ id: LandingSection; key: string }> = [
   { id: 'globe', key: 'nav.globe' },
   { id: 'investments', key: 'nav.investments' },
+  { id: 'shop', key: 'nav.shop' },
   { id: 'who', key: 'nav.whoAreWe' },
 ];
 
@@ -30,6 +32,9 @@ const LandingPage: React.FC = () => {
   const [selectedTheme, setSelectedTheme] = useState(0);
   const [investments, setInvestments] = useState<PublicInvestment[]>([]);
   const [loadingInvestments, setLoadingInvestments] = useState(false);
+  const [products, setProducts] = useState<PublicProduct[]>([]);
+  const [loadingProducts, setLoadingProducts] = useState(false);
+  const [productsLoaded, setProductsLoaded] = useState(false);
   const [siteContent, setSiteContent] = useState<SiteContent | null>(null);
 
   const idx = Math.min(Math.max(selectedTheme, 0), landingThemes.length - 1);
@@ -42,6 +47,13 @@ const LandingPage: React.FC = () => {
         .then((r) => setInvestments(r.investments))
         .catch(() => {})
         .finally(() => setLoadingInvestments(false));
+    }
+    if (section === 'shop' && !productsLoaded) {
+      setLoadingProducts(true);
+      getPublicProducts()
+        .then((r) => { setProducts(r.products); setProductsLoaded(true); })
+        .catch(() => {})
+        .finally(() => setLoadingProducts(false));
     }
     if (section === 'who' && !siteContent) {
       getPublicSiteContent('who_are_we').then((r) => setSiteContent(r.content)).catch(() => {});
@@ -179,6 +191,21 @@ const LandingPage: React.FC = () => {
                 })}
               </div>
             )}
+          </div>
+        )}
+
+        {/* Shop */}
+        {section === 'shop' && (
+          <div className="landing-section-inner">
+            <p className="landing-section-eyebrow" style={{ color: '#c8a06a' }}>{t('shop.eyebrow')}</p>
+            <h2 className="landing-section-title">{t('shop.title')}</h2>
+            <p className="landing-section-sub">{t('shop.sub')}</p>
+            <ShopSection
+              products={products}
+              loading={loadingProducts}
+              emptyLabel={t('shop.none')}
+              onOrdered={(p) => track('order-submit', { product: p.name })}
+            />
           </div>
         )}
 

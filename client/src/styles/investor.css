@@ -1177,7 +1177,11 @@
     backdrop-filter: blur(24px);
     -webkit-backdrop-filter: blur(24px);
     padding-bottom: env(safe-area-inset-bottom, 0px);
+    overflow-x: auto;
+    scrollbar-width: none;
   }
+
+  .mobile-bottom-nav::-webkit-scrollbar { display: none; }
 
   .mobile-nav-btn {
     display: flex;
@@ -1190,7 +1194,7 @@
     background: transparent;
     cursor: pointer;
     flex: 1;
-    min-width: 48px;
+    min-width: 40px;
     position: relative;
     transition: opacity 0.15s;
     -webkit-tap-highlight-color: transparent;

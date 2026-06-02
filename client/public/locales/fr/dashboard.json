@@ -5,12 +5,14 @@
     "map": "Carte cargo",
     "story": "Récit d'investissement",
     "support": "Assistance",
+    "shop": "Boutique",
     "settings": "Paramètres",
     "summaryShort": "Accueil",
     "cargosShort": "Cargos",
     "mapShort": "Carte",
     "storyShort": "Récit",
     "supportShort": "Aide",
+    "shopShort": "Boutique",
     "settingsShort": "Réglages",
     "globe": "Globe"
   },
@@ -119,5 +121,11 @@
   "error": {
     "unavailable": "Données du tableau de bord indisponibles.",
     "backToLogin": "Retour à la connexion"
+  },
+  "shop": {
+    "eyebrow": "En direct du producteur",
+    "title": "La Boutique",
+    "sub": "Des produits bio d'Afrique de l'Ouest, sourcés en direct et expédiés via le même réseau de fret que vous financez.",
+    "none": "Produits bientôt disponibles."
   }
 }
