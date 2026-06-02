@@ -13,6 +13,7 @@ import CargoMap from '../components/cargo/CargoMap';
 import WorldMap from '../components/WorldMap';
 import StoryMediaGallery from '../components/cargo/StoryMediaGallery';
 import LanguageSwitcher from '../components/common/LanguageSwitcher';
+import { track } from '../utils/analytics';
 
 const currencyRatesToUSD: Record<string, number> = {
   USD: 1,
@@ -159,7 +160,13 @@ const InvestorHome: React.FC = () => {
 
   const handleThemeChange = (index: number) => {
     dispatch(setTheme(index));
+    track('theme-change', { theme: dashboardThemes[index]?.name ?? index });
   };
+
+  // Track entering the globe view (covers all toggle entry points)
+  useEffect(() => {
+    if (viewMode === 'globe') track('globe-open');
+  }, [viewMode]);
 
   const renderSummary = () => {
     if (!data) return null;
@@ -251,7 +258,7 @@ const InvestorHome: React.FC = () => {
                     background: isSelected ? theme.accent : theme.surface,
                     color: isSelected ? theme.background : theme.text,
                   }}
-                  onClick={() => dispatch(setSelectedCargoId(cargo._id))}
+                  onClick={() => { dispatch(setSelectedCargoId(cargo._id)); track('cargo-open', { cargo: cargo.productBeingShipped }); }}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') dispatch(setSelectedCargoId(cargo._id));
                   }}

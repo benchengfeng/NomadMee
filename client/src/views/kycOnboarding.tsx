@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { completeInvestorKyc, getInvestorHome, getPublicAvatars, AvatarData } from '../api/portalApi';
+import { track } from '../utils/analytics';
 import LanguageSwitcher from '../components/common/LanguageSwitcher';
 
 const CURRENCIES = ['USD', 'EUR', 'TND', 'CNY'] as const;
@@ -55,6 +56,7 @@ const KycOnboarding: React.FC = () => {
     setError(null);
     try {
       await completeInvestorKyc({ avatar: selectedAvatarId, displayName: displayName.trim() || 'Future investor', preferredCurrency });
+      track('kyc-complete', { currency: preferredCurrency });
       navigate('/home');
     } catch (err) {
       setError(err instanceof Error ? err.message : t('kyc.saveError'));

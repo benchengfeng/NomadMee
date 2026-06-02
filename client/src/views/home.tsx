@@ -5,6 +5,7 @@ import { landingThemes } from '../utils/landingThemes';
 import WorldMap from '../components/WorldMap';
 import StoryMediaGallery from '../components/cargo/StoryMediaGallery';
 import LanguageSwitcher from '../components/common/LanguageSwitcher';
+import { track } from '../utils/analytics';
 import { getPublicInvestments, getPublicSiteContent, PublicInvestment, SiteContent } from '../api/portalApi';
 import '../styles/landing.css';
 
@@ -64,7 +65,7 @@ const LandingPage: React.FC = () => {
               type="button"
               className={`landing-nav-link${section === item.id ? ' landing-nav-link--active' : ''}`}
               style={section === item.id ? { background: palette.accent } : undefined}
-              onClick={() => setSection(item.id)}
+              onClick={() => { setSection(item.id); track('landing-section', { section: item.id }); }}
             >
               {t(item.key)}
             </button>
@@ -92,7 +93,7 @@ const LandingPage: React.FC = () => {
           <button
             type="button"
             className="landing-cta-btn"
-            onClick={() => navigate('/login')}
+            onClick={() => { track('login-cta'); navigate('/login'); }}
             style={{ background: `linear-gradient(90deg, ${palette.accent}, ${palette.highlight})`, color: '#000' }}
           >
             {t('cta.login')}
@@ -166,7 +167,7 @@ const LandingPage: React.FC = () => {
                       <button
                         type="button"
                         className="investment-card-join"
-                        onClick={() => navigate(`/join/${inv._id}`)}
+                        onClick={() => { track('join-click', { investmentId: inv._id }); navigate(`/join/${inv._id}`); }}
                         style={{ border: `1px solid ${palette.accent}55`, color: palette.accent }}
                         onMouseEnter={(e) => { e.currentTarget.style.background = `${palette.accent}18`; }}
                         onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}

@@ -31,6 +31,8 @@ jobs:
         env:
           # Points the React app at the production backend API
           REACT_APP_API_URL: ${{ vars.REACT_APP_API_URL }}
+          # Umami analytics website id (public — baked into the client bundle)
+          REACT_APP_UMAMI_WEBSITE_ID: ${{ vars.REACT_APP_UMAMI_WEBSITE_ID }}
           # Required for react-scripts on Node 18+
           NODE_OPTIONS: --openssl-legacy-provider
         run: |

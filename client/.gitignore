@@ -9,7 +9,7 @@
 # .htaccess
 
 .env
-
+.env.production
 # testing
 /coverage
 

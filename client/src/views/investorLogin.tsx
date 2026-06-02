@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getInvestorHome, loginInvestor } from '../api/portalApi';
 import { saveInvestorToken } from '../utils/auth';
+import { track } from '../utils/analytics';
 import LanguageSwitcher from '../components/common/LanguageSwitcher';
 
 const InvestorLogin: React.FC = () => {
@@ -22,6 +23,7 @@ const InvestorLogin: React.FC = () => {
 			const response = await loginInvestor(username.trim(), password);
 			saveInvestorToken(response.token);
 			const profile = await getInvestorHome();
+			track('login-success', { kyc: profile.investor.kycCompleted });
 			navigate(profile.investor.kycCompleted ? '/home' : '/onboarding');
 		} catch (err) {
 			setError(err instanceof Error ? err.message : t('login.failed'));

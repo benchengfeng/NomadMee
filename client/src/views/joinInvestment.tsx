@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { getPublicInvestments, submitContactRequest, PublicInvestment } from '../api/portalApi';
 import { landingThemes } from '../utils/landingThemes';
+import { track } from '../utils/analytics';
 import LanguageSwitcher from '../components/common/LanguageSwitcher';
 import '../styles/join.css';
 
@@ -60,6 +61,7 @@ const JoinInvestment: React.FC = () => {
         rdvDate,
         note: note.trim(),
       });
+      track('join-submit', { investmentId, contactMethod });
       setSubmitted(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : t('error.generic'));

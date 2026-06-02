@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LANGUAGES, getLanguageMeta } from '../../i18n';
+import { track } from '../../utils/analytics';
 
 interface LanguageSwitcherProps {
   /** Visual style: 'pill' for light surfaces, 'ghost' for dark topbars. */
@@ -25,6 +26,7 @@ const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({ variant = 'ghost', 
 
   const choose = (code: string) => {
     void i18n.changeLanguage(code);
+    track('language-switch', { lang: code });
     setOpen(false);
   };
 

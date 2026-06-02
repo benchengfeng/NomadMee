@@ -6,6 +6,8 @@ node_modules
 /build
 # Ignore environment file (for sensitive data like database credentials)
 .env
+.env.production
+
 
 # Ignore PHP cache and session files
 /.phpunit.result.cache
