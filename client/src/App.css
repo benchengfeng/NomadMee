@@ -292,6 +292,12 @@ header
 .portal-form {
   display: grid;
   gap: 12px;
+  min-width: 0;
+}
+
+/* Grid items default to min-width:auto — force them to honor the track */
+.portal-form > * {
+  min-width: 0;
 }
 
 .auth-form input,
@@ -1636,9 +1642,25 @@ responsive
 
 .admin-section-grid {
   display: grid;
-  grid-template-columns: 360px 1fr;
+  grid-template-columns: minmax(0, 360px) minmax(0, 1fr);
   gap: 24px;
   align-items: start;
+}
+
+/* Prevent grid/flex children from blowing out their track when content
+   (e.g. a wide image preview) is larger than the column width. */
+.admin-section-grid > .portal-card {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+/* Form controls must never exceed their card */
+.portal-form img,
+.portal-form video,
+.portal-form canvas {
+  max-width: 100%;
+  height: auto;
 }
 
 @media (max-width: 900px) {

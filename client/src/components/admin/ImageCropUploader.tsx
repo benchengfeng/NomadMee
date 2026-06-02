@@ -72,13 +72,13 @@ const ImageCropUploader: React.FC<ImageCropUploaderProps> = ({
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%', minWidth: 0, maxWidth: '100%' }}>
       <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label}</span>
 
       {/* Current image preview */}
       {value && !rawSrc && (
-        <div style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', background: '#0a0c14' }}>
-          <img src={value} alt="Cover" style={{ width: '100%', height: previewHeight, objectFit: 'cover', display: 'block' }} />
+        <div style={{ position: 'relative', borderRadius: 10, overflow: 'hidden', background: '#0a0c14', width: '100%', maxWidth: '100%' }}>
+          <img src={value} alt="Cover" style={{ width: '100%', height: previewHeight, objectFit: 'cover', display: 'block', maxWidth: '100%' }} />
           <button
             type="button"
             onClick={() => onChange('')}
