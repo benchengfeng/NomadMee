@@ -77,104 +77,140 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor = '#38bdf8', onDataLoad
       }
       setDataLoaded(true);
 
-      // ---- Investor markers ----
-      // Group investors by country so we can deterministically fan out
-      // those sharing the same location instead of randomly jittering them.
-      const investorsByLocation = new Map<string, number>();
+      // ---- Investor markers (clustered by country) ----
+      // Group all investors sharing a country into a single cluster marker so
+      // they never overlap into a blur when zoomed out.
+      const groups = new Map<string, PublicMapInvestor[]>();
+      for (const inv of investors) {
+        if (!findCountryCoords(inv.location)) continue;
+        const key = inv.location.trim().toLowerCase();
+        const arr = groups.get(key);
+        if (arr) arr.push(inv);
+        else groups.set(key, [inv]);
+      }
+
+      const esc = (s: string) =>
+        s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
 
       let visibleInvestors = 0;
-      for (const inv of investors) {
-        const coords = findCountryCoords(inv.location);
-        if (!coords) continue;
-        visibleInvestors++;
+      for (const [, group] of groups) {
+        const coords = findCountryCoords(group[0]!.location)!;
+        const count = group.length;
+        visibleInvestors += count;
 
-        // Stable index of this investor within its country (0, 1, 2, …)
-        const locKey = inv.location.trim().toLowerCase();
-        const indexInCountry = investorsByLocation.get(locKey) ?? 0;
-        investorsByLocation.set(locKey, indexInCountry + 1);
-
-        // Deterministic position: the first investor sits exactly on the
-        // country coordinate; additional ones fan out in a small fixed circle.
-        let position: [number, number] = [coords[0], coords[1]];
-        if (indexInCountry > 0) {
-          const ring = Math.floor((indexInCountry - 1) / 8) + 1; // 8 per ring
-          const slot = (indexInCountry - 1) % 8;
-          const angle = (slot / 8) * Math.PI * 2;
-          const radius = 0.45 * ring; // ~0.45° per ring — tight cluster near country
-          position = [
-            coords[0] + Math.cos(angle) * radius,
-            coords[1] + Math.sin(angle) * radius,
-          ];
-        }
-
-        // Wrapper — MapLibre owns this element's position/transform.
-        // Do NOT set position here: MapLibre's .maplibregl-marker class sets
-        // position:absolute, and overriding it breaks marker placement.
+        // Marker root — MapLibre owns its position/transform (never set position here).
         const wrapper = document.createElement('div');
-        wrapper.style.cssText = `
-          width:36px;height:36px;
-          cursor:pointer;
+        wrapper.style.cssText = 'cursor:pointer;width:40px;height:40px;';
+
+        // Inner element holds all visuals + hover scaling.
+        const inner = document.createElement('div');
+        inner.style.cssText = `
+          position:relative;width:40px;height:40px;
+          transition:transform 0.16s ease;
         `;
 
-        // Inner avatar — we apply hover scale here, NOT on wrapper
-        const inner = document.createElement('div');
-        const src = inv.avatarImageUrl || '/logo192.png';
-        inner.style.cssText = `
-          width:36px;height:36px;border-radius:50%;
-          background-image:url(${src});
-          background-size:cover;background-position:center;
-          border:2.5px solid ${accentColor};
-          box-shadow:0 0 0 3px ${accentColor}44,0 4px 14px rgba(0,0,0,0.8);
-          transition:transform 0.15s, box-shadow 0.15s;
-        `;
+        if (count === 1) {
+          // ── Solo investor — clean single avatar ──
+          const av = document.createElement('div');
+          av.style.cssText = `
+            width:36px;height:36px;margin:2px;border-radius:50%;
+            background-image:url(${group[0]!.avatarImageUrl || '/logo192.png'});
+            background-size:cover;background-position:center;
+            border:2.5px solid ${accentColor};
+            box-shadow:0 0 0 3px ${accentColor}44,0 4px 14px rgba(0,0,0,0.8);
+          `;
+          inner.appendChild(av);
+        } else {
+          // ── Cluster — stacked "deck" of up to 3 avatars + count badge ──
+          const shown = group.slice(0, 3);
+          shown.forEach((inv, i) => {
+            const card = document.createElement('div');
+            const offset = i * 5;
+            card.style.cssText = `
+              position:absolute;
+              top:${4 - i}px;left:${offset}px;
+              width:32px;height:32px;border-radius:50%;
+              background-image:url(${inv.avatarImageUrl || '/logo192.png'});
+              background-size:cover;background-position:center;
+              border:2px solid #0a0c14;
+              box-shadow:0 0 0 1.5px ${accentColor}88, 0 3px 10px rgba(0,0,0,0.7);
+              z-index:${10 - i};
+            `;
+            inner.appendChild(card);
+          });
+          // Count badge
+          const badge = document.createElement('div');
+          badge.style.cssText = `
+            position:absolute;top:-4px;right:-6px;z-index:20;
+            min-width:20px;height:20px;padding:0 5px;border-radius:999px;
+            background:${accentColor};color:#0a0c14;
+            font-size:0.68rem;font-weight:800;line-height:20px;text-align:center;
+            box-shadow:0 0 0 2px #0a0c14,0 2px 8px rgba(0,0,0,0.6);
+          `;
+          badge.textContent = count > 99 ? '99+' : String(count);
+          inner.appendChild(badge);
+        }
         wrapper.appendChild(inner);
 
-        // Tooltip div — shown on hover
-        const investCount = inv.investmentCount ?? 0;
+        // ── Hover tooltip ──
         const tooltip = document.createElement('div');
         tooltip.style.cssText = `
-          position:absolute;
-          bottom:calc(100% + 10px);
-          left:50%;
+          position:absolute;bottom:calc(100% + 12px);left:50%;
           transform:translateX(-50%);
-          background:rgba(10,12,20,0.96);
+          background:rgba(10,12,20,0.97);
           border:1px solid rgba(255,255,255,0.12);
-          border-radius:12px;
-          padding:10px 14px;
-          white-space:nowrap;
-          pointer-events:none;
-          opacity:0;
-          transition:opacity 0.18s;
-          box-shadow:0 8px 24px rgba(0,0,0,0.7);
-          z-index:100;
+          border-radius:12px;padding:9px 13px;white-space:nowrap;
+          pointer-events:none;opacity:0;transition:opacity 0.18s;
+          box-shadow:0 8px 24px rgba(0,0,0,0.7);z-index:200;
         `;
-        tooltip.innerHTML = `
-          <div style="font-weight:800;color:#f1f5f9;font-size:0.82rem;margin-bottom:3px;">${inv.name}</div>
-          <div style="color:#64748b;font-size:0.72rem;margin-bottom:6px;">📍 ${inv.location}</div>
-          <div style="display:flex;gap:8px;align-items:center;">
-            <span style="color:#94a3b8;font-size:0.7rem;">💼 ${investCount} investment${investCount !== 1 ? 's' : ''}</span>
-            <span style="display:flex;align-items:center;gap:4px;font-size:0.7rem;">
-              <span style="width:7px;height:7px;border-radius:50%;background:#22c55e;display:inline-block;box-shadow:0 0 4px #22c55e;"></span>
-              <span style="color:#22c55e;font-weight:700;">Active</span>
-            </span>
-          </div>
-        `;
+        if (count === 1) {
+          const ic = group[0]!.investmentCount ?? 0;
+          tooltip.innerHTML =
+            `<div style="font-weight:800;color:#f1f5f9;font-size:0.82rem;margin-bottom:3px;">${esc(group[0]!.name)}</div>` +
+            `<div style="color:#64748b;font-size:0.72rem;">📍 ${esc(group[0]!.location)} · 💼 ${ic} investment${ic !== 1 ? 's' : ''}</div>`;
+        } else {
+          tooltip.innerHTML =
+            `<div style="font-weight:800;color:${accentColor};font-size:0.82rem;margin-bottom:2px;">${count} investors</div>` +
+            `<div style="color:#64748b;font-size:0.72rem;">📍 ${esc(group[0]!.location)} · click to view</div>`;
+        }
         wrapper.appendChild(tooltip);
 
         wrapper.addEventListener('mouseenter', () => {
-          inner.style.transform = 'scale(1.18)';
-          inner.style.boxShadow = `0 0 0 4px ${accentColor}66, 0 6px 18px rgba(0,0,0,0.9)`;
+          inner.style.transform = 'scale(1.16)';
           tooltip.style.opacity = '1';
         });
         wrapper.addEventListener('mouseleave', () => {
           inner.style.transform = 'scale(1)';
-          inner.style.boxShadow = `0 0 0 3px ${accentColor}44, 0 4px 14px rgba(0,0,0,0.8)`;
           tooltip.style.opacity = '0';
         });
 
-        new maplibregl.Marker({ element: wrapper, anchor: 'center' })
-          .setLngLat(position)
-          .addTo(map);
+        const marker = new maplibregl.Marker({ element: wrapper, anchor: 'center' })
+          .setLngLat(coords as [number, number]);
+
+        // ── Click → expandable popup listing every investor in the country ──
+        if (count > 1) {
+          const rows = group.map((inv) => {
+            const ic = inv.investmentCount ?? 0;
+            return (
+              `<div style="display:flex;align-items:center;gap:10px;padding:7px 4px;border-bottom:1px solid rgba(255,255,255,0.06);">` +
+                `<img src="${inv.avatarImageUrl || '/logo192.png'}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;border:1.5px solid ${accentColor};flex-shrink:0;" />` +
+                `<div style="min-width:0;">` +
+                  `<div style="color:#f1f5f9;font-size:0.78rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(inv.name)}</div>` +
+                  `<div style="color:#64748b;font-size:0.66rem;">💼 ${ic} investment${ic !== 1 ? 's' : ''}</div>` +
+                `</div>` +
+              `</div>`
+            );
+          }).join('');
+          const popup = new maplibregl.Popup({ closeButton: true, offset: 22, className: 'world-map-popup world-map-cluster-popup', maxWidth: '260px' })
+            .setHTML(
+              `<div style="font-weight:800;color:#f1f5f9;font-size:0.86rem;margin-bottom:2px;">📍 ${esc(group[0]!.location)}</div>` +
+              `<div style="color:${accentColor};font-size:0.72rem;font-weight:700;margin-bottom:8px;">${count} investors</div>` +
+              `<div style="max-height:200px;overflow-y:auto;margin:0 -4px;">${rows}</div>`
+            );
+          marker.setPopup(popup);
+        }
+
+        marker.addTo(map);
       }
       setInvestorCount(visibleInvestors);
 
@@ -340,6 +376,11 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor = '#38bdf8', onDataLoad
         .world-map-popup .maplibregl-popup-content strong { color: #fff; display: block; margin-bottom: 2px; }
         .world-map-popup .maplibregl-popup-tip { border-top-color: rgba(15,18,28,0.96) !important; }
         .maplibregl-ctrl-bottom-right { bottom: 28px !important; right: 10px !important; }
+        .world-map-cluster-popup .maplibregl-popup-content { padding: 12px 14px; }
+        .world-map-cluster-popup .maplibregl-popup-content > div:last-child::-webkit-scrollbar { width: 5px; }
+        .world-map-cluster-popup .maplibregl-popup-content > div:last-child::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.18); border-radius: 99px; }
+        .world-map-cluster-popup .maplibregl-popup-close-button { color: #94a3b8; font-size: 18px; padding: 2px 7px; }
+        .world-map-cluster-popup .maplibregl-popup-close-button:hover { background: rgba(255,255,255,0.08); color: #fff; }
       `}</style>
       {/* Map canvas — fades in once tiles are ready */}
       <div ref={containerRef} style={{ position: 'absolute', inset: 0, opacity: mapReady ? 1 : 0, transition: 'opacity 0.7s ease' }} />
