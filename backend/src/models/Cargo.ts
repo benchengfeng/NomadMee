@@ -28,6 +28,7 @@ const CargoSchema = new Schema<CargoDocument>(
     quantity: { type: Number, required: true, min: 0 },
     purchaseLocation: { type: String, required: true, trim: true },
     purchasePrice: { type: Number, required: true, min: 0 },
+    currency: { type: String, required: true, trim: true, default: 'USD' },
     shippingDestination: { type: String, required: true, trim: true },
     shippingPrice: { type: Number, required: true, min: 0 },
     otherExpenses: { type: Number, required: true, min: 0 },
