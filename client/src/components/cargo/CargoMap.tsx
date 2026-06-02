@@ -56,6 +56,16 @@ const CargoMap: React.FC<CargoMapProps> = ({ cargo, avatar, theme }) => {
     [cargo._id, shippingType]
   );
 
+  // Real-world journey progress based on purchase date → ETA → today
+  const computeRealProgress = useCallback((): number => {
+    const startSrc = cargo.purchaseDate || cargo.createdAt;
+    const start = startSrc ? new Date(startSrc).getTime() : 0;
+    const end = new Date(cargo.estimatedTimeOfArrival).getTime();
+    const now = Date.now();
+    if (!(start > 0) || !(end > start)) return 0;
+    return Math.max(0, Math.min(1, (now - start) / (end - start)));
+  }, [cargo.purchaseDate, cargo.createdAt, cargo.estimatedTimeOfArrival]);
+
   // ------------------------------------------------------------------
   // Map initialisation (runs once)
   // ------------------------------------------------------------------
@@ -201,13 +211,15 @@ const CargoMap: React.FC<CargoMapProps> = ({ cargo, avatar, theme }) => {
       geometry: { type: 'LineString', coordinates: route },
     });
 
-    // Reset avatar to new origin
-    markerRef.current?.setLngLat(route[0] as [number, number]);
+    // Place avatar at its real-world estimated position (purchase date → ETA → today)
+    const realProgress = computeRealProgress();
+    const realPos = getPositionAtProgress(route, realProgress);
+    markerRef.current?.setLngLat(realPos as [number, number]);
 
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
     setIsPlaying(false);
-    setProgress(0);
-    pausedAtRef.current = 0;
+    setProgress(realProgress);
+    pausedAtRef.current = realProgress;
 
     const bounds = new maplibregl.LngLatBounds();
     route.forEach((c) => bounds.extend(c as [number, number]));
@@ -259,13 +271,7 @@ const CargoMap: React.FC<CargoMapProps> = ({ cargo, avatar, theme }) => {
   }, [route]);
 
   const jumpToCurrentLocation = useCallback(() => {
-    const start = cargo.createdAt ? new Date(cargo.createdAt).getTime() : 0;
-    const end = new Date(cargo.estimatedTimeOfArrival).getTime();
-    const now = Date.now();
-    const realProgress = start > 0 && end > start
-      ? Math.max(0, Math.min(1, (now - start) / (end - start)))
-      : 0;
-
+    const realProgress = computeRealProgress();
     const pos = getPositionAtProgress(route, realProgress);
 
     // Stop any animation and jump avatar to real-world position
@@ -282,7 +288,7 @@ const CargoMap: React.FC<CargoMapProps> = ({ cargo, avatar, theme }) => {
       duration: 1200,
       essential: true,
     });
-  }, [cargo.createdAt, cargo.estimatedTimeOfArrival, route]);
+  }, [computeRealProgress, route]);
 
   // ------------------------------------------------------------------
   // Render
