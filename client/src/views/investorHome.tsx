@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { FiHome, FiPackage, FiMap, FiTrendingUp, FiHeadphones, FiSettings, FiShoppingBag } from 'react-icons/fi';
+import { FiHome, FiPackage, FiMap, FiHeadphones, FiSettings, FiShoppingBag } from 'react-icons/fi';
 import type { IconType } from 'react-icons';
 import { getInvestorHome, logoutInvestor, completeInvestorKyc, getPublicAvatars, changeInvestorPassword, getInvestorProducts, AvatarData, InvestorHomeResponse, PublicProduct } from '../api/portalApi';
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
@@ -11,7 +11,6 @@ import type { DashboardTheme } from '../theme';
 import { dashboardThemes } from '../theme';
 import CargoMap from '../components/cargo/CargoMap';
 import WorldMap from '../components/WorldMap';
-import StoryMediaGallery from '../components/cargo/StoryMediaGallery';
 import LanguageSwitcher from '../components/common/LanguageSwitcher';
 import ShopSection from '../components/shop/ShopSection';
 import { track } from '../utils/analytics';
@@ -62,7 +61,6 @@ const panelButtons: Array<{ id: PanelId; labelKey: string; mobileKey: string; Ic
   { id: 'cargos',   labelKey: 'nav.cargos',  mobileKey: 'nav.cargosShort',   Icon: FiPackage },
   { id: 'map',      labelKey: 'nav.map',     mobileKey: 'nav.mapShort',      Icon: FiMap },
   { id: 'shop',     labelKey: 'nav.shop',    mobileKey: 'nav.shopShort',     Icon: FiShoppingBag },
-  { id: 'story',    labelKey: 'nav.story',   mobileKey: 'nav.storyShort',    Icon: FiTrendingUp },
   { id: 'support',  labelKey: 'nav.support', mobileKey: 'nav.supportShort',  Icon: FiHeadphones },
   { id: 'settings', labelKey: 'nav.settings',mobileKey: 'nav.settingsShort', Icon: FiSettings },
 ];
@@ -429,87 +427,6 @@ const InvestorHome: React.FC = () => {
           }}
           onOrdered={(p) => track('order-submit', { product: p.name })}
         />
-      </div>
-    );
-  };
-
-  const renderStory = () => {
-    if (!data) return null;
-
-    const cargoSteps = data.cargos;
-
-    if (cargoSteps.length > 0) {
-      return (
-        <div className="story-panel" style={{ color: theme.text }}>
-          <p className="story-intro">{t('story.intro')}</p>
-          <div className="story-timeline">
-            {cargoSteps.map((cargo, index) => {
-              const hasStory = cargo.story?.text || (cargo.story?.mediaUrls?.length ?? 0) > 0;
-              return (
-                <div key={cargo._id} className="story-step" style={{ background: theme.surface }}>
-                  <div className="story-step-number" style={{ background: theme.accent }}>{index + 1}</div>
-                  <div style={{ flex: 1 }}>
-                    <strong>{cargo.productBeingShipped}</strong>
-                    <p className="story-step-eta">{cargo.purchaseLocation} → {cargo.shippingDestination}</p>
-                    <p className="story-step-eta">{t('story.eta')} {formatDate(cargo.estimatedTimeOfArrival)}</p>
-                    {hasStory && (
-                      <div style={{ marginTop: 16 }}>
-                        {cargo.story?.text && (
-                          <p style={{ fontSize: '0.87rem', color: theme.secondaryText, lineHeight: 1.8, margin: '0 0 20px', whiteSpace: 'pre-wrap' }}>
-                            {cargo.story.text}
-                          </p>
-                        )}
-                        <StoryMediaGallery
-                          urls={cargo.story?.mediaUrls ?? []}
-                          accentColor={theme.accent}
-                        />
-                      </div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-          <div className="story-status" style={{ background: theme.surface }}>
-            <h3>{t('story.currentMission')}</h3>
-            <p>
-              {t('story.monitor', { count: cargoSteps.length })}
-            </p>
-            <div className="story-badges">
-              <span style={{ borderColor: theme.accent }}>{t('story.activeRoute')}</span>
-              <span style={{ borderColor: theme.accent }}>{t('story.profitTracking')}</span>
-              <span style={{ borderColor: theme.accent }}>{t('story.realtimeEta')}</span>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    const steps = t('story.emptySteps', { returnObjects: true }) as string[];
-
-    return (
-      <div className="story-panel" style={{ color: theme.text }}>
-        <p className="story-intro">{t('story.trackProgress')}</p>
-        <div className="story-timeline">
-          {steps.map((stepLabel, index) => (
-            <div key={stepLabel} className="story-step" style={{ background: theme.surface }}>
-              <div className="story-step-number" style={{ background: theme.accent }}>{index + 1}</div>
-              <div>
-                <strong>{stepLabel}</strong>
-                <p className="story-step-eta">{t('story.stage', { n: index + 1, total: steps.length })}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-        <div className="story-status" style={{ background: theme.surface }}>
-          <h3>{t('story.beginsTitle')}</h3>
-          <p>{t('story.beginsBody')}</p>
-          <div className="story-badges">
-            <span style={{ borderColor: theme.accent }}>{t('story.ready')}</span>
-            <span style={{ borderColor: theme.accent }}>{t('story.tracking')}</span>
-            <span style={{ borderColor: theme.accent }}>{t('story.profit')}</span>
-          </div>
-        </div>
       </div>
     );
   };
@@ -930,7 +847,6 @@ const InvestorHome: React.FC = () => {
           {activePanel === 'cargos' && renderCargos()}
           {activePanel === 'map' && renderMap()}
           {activePanel === 'shop' && renderShop()}
-          {activePanel === 'story' && renderStory()}
           {activePanel === 'support' && renderSupport()}
           {activePanel === 'settings' && renderSettings()}
         </section>
