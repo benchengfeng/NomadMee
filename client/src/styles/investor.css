@@ -189,6 +189,98 @@
   transform: translateY(-1px);
 }
 
+/* ── Gamified topbar control cluster (desktop) ──────────────────────────
+   The legacy `.investor-topbar button` rule force-styles every button in
+   the topbar (gradient + margin-top + padding). These scoped rules win on
+   specificity so the controls share one consistent height and the identity
+   block truncates instead of pushing the controls (and logout) off-screen. */
+.gamified-topbar {
+  align-items: center;          /* vertically center both halves */
+  flex-wrap: nowrap;
+}
+
+.topbar-identity {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex: 1 1 auto;
+  min-width: 0;                 /* allow the welcome text to shrink/truncate */
+}
+
+.topbar-identity > div {
+  min-width: 0;
+}
+
+.gamified-topbar h1 {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.topbar-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 0 0 auto;               /* controls keep their size, never overflow */
+}
+
+.gamified-topbar button {
+  margin-top: 0;
+}
+
+/* Segmented "Me / Globe" toggle */
+.view-mode-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.gamified-topbar .view-mode-btn {
+  margin: 0;
+  height: 32px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.65);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.16s ease, color 0.16s ease;
+}
+
+.gamified-topbar .view-mode-btn:hover {
+  color: #fff;
+}
+
+.gamified-topbar .view-mode-btn--active {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+
+/* Logout — matched height with the rest of the cluster */
+.gamified-topbar .logout-button {
+  margin: 0;
+  height: 40px;
+  padding: 0 18px;
+  border-radius: 12px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+
+/* Avatar badge — same height, sits flush with the controls */
+.gamified-topbar .topbar-avatar-badge {
+  height: 40px;
+  padding: 0 14px 0 6px !important;
+  box-sizing: border-box;
+}
+
 .gamified-grid {
   display: grid;
   grid-template-columns: 320px minmax(0, 1fr);

@@ -715,7 +715,7 @@ const InvestorHome: React.FC = () => {
   return (
     <main className={`investor-dashboard-shell gamified-shell${viewMode === 'globe' ? ' gamified-shell--globe' : ''}`} style={{ background: theme.background, color: theme.text }}>
       <div className="investor-topbar gamified-topbar">
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div className="topbar-identity">
           <img src="/logo192.png" className="topbar-brand-logo" alt="NomadMee" />
           <div>
             <p className="mini-label">{t('topbar.portal')}</p>
@@ -723,7 +723,7 @@ const InvestorHome: React.FC = () => {
             <p className="mini-description">{t('topbar.subtitle')}</p>
           </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <div className="topbar-controls">
           {/* View toggle */}
           <div className="view-mode-toggle">
             <button
