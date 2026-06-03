@@ -20,8 +20,8 @@ export type LanguageMeta = {
 export const LANGUAGES: LanguageMeta[] = [
   { code: 'en', label: 'English',  flag: '🇬🇧', dir: 'ltr' },
   { code: 'fr', label: 'Français', flag: '🇫🇷', dir: 'ltr' },
-  { code: 'ar', label: 'العربية',  flag: '🇹🇳', dir: 'rtl', font: "'Cairo', 'Noto Sans Arabic', sans-serif" },
-  { code: 'zh', label: '简体中文',  flag: '🇨🇳', dir: 'ltr', font: "'Noto Sans SC', sans-serif" },
+  { code: 'ar', label: 'العربية',  flag: '🇸🇦', dir: 'rtl', font: "'Cairo', 'Noto Sans Arabic', sans-serif" },
+  { code: 'zh', label: '中文',      flag: '🇨🇳', dir: 'ltr', font: "'Noto Sans SC', sans-serif" },
 ];
 
 export const LANGUAGE_CODES = LANGUAGES.map((l) => l.code);
