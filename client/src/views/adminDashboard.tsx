@@ -40,7 +40,9 @@ import { dashboardThemes } from '../theme';
 import { COUNTRIES } from '../utils/countries';
 import MediaUploader from '../components/admin/MediaUploader';
 import ImageCropUploader from '../components/admin/ImageCropUploader';
+import SocialLinksEditor from '../components/admin/SocialLinksEditor';
 import StoryMediaGallery from '../components/cargo/StoryMediaGallery';
+import { SocialLinks } from '../components/common/socialPlatforms';
 
 // ---------------------------------------------------------------------------
 // Avatar crop helpers
@@ -1231,6 +1233,7 @@ const AdminDashboard: React.FC = () => {
               title: siteContent.title,
               body: siteContent.body,
               mediaUrls: siteContent.mediaUrls,
+              links: siteContent.links ?? [],
             });
             setSiteContent(res.content);
             showToast('Content saved!');
@@ -1266,6 +1269,13 @@ const AdminDashboard: React.FC = () => {
                   onAdd={(url) => setSiteContent((c) => ({ ...c, mediaUrls: [...(c.mediaUrls ?? []), url] }))}
                   onRemove={(url) => setSiteContent((c) => ({ ...c, mediaUrls: c.mediaUrls?.filter((u) => u !== url) }))}
                 />
+                <label style={{ marginTop: 8, borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 12 }}>
+                  Social &amp; external links <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 400 }}>(shown under the story)</span>
+                </label>
+                <SocialLinksEditor
+                  links={siteContent.links ?? []}
+                  onChange={(links) => setSiteContent((c) => ({ ...c, links }))}
+                />
                 <button type="submit" disabled={savingSiteContent}>{savingSiteContent ? 'Saving...' : 'Save Content'}</button>
               </form>
             </article>
@@ -1282,6 +1292,11 @@ const AdminDashboard: React.FC = () => {
                   {(siteContent.mediaUrls ?? []).map((url) => (
                     <span key={url} className="relation-chip relation-chip--cargo" style={{ fontSize: '0.72rem', wordBreak: 'break-all' }}>🖼 {url}</span>
                   ))}
+                </div>
+              )}
+              {(siteContent.links ?? []).length > 0 && (
+                <div style={{ marginTop: 16 }}>
+                  <SocialLinks links={siteContent.links ?? []} />
                 </div>
               )}
             </article>

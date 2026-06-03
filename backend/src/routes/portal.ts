@@ -155,6 +155,22 @@ function normalizeImages(value: unknown): string[] {
   return value.map((u) => String(u || '').trim()).filter(Boolean).slice(0, 4);
 }
 
+function normalizeSocialLinks(value: unknown): Array<{ platform: string; label: string; url: string }> {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((raw) => {
+      const l = raw as { platform?: unknown; label?: unknown; url?: unknown };
+      const platform = String(l?.platform ?? '').trim().toLowerCase();
+      let url = String(l?.url ?? '').trim();
+      if (!platform || !url) return null;
+      // Tolerate admins pasting a bare domain/handle — make it a real link.
+      if (!/^https?:\/\//i.test(url) && !url.startsWith('mailto:')) url = `https://${url}`;
+      return { platform, label: String(l?.label ?? '').trim(), url };
+    })
+    .filter((l): l is { platform: string; label: string; url: string } => l !== null)
+    .slice(0, 12);
+}
+
 // Best-effort admin notification for a new product order. Never throws —
 // an SMTP hiccup must not fail the customer's order acknowledgement.
 async function sendOrderNotification(order: {
@@ -340,7 +356,7 @@ router.get('/public/avatars', async (_req: Request, res: Response): Promise<void
 router.get('/public/site-content/:key', async (req: Request, res: Response): Promise<void> => {
   try {
     const content = await SiteContentModel.findOne({ key: req.params.key }).lean();
-    res.status(200).json({ content: content ?? { key: req.params.key, title: '', body: '', mediaUrls: [] } });
+    res.status(200).json({ content: content ?? { key: req.params.key, title: '', body: '', mediaUrls: [], links: [] } });
   } catch {
     res.status(500).json({ message: 'Failed to load content.' });
   }
@@ -1003,7 +1019,7 @@ router.put('/admin/site-content/:key', async (req: Request, res: Response): Prom
 
   try {
     const { key } = req.params;
-    const { title, body, mediaUrls } = req.body as { title?: string; body?: string; mediaUrls?: string[] };
+    const { title, body, mediaUrls, links } = req.body as { title?: string; body?: string; mediaUrls?: string[]; links?: unknown };
 
     const content = await SiteContentModel.findOneAndUpdate(
       { key },
@@ -1012,6 +1028,7 @@ router.put('/admin/site-content/:key', async (req: Request, res: Response): Prom
         title: String(title || '').trim(),
         body: String(body || '').trim(),
         mediaUrls: Array.isArray(mediaUrls) ? mediaUrls.filter(Boolean) : [],
+        links: normalizeSocialLinks(links),
       },
       { new: true, upsert: true, runValidators: true }
     );

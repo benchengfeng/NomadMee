@@ -180,11 +180,18 @@ export type ProductOrderInput = {
   message?: string;
 };
 
+export type SocialLink = {
+  platform: string;
+  label: string;
+  url: string;
+};
+
 export type SiteContent = {
   key: string;
   title?: string;
   body?: string;
   mediaUrls?: string[];
+  links?: SocialLink[];
 };
 
 export type ContactRequest = {

@@ -5,6 +5,7 @@ import { landingThemes } from '../utils/landingThemes';
 import WorldMap from '../components/WorldMap';
 import StoryMediaGallery from '../components/cargo/StoryMediaGallery';
 import LanguageSwitcher from '../components/common/LanguageSwitcher';
+import { SocialLinks } from '../components/common/socialPlatforms';
 import ShopSection from '../components/shop/ShopSection';
 import { track } from '../utils/analytics';
 import { getPublicInvestments, getPublicSiteContent, getPublicProducts, PublicInvestment, PublicProduct, SiteContent } from '../api/portalApi';
@@ -225,6 +226,7 @@ const LandingPage: React.FC = () => {
             {(siteContent?.mediaUrls ?? []).length > 0 && (
               <StoryMediaGallery urls={siteContent!.mediaUrls ?? []} accentColor={palette.accent} />
             )}
+            <SocialLinks links={siteContent?.links ?? []} accent={palette.accent} className="social-links--who" />
           </div>
         )}
       </div>
