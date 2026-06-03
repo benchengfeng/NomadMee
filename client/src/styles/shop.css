@@ -320,6 +320,17 @@
   margin-left: 4px;
 }
 
+.shop-ship-note {
+  margin: -6px 0 0;
+  font-size: 0.74rem;
+  line-height: 1.5;
+  color: var(--shop-muted);
+  background: color-mix(in srgb, var(--shop-accent) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--shop-accent) 22%, transparent);
+  border-radius: 9px;
+  padding: 8px 11px;
+}
+
 .shop-modal-section-label {
   font-size: 0.64rem;
   font-weight: 700;

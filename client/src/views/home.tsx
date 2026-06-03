@@ -204,6 +204,7 @@ const LandingPage: React.FC = () => {
               products={products}
               loading={loadingProducts}
               emptyLabel={t('shop.none')}
+              shipNote={t('shop.shipNote')}
               onOrdered={(p) => track('order-submit', { product: p.name })}
             />
           </div>

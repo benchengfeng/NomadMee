@@ -17,7 +17,8 @@
   "shop": {
     "eyebrow": "En direct du producteur",
     "title": "À la source",
-    "sub": "Le prix affiché correspond au produit uniquement — les frais de livraison sont ajoutés séparément après que nous vous ayons contacté pour les estimer précisément selon votre localisation.",
+    "sub": "Des produits bio d'Afrique de l'Ouest, sourcés directement auprès de ceux qui les cultivent.",
+    "shipNote": "Frais de livraison calculés individuellement selon votre localisation et la taille de votre commande. Nous vous contacterons après commande.",
     "none": "Produits bientôt disponibles."
   },
   "status": {

@@ -18,15 +18,23 @@ interface ShopSectionProps {
   loading?: boolean;
   theme?: ShopTheme;
   emptyLabel?: string;
+  /** Small shipping notice shown under the price. */
+  shipNote?: string;
   /** Fired when a buyer successfully places an order (for analytics). */
   onOrdered?: (product: PublicProduct) => void;
 }
 
-function formatPrice(price: number, currency: string): string {
-  return `${price.toLocaleString()} ${currency}`;
+// Prices are shown in euros across the shop.
+const CURRENCY_SYMBOLS: Record<string, string> = { USD: '€', EUR: '€', TND: 'DT', CNY: '¥', GBP: '£' };
+function currencySymbol(currency: string): string {
+  return CURRENCY_SYMBOLS[(currency || '').toUpperCase()] ?? currency;
 }
 
-const ShopSection: React.FC<ShopSectionProps> = ({ products, loading, theme, emptyLabel, onOrdered }) => {
+function formatPrice(price: number, currency: string): string {
+  return `${price.toLocaleString()} ${currencySymbol(currency)}`;
+}
+
+const ShopSection: React.FC<ShopSectionProps> = ({ products, loading, theme, emptyLabel, shipNote, onOrdered }) => {
   const [active, setActive] = useState<PublicProduct | null>(null);
 
   const rootStyle = useMemo(() => {
@@ -71,7 +79,7 @@ const ShopSection: React.FC<ShopSectionProps> = ({ products, loading, theme, emp
                   <p className="shop-card-desc">{p.description}</p>
                   <div className="shop-card-footer">
                     <span className="shop-card-price">
-                      {p.price.toLocaleString()}<small>{p.currency}</small>
+                      {p.price.toLocaleString()}<small>{currencySymbol(p.currency)}</small>
                     </span>
                     <span className="shop-card-btn">Order Now</span>
                   </div>
@@ -85,6 +93,7 @@ const ShopSection: React.FC<ShopSectionProps> = ({ products, loading, theme, emp
       {active && (
         <ProductModal
           product={active}
+          shipNote={shipNote}
           onClose={() => setActive(null)}
           onOrdered={() => onOrdered?.(active)}
         />
@@ -99,11 +108,12 @@ const ShopSection: React.FC<ShopSectionProps> = ({ products, loading, theme, emp
 
 interface ProductModalProps {
   product: PublicProduct;
+  shipNote?: string;
   onClose: () => void;
   onOrdered: () => void;
 }
 
-const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onOrdered }) => {
+const ProductModal: React.FC<ProductModalProps> = ({ product, shipNote, onClose, onOrdered }) => {
   const gallery = useMemo(
     () => [product.coverImageUrl, ...(product.images || [])].filter(Boolean),
     [product]
@@ -155,10 +165,10 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onOrdered
         {step === 'done' ? (
           <div className="shop-success">
             <div className="shop-success-icon">✓</div>
-            <h3 style={{ margin: '0 0 8px', fontSize: '1.25rem', fontWeight: 800 }}>Order received!</h3>
-            <p style={{ margin: '0 auto', maxWidth: 380, fontSize: '0.88rem', color: 'var(--shop-muted)', lineHeight: 1.6 }}>
-              Thank you, {fullName.split(' ')[0] || 'friend'}. We’ve received your request for <strong style={{ color: 'var(--shop-text)' }}>{product.name}</strong> and
-              will reach out at <strong style={{ color: 'var(--shop-text)' }}>{email}</strong> to confirm the details.
+            <h3 style={{ margin: '0 0 8px', fontSize: '1.25rem', fontWeight: 800 }}>Thank you for your order!</h3>
+            <p style={{ margin: '0 auto', maxWidth: 400, fontSize: '0.88rem', color: 'var(--shop-muted)', lineHeight: 1.65 }}>
+              {fullName.split(' ')[0] ? `Thanks, ${fullName.split(' ')[0]} — your` : 'Your'} request for <strong style={{ color: 'var(--shop-text)' }}>{product.name}</strong> is in.
+              We’ll contact you at <strong style={{ color: 'var(--shop-text)' }}>{email}</strong> within 24 hours to confirm shipping costs to your location and share payment details. We ship worldwide. 🌍
             </p>
             <button type="button" className="shop-order-btn" style={{ marginTop: 22, width: '100%', maxWidth: 240 }} onClick={onClose}>
               Done
@@ -199,6 +209,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, onClose, onOrdered
                     {formatPrice(unitPrice, product.currency)}
                     {variant && <small>· {variant.label}</small>}
                   </div>
+                  {shipNote && <p className="shop-ship-note">🚚 {shipNote}</p>}
 
                   {product.description && <p className="shop-modal-desc">{product.description}</p>}
 

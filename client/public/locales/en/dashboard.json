@@ -125,7 +125,8 @@
   "shop": {
     "eyebrow": "Sourced directly",
     "title": "The Shop",
-    "sub": "The price shown is for the product only — shipping is added separately once we contact you to estimate it accurately for your location.",
+    "sub": "Organic West African staples, sourced directly from the people who grow them.",
+    "shipNote": "Shipping calculated individually based on your location and order size. We'll contact you after ordering.",
     "none": "Products coming soon."
   }
 }

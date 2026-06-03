@@ -418,6 +418,7 @@ const InvestorHome: React.FC = () => {
           products={products}
           loading={loadingProducts}
           emptyLabel={t('shop.none')}
+          shipNote={t('shop.shipNote')}
           theme={{
             accent: theme.accent,
             card: theme.surface,
