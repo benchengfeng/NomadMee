@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { PublicProduct, ProductVariant, submitProductOrder } from '../../api/portalApi';
 import { COUNTRIES } from '../../utils/countries';
 import '../../styles/shop.css';
@@ -20,6 +20,10 @@ interface ShopSectionProps {
   emptyLabel?: string;
   /** Small shipping notice shown under the price. */
   shipNote?: string;
+  /** Open this product's modal on mount (deep-linking, e.g. /shop/:id). */
+  initialProductId?: string;
+  /** Fired when the open product changes — lets a host page sync the URL. */
+  onActiveChange?: (product: PublicProduct | null) => void;
   /** Fired when a buyer successfully places an order (for analytics). */
   onOrdered?: (product: PublicProduct) => void;
 }
@@ -34,8 +38,21 @@ function formatPrice(price: number, currency: string): string {
   return `${price.toLocaleString()} ${currencySymbol(currency)}`;
 }
 
-const ShopSection: React.FC<ShopSectionProps> = ({ products, loading, theme, emptyLabel, shipNote, onOrdered }) => {
+const ShopSection: React.FC<ShopSectionProps> = ({ products, loading, theme, emptyLabel, shipNote, initialProductId, onActiveChange, onOrdered }) => {
   const [active, setActive] = useState<PublicProduct | null>(null);
+
+  // User-driven open/close — also notifies the host so it can update the URL.
+  const selectProduct = (product: PublicProduct | null) => {
+    setActive(product);
+    onActiveChange?.(product);
+  };
+
+  // URL → state: open the deep-linked product once it's available.
+  useEffect(() => {
+    if (!initialProductId) return;
+    const found = products.find((p) => p._id === initialProductId);
+    setActive((prev) => (found && prev?._id !== found._id ? found : prev));
+  }, [initialProductId, products]);
 
   const rootStyle = useMemo(() => {
     const s: Record<string, string> = {};
@@ -64,7 +81,7 @@ const ShopSection: React.FC<ShopSectionProps> = ({ products, loading, theme, emp
           {products.map((p) => {
             const out = p.stock <= 0;
             return (
-              <button key={p._id} type="button" className="shop-card" onClick={() => setActive(p)}>
+              <button key={p._id} type="button" className="shop-card" onClick={() => selectProduct(p)}>
                 <div className="shop-card-media">
                   {p.coverImageUrl ? (
                     <img src={p.coverImageUrl} alt={p.name} loading="lazy" />
@@ -94,7 +111,7 @@ const ShopSection: React.FC<ShopSectionProps> = ({ products, loading, theme, emp
         <ProductModal
           product={active}
           shipNote={shipNote}
-          onClose={() => setActive(null)}
+          onClose={() => selectProduct(null)}
           onOrdered={() => onOrdered?.(active)}
         />
       )}
