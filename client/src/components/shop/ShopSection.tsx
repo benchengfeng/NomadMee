@@ -38,8 +38,49 @@ function formatPrice(price: number, currency: string): string {
   return `${price.toLocaleString()} ${currencySymbol(currency)}`;
 }
 
+// A little gamified flavour: a glyph per category (matched loosely, with a
+// friendly fallback) so the filter chips feel playful rather than utilitarian.
+const CATEGORY_EMOJI: Array<[RegExp, string]> = [
+  [/superfood|super/i, '🌱'],
+  [/tea|herbal|infusion/i, '🍵'],
+  [/spice|pepper|chili|chilli/i, '🌶️'],
+  [/grain|cereal|rice|sorghum|millet/i, '🌾'],
+  [/nut|tiger ?nut|seed/i, '🥜'],
+  [/oil|butter|shea/i, '🫗'],
+  [/snack|bar|bite/i, '🍪'],
+  [/fruit|dried/i, '🥭'],
+  [/honey|sweet/i, '🍯'],
+  [/coffee|cocoa|cacao/i, '☕'],
+];
+
+function categoryEmoji(category: string): string {
+  for (const [re, emoji] of CATEGORY_EMOJI) if (re.test(category)) return emoji;
+  return '🏷️';
+}
+
 const ShopSection: React.FC<ShopSectionProps> = ({ products, loading, theme, emptyLabel, shipNote, initialProductId, onActiveChange, onOrdered }) => {
   const [active, setActive] = useState<PublicProduct | null>(null);
+  const [category, setCategory] = useState<string>('all');
+
+  // Distinct categories present in the catalogue, with product counts.
+  const categories = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const p of products) {
+      const c = (p.category || '').trim();
+      if (c) counts.set(c, (counts.get(c) ?? 0) + 1);
+    }
+    return Array.from(counts, ([name, count]) => ({ name, count }));
+  }, [products]);
+
+  // Reset the filter if the selected category disappears (e.g. after a reload).
+  useEffect(() => {
+    if (category !== 'all' && !categories.some((c) => c.name === category)) setCategory('all');
+  }, [categories, category]);
+
+  const visibleProducts = useMemo(
+    () => (category === 'all' ? products : products.filter((p) => (p.category || '').trim() === category)),
+    [products, category],
+  );
 
   // User-driven open/close — also notifies the host so it can update the URL.
   const selectProduct = (product: PublicProduct | null) => {
@@ -77,11 +118,49 @@ const ShopSection: React.FC<ShopSectionProps> = ({ products, loading, theme, emp
       ) : products.length === 0 ? (
         <p className="shop-empty">{emptyLabel ?? 'Products coming soon.'}</p>
       ) : (
-        <div className="shop-grid">
-          {products.map((p) => {
+        <>
+          {categories.length > 1 && (
+            <div className="shop-filter" role="tablist" aria-label="Filter by category">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={category === 'all'}
+                className={`shop-chip${category === 'all' ? ' shop-chip--active' : ''}`}
+                onClick={() => setCategory('all')}
+              >
+                <span className="shop-chip-emoji">✨</span>
+                All
+                <span className="shop-chip-count">{products.length}</span>
+              </button>
+              {categories.map((c) => (
+                <button
+                  key={c.name}
+                  type="button"
+                  role="tab"
+                  aria-selected={category === c.name}
+                  className={`shop-chip${category === c.name ? ' shop-chip--active' : ''}`}
+                  onClick={() => setCategory(c.name)}
+                >
+                  <span className="shop-chip-emoji">{categoryEmoji(c.name)}</span>
+                  {c.name}
+                  <span className="shop-chip-count">{c.count}</span>
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* keyed by category so cards re-run their staggered entrance on filter */}
+          <div className="shop-grid" key={category}>
+          {visibleProducts.map((p, i) => {
             const out = p.stock <= 0;
             return (
-              <button key={p._id} type="button" className="shop-card" onClick={() => selectProduct(p)}>
+              <button
+                key={p._id}
+                type="button"
+                className="shop-card"
+                style={{ animationDelay: `${Math.min(i, 12) * 45}ms` }}
+                onClick={() => selectProduct(p)}
+              >
                 <div className="shop-card-media">
                   {p.coverImageUrl ? (
                     <img src={p.coverImageUrl} alt={p.name} loading="lazy" />
@@ -104,7 +183,8 @@ const ShopSection: React.FC<ShopSectionProps> = ({ products, loading, theme, emp
               </button>
             );
           })}
-        </div>
+          </div>
+        </>
       )}
 
       {active && (

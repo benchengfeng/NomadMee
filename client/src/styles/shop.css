@@ -137,6 +137,81 @@
   --shop-border: rgba(255, 255, 255, 0.08);
 }
 
+/* ── Category filter chips ───────────────────────────────────────── */
+.shop-filter {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 22px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.shop-filter::-webkit-scrollbar { display: none; }
+
+.shop-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  padding: 9px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--shop-border);
+  background: var(--shop-card);
+  color: var(--shop-text);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform 0.18s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.18s, background 0.18s, box-shadow 0.18s;
+}
+
+.shop-chip:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--shop-accent) 55%, transparent);
+}
+
+.shop-chip:active {
+  transform: scale(0.95);
+}
+
+.shop-chip--active {
+  background: var(--shop-accent);
+  border-color: var(--shop-accent);
+  color: #1a1206;
+  box-shadow: 0 8px 22px -8px color-mix(in srgb, var(--shop-accent) 75%, transparent);
+}
+
+.shop-chip-emoji {
+  font-size: 0.98rem;
+  line-height: 1;
+  transition: transform 0.18s ease;
+}
+
+.shop-chip--active .shop-chip-emoji {
+  transform: scale(1.18) rotate(-6deg);
+}
+
+.shop-chip-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  background: color-mix(in srgb, var(--shop-muted) 22%, transparent);
+  color: var(--shop-text);
+}
+
+.shop-chip--active .shop-chip-count {
+  background: rgba(26, 18, 6, 0.22);
+  color: #1a1206;
+}
+
 .shop-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -154,6 +229,16 @@
   text-align: left;
   padding: 0;
   transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), border-color 0.22s, box-shadow 0.22s;
+  animation: shop-card-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes shop-card-in {
+  from { opacity: 0; transform: translateY(14px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shop-card { animation: none; }
 }
 
 .shop-card:hover {
