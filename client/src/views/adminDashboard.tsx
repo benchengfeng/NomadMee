@@ -224,6 +224,9 @@ const AdminDashboard: React.FC = () => {
   const [savingInvestment, setSavingInvestment] = useState(false);
   const [siteContent, setSiteContent] = useState<SiteContent>({ key: 'who_are_we', title: '', body: '', mediaUrls: [] });
   const [savingSiteContent, setSavingSiteContent] = useState(false);
+  const [earthGallery, setEarthGallery] = useState<string[]>([]);
+  const [handsGallery, setHandsGallery] = useState<string[]>([]);
+  const [savingGallery, setSavingGallery] = useState<'earth' | 'hands' | null>(null);
   const [unreadContactCount, setUnreadContactCount] = useState(0);
   const [contactRequests, setContactRequests] = useState<ContactRequest[]>([]);
   const [contactsLoaded, setContactsLoaded] = useState(false);
@@ -301,13 +304,17 @@ const AdminDashboard: React.FC = () => {
     let mounted = true;
     const load = async () => {
       try {
-        const [response, contentRes] = await Promise.all([
+        const [response, contentRes, earthRes, handsRes] = await Promise.all([
           getAdminDashboard(),
           getPublicSiteContent('who_are_we'),
+          getPublicSiteContent('shop_gallery_earth'),
+          getPublicSiteContent('shop_gallery_hands'),
         ]);
         if (mounted) {
           setData(response);
           setSiteContent(contentRes.content);
+          setEarthGallery(earthRes.content.mediaUrls ?? []);
+          setHandsGallery(handsRes.content.mediaUrls ?? []);
           setUnreadContactCount(response.unreadContactCount ?? 0);
           setUnreadOrderCount(response.unreadOrderCount ?? 0);
           setError(null);
@@ -1434,7 +1441,25 @@ const AdminDashboard: React.FC = () => {
           } finally { setSavingSiteContent(false); }
         };
 
+        const saveGallery = async (which: 'earth' | 'hands') => {
+          setSavingGallery(which);
+          try {
+            const key = which === 'earth' ? 'shop_gallery_earth' : 'shop_gallery_hands';
+            const urls = which === 'earth' ? earthGallery : handsGallery;
+            await updateSiteContent(key, { title: '', body: '', mediaUrls: urls });
+            showToast('Gallery saved!');
+          } catch (err) {
+            showToast(err instanceof Error ? err.message : 'Failed to save gallery', 'error');
+          } finally { setSavingGallery(null); }
+        };
+
+        const galleryCards: Array<{ which: 'earth' | 'hands'; title: string; hint: string; urls: string[]; set: React.Dispatch<React.SetStateAction<string[]>> }> = [
+          { which: 'earth', title: '🌱 Shop · From the Earth gallery', hint: 'Photos & videos showcased at the bottom of the "From the Earth" shop section.', urls: earthGallery, set: setEarthGallery },
+          { which: 'hands', title: '🥁 Shop · From the Hands gallery', hint: 'Photos & videos showcased at the bottom of the "From the Hands" shop section.', urls: handsGallery, set: setHandsGallery },
+        ];
+
         return (
+          <>
           <div className="admin-section-grid">
             <article className="portal-card">
               <h2>Who Are We?</h2>
@@ -1493,6 +1518,28 @@ const AdminDashboard: React.FC = () => {
               )}
             </article>
           </div>
+
+          {/* Shop section showcase galleries */}
+          <div className="admin-section-grid" style={{ marginTop: 24 }}>
+            {galleryCards.map((g) => (
+              <article className="portal-card" key={g.which}>
+                <h2>{g.title}</h2>
+                <p style={{ color: '#64748b', fontSize: '0.82rem', marginBottom: 16 }}>{g.hint}</p>
+                <form className="portal-form" onSubmit={(e) => { e.preventDefault(); void saveGallery(g.which); }}>
+                  <label>Photos &amp; videos</label>
+                  <MediaUploader
+                    urls={g.urls}
+                    onAdd={(url) => g.set((prev) => [...prev, url])}
+                    onRemove={(url) => g.set((prev) => prev.filter((u) => u !== url))}
+                  />
+                  <button type="submit" disabled={savingGallery === g.which}>
+                    {savingGallery === g.which ? 'Saving…' : 'Save gallery'}
+                  </button>
+                </form>
+              </article>
+            ))}
+          </div>
+          </>
         );
       })()}
 

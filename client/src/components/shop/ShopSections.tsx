@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
-import { PublicProduct } from '../../api/portalApi';
+import { PublicProduct, ShopGalleries } from '../../api/portalApi';
 import ShopSection, { ShopTheme, shopThemeVars } from './ShopSection';
+import ShopGallery from './ShopGallery';
 import '../../styles/shop.css';
 
 export type ShopFamily = 'earth' | 'hands';
@@ -25,6 +26,7 @@ export interface ShopFamilyLabels {
   handsTitle: string;
   handsSub: string;
   empty?: string;
+  gallery?: string;
 }
 
 interface ShopSectionsProps {
@@ -33,6 +35,7 @@ interface ShopSectionsProps {
   theme?: ShopTheme;
   shipNote?: string;
   labels: ShopFamilyLabels;
+  galleries?: ShopGalleries;
   initialProductId?: string;
   onActiveChange?: (product: PublicProduct | null) => void;
   onOrdered?: (product: PublicProduct) => void;
@@ -44,7 +47,7 @@ interface ShopSectionsProps {
  * same ShopSection grid & card design. Empty families are hidden entirely.
  */
 const ShopSections: React.FC<ShopSectionsProps> = ({
-  products, loading, theme, shipNote, labels, initialProductId, onActiveChange, onOrdered,
+  products, loading, theme, shipNote, labels, galleries, initialProductId, onActiveChange, onOrdered,
 }) => {
   const rootStyle = useMemo(() => shopThemeVars(theme), [theme]);
 
@@ -81,6 +84,10 @@ const ShopSections: React.FC<ShopSectionsProps> = ({
             initialProductId={initialProductId}
             onActiveChange={onActiveChange}
             onOrdered={onOrdered}
+          />
+          <ShopGallery
+            urls={f.key === 'earth' ? (galleries?.earth ?? []) : (galleries?.hands ?? [])}
+            label={labels.gallery}
           />
         </section>
       ))}

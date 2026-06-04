@@ -8,7 +8,7 @@ import LanguageSwitcher from '../components/common/LanguageSwitcher';
 import { SocialLinks } from '../components/common/socialPlatforms';
 import ShopSections from '../components/shop/ShopSections';
 import { track } from '../utils/analytics';
-import { getPublicInvestments, getPublicSiteContent, getPublicProducts, PublicInvestment, PublicProduct, SiteContent } from '../api/portalApi';
+import { getPublicInvestments, getPublicSiteContent, getPublicProducts, PublicInvestment, PublicProduct, ShopGalleries, SiteContent } from '../api/portalApi';
 import '../styles/landing.css';
 
 type LandingSection = 'globe' | 'investments' | 'shop' | 'who';
@@ -34,6 +34,7 @@ const LandingPage: React.FC = () => {
   const [investments, setInvestments] = useState<PublicInvestment[]>([]);
   const [loadingInvestments, setLoadingInvestments] = useState(false);
   const [products, setProducts] = useState<PublicProduct[]>([]);
+  const [shopGalleries, setShopGalleries] = useState<ShopGalleries>({ earth: [], hands: [] });
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [productsLoaded, setProductsLoaded] = useState(false);
   const [siteContent, setSiteContent] = useState<SiteContent | null>(null);
@@ -52,7 +53,7 @@ const LandingPage: React.FC = () => {
     if (section === 'shop' && !productsLoaded) {
       setLoadingProducts(true);
       getPublicProducts()
-        .then((r) => { setProducts(r.products); setProductsLoaded(true); })
+        .then((r) => { setProducts(r.products); setShopGalleries(r.galleries); setProductsLoaded(true); })
         .catch(() => {})
         .finally(() => setLoadingProducts(false));
     }
@@ -201,6 +202,7 @@ const LandingPage: React.FC = () => {
             <ShopSections
               products={products}
               loading={loadingProducts}
+              galleries={shopGalleries}
               shipNote={t('shop.shipNote')}
               labels={{
                 earthTitle: t('shop.earthTitle'),
@@ -208,6 +210,7 @@ const LandingPage: React.FC = () => {
                 handsTitle: t('shop.handsTitle'),
                 handsSub: t('shop.handsSub'),
                 empty: t('shop.none'),
+                gallery: t('shop.gallery'),
               }}
               onOrdered={(p) => track('order-submit', { product: p.name })}
             />

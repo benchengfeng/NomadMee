@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { FiHome, FiPackage, FiMap, FiHeadphones, FiSettings, FiShoppingBag } from 'react-icons/fi';
 import type { IconType } from 'react-icons';
-import { getInvestorHome, logoutInvestor, completeInvestorKyc, getPublicAvatars, changeInvestorPassword, getInvestorProducts, AvatarData, InvestorHomeResponse, PublicProduct } from '../api/portalApi';
+import { getInvestorHome, logoutInvestor, completeInvestorKyc, getPublicAvatars, changeInvestorPassword, getInvestorProducts, AvatarData, InvestorHomeResponse, PublicProduct, ShopGalleries } from '../api/portalApi';
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { setTheme } from '../redux/slices/themeSlice';
 import { PanelId, setActivePanel, setSelectedCargoId } from '../redux/slices/dashboardUiSlice';
@@ -84,6 +84,7 @@ const InvestorHome: React.FC = () => {
 
   // Shop products
   const [products, setProducts] = useState<PublicProduct[]>([]);
+  const [shopGalleries, setShopGalleries] = useState<ShopGalleries>({ earth: [], hands: [] });
   const [productsLoaded, setProductsLoaded] = useState(false);
   const [loadingProducts, setLoadingProducts] = useState(false);
 
@@ -179,7 +180,7 @@ const InvestorHome: React.FC = () => {
       track('shop-open');
       setLoadingProducts(true);
       getInvestorProducts()
-        .then((r) => { setProducts(r.products); setProductsLoaded(true); })
+        .then((r) => { setProducts(r.products); setShopGalleries(r.galleries); setProductsLoaded(true); })
         .catch(() => {})
         .finally(() => setLoadingProducts(false));
     }
@@ -430,6 +431,7 @@ const InvestorHome: React.FC = () => {
         <ShopSections
           products={products}
           loading={loadingProducts}
+          galleries={shopGalleries}
           shipNote={t('shop.shipNote')}
           labels={{
             earthTitle: t('shop.earthTitle'),
@@ -437,6 +439,7 @@ const InvestorHome: React.FC = () => {
             handsTitle: t('shop.handsTitle'),
             handsSub: t('shop.handsSub'),
             empty: t('shop.none'),
+            gallery: t('shop.gallery'),
           }}
           theme={{
             accent: theme.accent,

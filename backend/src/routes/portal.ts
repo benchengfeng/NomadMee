@@ -369,10 +369,27 @@ function mapPublicProduct(p: Record<string, unknown> & { _id: unknown }) {
   };
 }
 
+// Per-section showcase galleries, stored as SiteContent media lists.
+const SHOP_GALLERY_KEYS = { earth: 'shop_gallery_earth', hands: 'shop_gallery_hands' } as const;
+
+async function loadShopGalleries(): Promise<{ earth: string[]; hands: string[] }> {
+  const [earth, hands] = await Promise.all([
+    SiteContentModel.findOne({ key: SHOP_GALLERY_KEYS.earth }).select('mediaUrls').lean(),
+    SiteContentModel.findOne({ key: SHOP_GALLERY_KEYS.hands }).select('mediaUrls').lean(),
+  ]);
+  return {
+    earth: (earth?.mediaUrls ?? []).filter(Boolean),
+    hands: (hands?.mediaUrls ?? []).filter(Boolean),
+  };
+}
+
 router.get('/public/products', async (_req: Request, res: Response): Promise<void> => {
   try {
-    const products = await ProductModel.find({ active: true }).sort({ createdAt: -1 }).lean();
-    res.status(200).json({ products: products.map((p) => mapPublicProduct(p as never)) });
+    const [products, galleries] = await Promise.all([
+      ProductModel.find({ active: true }).sort({ createdAt: -1 }).lean(),
+      loadShopGalleries(),
+    ]);
+    res.status(200).json({ products: products.map((p) => mapPublicProduct(p as never)), galleries });
   } catch {
     res.status(500).json({ message: 'Failed to load products.' });
   }
@@ -1305,8 +1322,11 @@ router.get('/investor/products', async (req: Request, res: Response): Promise<vo
   const investorId = await requireInvestor(req, res);
   if (!investorId) return;
   try {
-    const products = await ProductModel.find({ active: true }).sort({ createdAt: -1 }).lean();
-    res.status(200).json({ products: products.map((p) => mapPublicProduct(p as never)) });
+    const [products, galleries] = await Promise.all([
+      ProductModel.find({ active: true }).sort({ createdAt: -1 }).lean(),
+      loadShopGalleries(),
+    ]);
+    res.status(200).json({ products: products.map((p) => mapPublicProduct(p as never)), galleries });
   } catch {
     res.status(500).json({ message: 'Failed to load products.' });
   }

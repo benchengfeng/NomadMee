@@ -137,6 +137,196 @@
   --shop-border: rgba(255, 255, 255, 0.08);
 }
 
+/* ── Section showcase gallery (horizontal reel) ──────────────────── */
+.shop-gallery {
+  margin-top: 30px;
+}
+
+.shop-gallery-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.shop-gallery-kicker {
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--shop-accent);
+}
+
+.shop-gallery-nav {
+  display: flex;
+  gap: 8px;
+}
+
+.shop-gallery-nav button {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--shop-border);
+  background: var(--shop-card);
+  color: var(--shop-text);
+  font-size: 1.1rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color 0.16s, transform 0.16s, background 0.16s;
+}
+
+.shop-gallery-nav button:hover {
+  border-color: var(--shop-accent);
+  transform: translateY(-1px);
+}
+
+.shop-gallery-strip {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding-bottom: 8px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  /* fade the edges so the strip feels like it flows beyond the frame */
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 24px, #000 calc(100% - 24px), transparent);
+          mask-image: linear-gradient(90deg, transparent, #000 24px, #000 calc(100% - 24px), transparent);
+}
+
+.shop-gallery-strip::-webkit-scrollbar { display: none; }
+
+.shop-gallery-tile {
+  position: relative;
+  flex: 0 0 auto;
+  height: 230px;
+  border: none;
+  padding: 0;
+  border-radius: 18px;
+  overflow: hidden;
+  cursor: zoom-in;
+  scroll-snap-align: start;
+  background: var(--shop-card);
+  box-shadow: 0 16px 38px -20px rgba(0, 0, 0, 0.7);
+  transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.28s;
+  animation: shop-card-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.shop-gallery-tile:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 24px 50px -22px color-mix(in srgb, var(--shop-accent) 55%, black);
+}
+
+.shop-gallery-tile img,
+.shop-gallery-tile video {
+  display: block;
+  height: 100%;
+  width: auto;
+  max-width: 360px;
+  min-width: 150px;
+  object-fit: cover;
+  transition: transform 0.45s ease;
+}
+
+.shop-gallery-tile:hover img,
+.shop-gallery-tile:hover video {
+  transform: scale(1.06);
+}
+
+.shop-gallery-play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(4px);
+  color: #fff;
+  font-size: 1.05rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-left: 3px;
+  pointer-events: none;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.25);
+}
+
+.shop-gallery-tile-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(160deg, transparent 55%, color-mix(in srgb, var(--shop-accent) 35%, transparent));
+  opacity: 0;
+  transition: opacity 0.28s;
+}
+
+.shop-gallery-tile:hover .shop-gallery-tile-glow { opacity: 1; }
+
+.shop-gallery-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  background: rgba(4, 6, 10, 0.92);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  cursor: zoom-out;
+  animation: shop-fade 0.2s ease;
+}
+
+.shop-gallery-lightbox-inner {
+  max-width: min(1000px, 94vw);
+  max-height: 88vh;
+  cursor: default;
+  animation: shop-pop 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.shop-gallery-lightbox-inner img,
+.shop-gallery-lightbox-inner video {
+  max-width: 100%;
+  max-height: 88vh;
+  border-radius: 16px;
+  display: block;
+  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.shop-gallery-lightbox-inner iframe {
+  width: min(960px, 92vw);
+  aspect-ratio: 16 / 9;
+  max-height: 88vh;
+  border: none;
+  border-radius: 16px;
+  display: block;
+  background: #000;
+}
+
+.shop-gallery-close {
+  position: absolute;
+  top: 18px;
+  right: 22px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shop-gallery-tile { animation: none; }
+  .shop-gallery-tile:hover img,
+  .shop-gallery-tile:hover video { transform: none; }
+}
+
 /* ── Product families ("From the Earth" / "From the Hands") ──────── */
 .shop-family + .shop-family {
   margin-top: 52px;

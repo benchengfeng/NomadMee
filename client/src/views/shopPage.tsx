@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import ShopSections from '../components/shop/ShopSections';
 import LanguageSwitcher from '../components/common/LanguageSwitcher';
 import { track } from '../utils/analytics';
-import { getPublicProducts, PublicProduct } from '../api/portalApi';
+import { getPublicProducts, PublicProduct, ShopGalleries } from '../api/portalApi';
 import '../styles/shop.css';
 
 const ACCENT = '#c8a06a';
@@ -21,13 +21,14 @@ const ShopPage: React.FC = () => {
   const { productId } = useParams<{ productId?: string }>();
 
   const [products, setProducts] = useState<PublicProduct[]>([]);
+  const [galleries, setGalleries] = useState<ShopGalleries>({ earth: [], hands: [] });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     document.title = 'NomadMee — Shop';
     track('shop-open');
     getPublicProducts()
-      .then((r) => setProducts(r.products))
+      .then((r) => { setProducts(r.products); setGalleries(r.galleries); })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
@@ -55,6 +56,7 @@ const ShopPage: React.FC = () => {
         <ShopSections
           products={products}
           loading={loading}
+          galleries={galleries}
           shipNote={t('shop.shipNote')}
           labels={{
             earthTitle: t('shop.earthTitle'),
@@ -62,6 +64,7 @@ const ShopPage: React.FC = () => {
             handsTitle: t('shop.handsTitle'),
             handsSub: t('shop.handsSub'),
             empty: t('shop.none'),
+            gallery: t('shop.gallery'),
           }}
           initialProductId={productId}
           onActiveChange={(p) => navigate(p ? `/shop/${p._id}` : '/shop', { replace: true })}

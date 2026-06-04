@@ -564,12 +564,14 @@ export async function changeInvestorPassword(payload: { currentPassword: string;
 // Shop — products
 // ---------------------------------------------------------------------------
 
-export async function getPublicProducts(): Promise<{ products: PublicProduct[] }> {
-  return request<{ products: PublicProduct[] }>('/public/products', { method: 'GET' });
+export type ShopGalleries = { earth: string[]; hands: string[] };
+
+export async function getPublicProducts(): Promise<{ products: PublicProduct[]; galleries: ShopGalleries }> {
+  return request<{ products: PublicProduct[]; galleries: ShopGalleries }>('/public/products', { method: 'GET' });
 }
 
-export async function getInvestorProducts(): Promise<{ products: PublicProduct[] }> {
-  return request<{ products: PublicProduct[] }>('/investor/products', { method: 'GET' }, getInvestorToken());
+export async function getInvestorProducts(): Promise<{ products: PublicProduct[]; galleries: ShopGalleries }> {
+  return request<{ products: PublicProduct[]; galleries: ShopGalleries }>('/investor/products', { method: 'GET' }, getInvestorToken());
 }
 
 export async function submitProductOrder(payload: ProductOrderInput): Promise<{ ok: boolean }> {
