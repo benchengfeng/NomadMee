@@ -518,6 +518,7 @@
   font-size: 1.5rem;
   font-weight: 800;
   line-height: 1.15;
+  color: var(--shop-text);
 }
 
 .shop-modal-price {
