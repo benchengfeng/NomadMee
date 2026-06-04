@@ -221,7 +221,8 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, shipNote, onClose,
   const [step, setStep] = useState<'detail' | 'form' | 'done'>('detail');
 
   const [fullName, setFullName] = useState('');
-  const [email, setEmail] = useState('');
+  const [contactMethod, setContactMethod] = useState<'email' | 'whatsapp'>('email');
+  const [contactDetail, setContactDetail] = useState('');
   const [country, setCountry] = useState('');
   const [message, setMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -260,7 +261,8 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, shipNote, onClose,
         variant: variant?.label,
         quantity: qty,
         fullName: fullName.trim(),
-        email: email.trim(),
+        contactMethod,
+        contactDetail: contactDetail.trim(),
         country: country.trim(),
         message: message.trim(),
       });
@@ -284,7 +286,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, shipNote, onClose,
             <h3 style={{ margin: '0 0 8px', fontSize: '1.25rem', fontWeight: 800 }}>Thank you for your order!</h3>
             <p style={{ margin: '0 auto', maxWidth: 400, fontSize: '0.88rem', color: 'var(--shop-muted)', lineHeight: 1.65 }}>
               {fullName.split(' ')[0] ? `Thanks, ${fullName.split(' ')[0]} — your` : 'Your'} request for <strong style={{ color: 'var(--shop-text)' }}>{product.name}</strong> is in.
-              We’ll contact you at <strong style={{ color: 'var(--shop-text)' }}>{email}</strong> within 24 hours to confirm shipping costs to your location and share payment details. We ship worldwide. 🌍
+              We’ll contact you on {contactMethod === 'whatsapp' ? 'WhatsApp' : 'email'} at <strong style={{ color: 'var(--shop-text)' }}>{contactDetail}</strong> within 24 hours to confirm shipping costs to your location and share payment details. We ship worldwide. 🌍
             </p>
             <button type="button" className="shop-order-btn" style={{ marginTop: 22, width: '100%', maxWidth: 240 }} onClick={onClose}>
               Done
@@ -388,8 +390,33 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, shipNote, onClose,
                     <input value={fullName} onChange={(e) => setFullName(e.target.value)} required autoFocus />
                   </div>
                   <div>
-                    <label>Email</label>
-                    <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+                    <label>How should we reach you?</label>
+                    <div className="shop-variants" style={{ marginTop: 2 }}>
+                      <button
+                        type="button"
+                        className={`shop-variant${contactMethod === 'email' ? ' shop-variant--active' : ''}`}
+                        onClick={() => setContactMethod('email')}
+                      >
+                        ✉️ Email
+                      </button>
+                      <button
+                        type="button"
+                        className={`shop-variant${contactMethod === 'whatsapp' ? ' shop-variant--active' : ''}`}
+                        onClick={() => setContactMethod('whatsapp')}
+                      >
+                        📱 WhatsApp
+                      </button>
+                    </div>
+                  </div>
+                  <div>
+                    <label>{contactMethod === 'email' ? 'Email address' : 'WhatsApp number'}</label>
+                    <input
+                      type={contactMethod === 'email' ? 'email' : 'tel'}
+                      value={contactDetail}
+                      onChange={(e) => setContactDetail(e.target.value)}
+                      required
+                      placeholder={contactMethod === 'email' ? 'you@example.com' : '+216 12 345 678'}
+                    />
                   </div>
                   <div>
                     <label>Country</label>
@@ -409,7 +436,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, shipNote, onClose,
                     {submitting ? 'Sending…' : 'Place order'}
                   </button>
                   <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--shop-muted)', textAlign: 'center', lineHeight: 1.5 }}>
-                    No payment now — we’ll email you to confirm &amp; arrange delivery.
+                    No payment now — we’ll contact you to confirm &amp; arrange delivery.
                   </p>
                 </form>
               )}

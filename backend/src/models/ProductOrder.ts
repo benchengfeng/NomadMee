@@ -9,7 +9,8 @@ export type ProductOrderDocument = {
   currency: string;
   total: number;
   fullName: string;
-  email: string;
+  contactMethod: 'whatsapp' | 'email';
+  contactDetail: string;
   country: string;
   message?: string;
   status: 'new' | 'read' | 'contacted';
@@ -27,7 +28,8 @@ const ProductOrderSchema = new Schema<ProductOrderDocument>(
     currency: { type: String, required: true, trim: true },
     total: { type: Number, required: true, min: 0 },
     fullName: { type: String, required: true, trim: true },
-    email: { type: String, required: true, trim: true },
+    contactMethod: { type: String, enum: ['whatsapp', 'email'], required: true },
+    contactDetail: { type: String, required: true, trim: true },
     country: { type: String, required: true, trim: true },
     message: { type: String, default: '', trim: true },
     status: { type: String, enum: ['new', 'read', 'contacted'], default: 'new' },

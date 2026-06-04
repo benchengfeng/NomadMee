@@ -379,11 +379,16 @@ router.get('/public/products', async (_req: Request, res: Response): Promise<voi
 
 router.post('/public/product-order', async (req: Request, res: Response): Promise<void> => {
   try {
-    const { productId, variant, quantity, fullName, email, country, message } =
+    const { productId, variant, quantity, fullName, contactMethod, contactDetail, country, message } =
       req.body as Record<string, string>;
 
-    if (!productId || !fullName?.trim() || !email?.trim() || !country?.trim()) {
-      res.status(400).json({ message: 'Name, email and country are required.' });
+    if (!productId || !fullName?.trim() || !contactDetail?.trim() || !country?.trim()) {
+      res.status(400).json({ message: 'Name, contact detail and country are required.' });
+      return;
+    }
+
+    if (!['whatsapp', 'email'].includes(contactMethod)) {
+      res.status(400).json({ message: 'Invalid contact method.' });
       return;
     }
 
@@ -406,7 +411,8 @@ router.post('/public/product-order', async (req: Request, res: Response): Promis
       currency: product.currency,
       total: unit * qty,
       fullName: fullName.trim(),
-      email: email.trim(),
+      contactMethod,
+      contactDetail: contactDetail.trim(),
       country: country.trim(),
       message: (message ?? '').trim(),
       status: 'new',

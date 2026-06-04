@@ -176,7 +176,8 @@ export type ProductOrderInput = {
   variant?: string;
   quantity: number;
   fullName: string;
-  email: string;
+  contactMethod: 'whatsapp' | 'email';
+  contactDetail: string;
   country: string;
   message?: string;
 };
@@ -218,7 +219,8 @@ export type ProductOrder = {
   currency: string;
   total: number;
   fullName: string;
-  email: string;
+  contactMethod: 'whatsapp' | 'email';
+  contactDetail: string;
   country: string;
   message?: string;
   status: 'new' | 'read' | 'contacted';

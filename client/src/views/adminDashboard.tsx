@@ -1286,6 +1286,8 @@ const AdminDashboard: React.FC = () => {
                   }
                 };
 
+                const methodIcon = order.contactMethod === 'whatsapp' ? '📱' : '✉️';
+
                 return (
                   <div
                     key={order._id}
@@ -1323,8 +1325,8 @@ const AdminDashboard: React.FC = () => {
                         <span>{order.country}</span>
                       </div>
                       <div className="msg-detail-row">
-                        <span>✉️</span>
-                        <span style={{ color: '#e2e8f0', fontWeight: 600 }}>{order.email}</span>
+                        <span>{methodIcon}</span>
+                        <span style={{ color: '#e2e8f0', fontWeight: 600 }}>{order.contactDetail}</span>
                       </div>
                     </div>
 
@@ -1346,12 +1348,23 @@ const AdminDashboard: React.FC = () => {
                               ✓ Mark as contacted
                             </button>
                           )}
-                          <a
-                            href={`mailto:${order.email}?subject=${encodeURIComponent(`Your NomadMee order — ${order.productName}`)}`}
-                            style={{ padding: '8px 16px', borderRadius: 10, background: 'rgba(56,189,248,0.15)', color: '#38bdf8', fontWeight: 700, fontSize: '0.8rem', textDecoration: 'none' }}
-                          >
-                            ✉️ Send email
-                          </a>
+                          {order.contactMethod === 'whatsapp' ? (
+                            <a
+                              href={`https://wa.me/${order.contactDetail.replace(/\D/g, '')}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              style={{ padding: '8px 16px', borderRadius: 10, background: 'rgba(34,197,94,0.15)', color: '#22c55e', fontWeight: 700, fontSize: '0.8rem', textDecoration: 'none' }}
+                            >
+                              💬 Open WhatsApp
+                            </a>
+                          ) : (
+                            <a
+                              href={`mailto:${order.contactDetail}?subject=${encodeURIComponent(`Your NomadMee order — ${order.productName}`)}`}
+                              style={{ padding: '8px 16px', borderRadius: 10, background: 'rgba(56,189,248,0.15)', color: '#38bdf8', fontWeight: 700, fontSize: '0.8rem', textDecoration: 'none' }}
+                            >
+                              ✉️ Send email
+                            </a>
+                          )}
                         </div>
                       </div>
                     )}
