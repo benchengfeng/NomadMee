@@ -192,6 +192,25 @@ export type SocialLink = {
   url: string;
 };
 
+export type Partner = {
+  _id: string;
+  name: string;
+  logoUrl: string;
+  title: string;
+  description: string;
+  active?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export type PartnerInput = {
+  name: string;
+  logoUrl: string;
+  title: string;
+  description: string;
+  active: boolean;
+};
+
 export type SiteContent = {
   key: string;
   title?: string;
@@ -603,4 +622,36 @@ export async function updateProduct(id: string, payload: ProductInput): Promise<
 
 export async function deleteProduct(id: string): Promise<void> {
   await request<unknown>(`/admin/products/${id}`, { method: 'DELETE' }, getAdminToken());
+}
+
+// ---------------------------------------------------------------------------
+// Partners
+// ---------------------------------------------------------------------------
+
+export async function getPublicPartners(): Promise<{ partners: Partner[] }> {
+  return request<{ partners: Partner[] }>('/public/partners', { method: 'GET' });
+}
+
+export async function getAdminPartners(): Promise<{ partners: Partner[] }> {
+  return request<{ partners: Partner[] }>('/admin/partners', { method: 'GET' }, getAdminToken());
+}
+
+export async function createPartner(payload: PartnerInput): Promise<Partner> {
+  const res = await request<{ partner: Partner }>('/admin/partners', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  }, getAdminToken());
+  return res.partner;
+}
+
+export async function updatePartner(id: string, payload: PartnerInput): Promise<Partner> {
+  const res = await request<{ partner: Partner }>(`/admin/partners/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  }, getAdminToken());
+  return res.partner;
+}
+
+export async function deletePartner(id: string): Promise<void> {
+  await request<unknown>(`/admin/partners/${id}`, { method: 'DELETE' }, getAdminToken());
 }

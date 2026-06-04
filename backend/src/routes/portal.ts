@@ -14,6 +14,7 @@ import { SessionModel } from '../models/Session';
 import { AvatarModel } from '../models/Avatar';
 import { ProductModel, ProductVariant } from '../models/Product';
 import { ProductOrderModel } from '../models/ProductOrder';
+import { PartnerModel } from '../models/Partner';
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -311,6 +312,23 @@ router.get('/public/site-content/:key', async (req: Request, res: Response): Pro
     res.status(200).json({ content: content ?? { key: req.params.key, title: '', body: '', mediaUrls: [], links: [] } });
   } catch {
     res.status(500).json({ message: 'Failed to load content.' });
+  }
+});
+
+router.get('/public/partners', async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const partners = await PartnerModel.find({ active: true }).sort({ createdAt: 1 }).lean();
+    res.status(200).json({
+      partners: partners.map((p) => ({
+        _id: p._id,
+        name: p.name,
+        logoUrl: p.logoUrl,
+        title: p.title,
+        description: p.description,
+      })),
+    });
+  } catch {
+    res.status(500).json({ message: 'Failed to load partners.' });
   }
 });
 
@@ -1394,6 +1412,69 @@ router.delete('/admin/products/:id', async (req: Request, res: Response): Promis
     res.status(200).json({ message: 'Product deleted.' });
   } catch (error) {
     res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to delete product.' });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Admin — partners
+// ---------------------------------------------------------------------------
+
+function buildPartnerPayload(body: Record<string, unknown>) {
+  return {
+    name: String(body['name'] || '').trim(),
+    logoUrl: String(body['logoUrl'] || '').trim(),
+    title: String(body['title'] || '').trim(),
+    description: String(body['description'] || '').trim(),
+    active: body['active'] !== false,
+  };
+}
+
+router.get('/admin/partners', async (req: Request, res: Response): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  const partners = await PartnerModel.find().sort({ createdAt: 1 }).lean();
+  res.status(200).json({ partners });
+});
+
+router.post('/admin/partners', async (req: Request, res: Response): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  try {
+    const payload = buildPartnerPayload(req.body as Record<string, unknown>);
+    if (!payload.name) {
+      res.status(400).json({ message: 'Partner name is required.' });
+      return;
+    }
+    const partner = await PartnerModel.create(payload);
+    res.status(201).json({ partner });
+  } catch (error) {
+    res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to create partner.' });
+  }
+});
+
+router.put('/admin/partners/:id', async (req: Request, res: Response): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  try {
+    const partner = await PartnerModel.findByIdAndUpdate(
+      req.params.id,
+      buildPartnerPayload(req.body as Record<string, unknown>),
+      { new: true, runValidators: true }
+    );
+    if (!partner) {
+      res.status(404).json({ message: 'Partner not found.' });
+      return;
+    }
+    res.status(200).json({ partner });
+  } catch (error) {
+    res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to update partner.' });
+  }
+});
+
+router.delete('/admin/partners/:id', async (req: Request, res: Response): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  try {
+    await PartnerModel.findByIdAndDelete(req.params.id);
+    res.status(200).json({ message: 'Partner deleted.' });
+  } catch (error) {
+    res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to delete partner.' });
   }
 });
 

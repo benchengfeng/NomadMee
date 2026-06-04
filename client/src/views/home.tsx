@@ -6,9 +6,10 @@ import WorldMap from '../components/WorldMap';
 import StoryMediaGallery from '../components/cargo/StoryMediaGallery';
 import LanguageSwitcher from '../components/common/LanguageSwitcher';
 import { SocialLinks } from '../components/common/socialPlatforms';
+import PartnersShowcase from '../components/home/PartnersShowcase';
 import ShopSections from '../components/shop/ShopSections';
 import { track } from '../utils/analytics';
-import { getPublicInvestments, getPublicSiteContent, getPublicProducts, PublicInvestment, PublicProduct, ShopGalleries, SiteContent } from '../api/portalApi';
+import { getPublicInvestments, getPublicSiteContent, getPublicProducts, getPublicPartners, Partner, PublicInvestment, PublicProduct, ShopGalleries, SiteContent } from '../api/portalApi';
 import '../styles/landing.css';
 
 type LandingSection = 'globe' | 'investments' | 'shop' | 'who';
@@ -38,6 +39,7 @@ const LandingPage: React.FC = () => {
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [productsLoaded, setProductsLoaded] = useState(false);
   const [siteContent, setSiteContent] = useState<SiteContent | null>(null);
+  const [partners, setPartners] = useState<Partner[]>([]);
 
   const idx = Math.min(Math.max(selectedTheme, 0), landingThemes.length - 1);
   const palette = landingThemes[idx] as (typeof landingThemes)[number];
@@ -59,6 +61,7 @@ const LandingPage: React.FC = () => {
     }
     if (section === 'who' && !siteContent) {
       getPublicSiteContent('who_are_we').then((r) => setSiteContent(r.content)).catch(() => {});
+      getPublicPartners().then((r) => setPartners(r.partners)).catch(() => {});
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [section]);
@@ -233,6 +236,7 @@ const LandingPage: React.FC = () => {
               <StoryMediaGallery urls={siteContent!.mediaUrls ?? []} accentColor={palette.accent} />
             )}
             <SocialLinks links={siteContent?.links ?? []} accent={palette.accent} className="social-links--who" />
+            <PartnersShowcase partners={partners} accent={palette.accent} title={t('who.partnersTitle')} />
           </div>
         )}
       </div>

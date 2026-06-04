@@ -29,6 +29,10 @@ import {
   createProduct,
   updateProduct,
   deleteProduct,
+  getAdminPartners,
+  createPartner,
+  updatePartner,
+  deletePartner,
   AdminDashboardResponse,
   Investment,
   InvestmentStatus,
@@ -38,6 +42,8 @@ import {
   Product,
   ProductInput,
   ProductOrder,
+  Partner,
+  PartnerInput,
 } from '../api/portalApi';
 import { dashboardThemes } from '../theme';
 import { COUNTRIES } from '../utils/countries';
@@ -79,7 +85,7 @@ const shippingTypeOptions = [
   { value: 'land', label: '🚛 Land freight' },
 ] as const;
 
-type AdminSection = 'cargos' | 'investments' | 'investors' | 'products' | 'orders' | 'relations' | 'content' | 'messages' | 'avatars';
+type AdminSection = 'cargos' | 'investments' | 'investors' | 'products' | 'orders' | 'partners' | 'relations' | 'content' | 'messages' | 'avatars';
 
 const SECTIONS: Array<{ id: AdminSection; label: string }> = [
   { id: 'cargos', label: '📦 Cargos' },
@@ -87,11 +93,14 @@ const SECTIONS: Array<{ id: AdminSection; label: string }> = [
   { id: 'investors', label: '👤 Investors' },
   { id: 'products', label: '🛒 Products' },
   { id: 'orders', label: '🧾 Orders' },
+  { id: 'partners', label: '🤝 Partners' },
   { id: 'relations', label: '🔗 Relations' },
   { id: 'content', label: '✏️ Site Content' },
   { id: 'messages', label: '💬 Messages' },
   { id: 'avatars', label: '🎭 Avatars' },
 ];
+
+const emptyPartnerForm = { name: '', logoUrl: '', title: '', description: '', active: true };
 
 type ProductSectionKey = 'food' | 'artisanal';
 
@@ -279,6 +288,14 @@ const AdminDashboard: React.FC = () => {
   const [productSearch, setProductSearch] = useState('');
   const [confirmDeleteProduct, setConfirmDeleteProduct] = useState<string | null>(null);
 
+  // Partner manager state
+  const [partners, setPartners] = useState<Partner[]>([]);
+  const [partnersLoaded, setPartnersLoaded] = useState(false);
+  const [partnerForm, setPartnerForm] = useState(emptyPartnerForm);
+  const [editingPartnerId, setEditingPartnerId] = useState<string | null>(null);
+  const [savingPartner, setSavingPartner] = useState(false);
+  const [confirmDeletePartner, setConfirmDeletePartner] = useState<string | null>(null);
+
   const showToast = useCallback((message: string, type: Toast['type'] = 'success') => {
     const id = ++toastIdRef.current;
     setToasts((prev) => [...prev, { id, message, type }]);
@@ -336,7 +353,10 @@ const AdminDashboard: React.FC = () => {
     if (activeSection === 'products' && !productsLoaded) {
       getAdminProducts().then((r) => { setProducts(r.products); setProductsLoaded(true); }).catch(() => {});
     }
-  }, [activeSection, avatarsLoaded, productsLoaded]);
+    if (activeSection === 'partners' && !partnersLoaded) {
+      getAdminPartners().then((r) => { setPartners(r.partners); setPartnersLoaded(true); }).catch(() => {});
+    }
+  }, [activeSection, avatarsLoaded, productsLoaded, partnersLoaded]);
 
   const cargoOptions = useMemo(() => data?.cargos ?? [], [data]);
   const investmentOptions = useMemo(() => data?.investments ?? [], [data]);
@@ -564,6 +584,58 @@ const AdminDashboard: React.FC = () => {
       showToast('Investment deleted');
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Failed to delete investment', 'error');
+    }
+  };
+
+  // ── Partners ──
+  const resetPartnerForm = () => { setPartnerForm(emptyPartnerForm); setEditingPartnerId(null); };
+
+  const submitPartner = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setSavingPartner(true);
+    try {
+      const payload: PartnerInput = {
+        name: partnerForm.name.trim(),
+        logoUrl: partnerForm.logoUrl,
+        title: partnerForm.title.trim(),
+        description: partnerForm.description.trim(),
+        active: partnerForm.active,
+      };
+      if (editingPartnerId) {
+        await updatePartner(editingPartnerId, payload);
+        showToast('Partner updated!');
+      } else {
+        await createPartner(payload);
+        showToast('Partner created!');
+      }
+      resetPartnerForm();
+      const r = await getAdminPartners();
+      setPartners(r.partners);
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Failed to save partner', 'error');
+    } finally { setSavingPartner(false); }
+  };
+
+  const startEditPartner = (p: Partner) => {
+    setEditingPartnerId(p._id);
+    setPartnerForm({
+      name: p.name,
+      logoUrl: p.logoUrl ?? '',
+      title: p.title ?? '',
+      description: p.description ?? '',
+      active: p.active !== false,
+    });
+  };
+
+  const removePartner = async (id: string) => {
+    try {
+      await deletePartner(id);
+      if (editingPartnerId === id) resetPartnerForm();
+      const r = await getAdminPartners();
+      setPartners(r.partners);
+      showToast('Partner deleted');
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Failed to delete partner', 'error');
     }
   };
 
@@ -1685,6 +1757,80 @@ const AdminDashboard: React.FC = () => {
                     <span className="portal-item-badge">Stock {p.stock ?? 0}</span>
                     {p.variants?.length > 0 && <span className="portal-item-badge">{p.variants.length} variants</span>}
                   </p>
+                </div>
+              ))}
+            </div>
+          </article>
+        </div>
+      )}
+
+      {/* ── PARTNERS ── */}
+      {activeSection === 'partners' && (
+        <div className="admin-section-grid">
+          <article className="portal-card">
+            <h2>{editingPartnerId ? 'Edit Partner' : 'New Partner'}</h2>
+            <p style={{ color: '#64748b', fontSize: '0.82rem', marginBottom: 16 }}>
+              Shown at the bottom of the landing "Who Are We?" page. Visitors see the logo &amp; name; clicking flips the card to reveal the partnership title &amp; description.
+            </p>
+            <form className="portal-form" onSubmit={submitPartner}>
+              <ImageCropUploader
+                value={partnerForm.logoUrl}
+                onChange={(url) => setPartnerForm({ ...partnerForm, logoUrl: url })}
+                aspect={1}
+                label="Logo"
+                previewHeight={120}
+              />
+              <label>Partner name</label>
+              <input value={partnerForm.name} onChange={(e) => setPartnerForm({ ...partnerForm, name: e.target.value })} required placeholder="e.g. Port of Abidjan" />
+
+              <label>Partnership title <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 400 }}>(shown on flip)</span></label>
+              <input value={partnerForm.title} onChange={(e) => setPartnerForm({ ...partnerForm, title: e.target.value })} placeholder="e.g. Official logistics partner" />
+
+              <label>Short description <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 400 }}>(who they are)</span></label>
+              <textarea value={partnerForm.description} onChange={(e) => setPartnerForm({ ...partnerForm, description: e.target.value })} placeholder="A sentence or two about who they are and how you work together…" rows={4} />
+
+              <label className="portal-hidden-toggle">
+                <input type="checkbox" checked={partnerForm.active} onChange={(e) => setPartnerForm({ ...partnerForm, active: e.target.checked })} />
+                <span>Active — visible on the site</span>
+              </label>
+
+              <div className="portal-form-actions">
+                <button type="submit" disabled={savingPartner}>{savingPartner ? 'Saving...' : editingPartnerId ? 'Update Partner' : 'Create Partner'}</button>
+                {editingPartnerId && <button type="button" onClick={resetPartnerForm}>Cancel</button>}
+              </div>
+            </form>
+          </article>
+
+          <article className="portal-card">
+            <h2>All Partners <span className="portal-item-badge">{partners.length}</span></h2>
+            <div className="portal-stack">
+              {partners.length === 0 ? (
+                <p className="relation-empty">No partners yet — add your first one.</p>
+              ) : partners.map((p) => (
+                <div className="portal-item" key={p._id}>
+                  <div className="portal-item-head">
+                    <h3 style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                      {p.logoUrl
+                        ? <img src={p.logoUrl} alt="" style={{ width: 40, height: 40, borderRadius: 8, objectFit: 'contain', background: '#fff', padding: 3, flexShrink: 0 }} />
+                        : <span style={{ fontSize: '1.3rem' }}>🤝</span>}
+                      {p.name}
+                      {!p.active && <span className="hidden-badge">Inactive</span>}
+                    </h3>
+                    {confirmDeletePartner === p._id ? (
+                      <div className="portal-inline-confirm">
+                        <span>Delete?</span>
+                        <button type="button" className="portal-btn-delete" onClick={() => { void removePartner(p._id); setConfirmDeletePartner(null); }}>Yes</button>
+                        <button type="button" className="portal-btn-cancel" onClick={() => setConfirmDeletePartner(null)}>Cancel</button>
+                      </div>
+                    ) : (
+                      <div className="portal-item-actions">
+                        <button type="button" className="portal-btn-edit" onClick={() => startEditPartner(p)}>Edit</button>
+                        <button type="button" className="portal-btn-delete" onClick={() => setConfirmDeletePartner(p._id)}>Delete</button>
+                      </div>
+                    )}
+                  </div>
+                  {p.title && <p className="portal-item-meta" style={{ color: '#94a3b8', fontWeight: 600 }}>{p.title}</p>}
+                  {p.description && <p className="portal-item-meta">{p.description}</p>}
                 </div>
               ))}
             </div>
