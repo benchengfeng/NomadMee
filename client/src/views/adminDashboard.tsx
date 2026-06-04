@@ -13,6 +13,8 @@ import {
   getAdminDashboard,
   getAdminContactRequests,
   updateContactRequestStatus,
+  getAdminProductOrders,
+  updateProductOrderStatus,
   getPublicSiteContent,
   updateSiteContent,
   logoutAdmin,
@@ -35,6 +37,7 @@ import {
   AvatarData,
   Product,
   ProductInput,
+  ProductOrder,
 } from '../api/portalApi';
 import { dashboardThemes } from '../theme';
 import { COUNTRIES } from '../utils/countries';
@@ -76,13 +79,14 @@ const shippingTypeOptions = [
   { value: 'land', label: '🚛 Land freight' },
 ] as const;
 
-type AdminSection = 'cargos' | 'investments' | 'investors' | 'products' | 'relations' | 'content' | 'messages' | 'avatars';
+type AdminSection = 'cargos' | 'investments' | 'investors' | 'products' | 'orders' | 'relations' | 'content' | 'messages' | 'avatars';
 
 const SECTIONS: Array<{ id: AdminSection; label: string }> = [
   { id: 'cargos', label: '📦 Cargos' },
   { id: 'investments', label: '💼 Investments' },
   { id: 'investors', label: '👤 Investors' },
   { id: 'products', label: '🛒 Products' },
+  { id: 'orders', label: '🧾 Orders' },
   { id: 'relations', label: '🔗 Relations' },
   { id: 'content', label: '✏️ Site Content' },
   { id: 'messages', label: '💬 Messages' },
@@ -187,6 +191,10 @@ const AdminDashboard: React.FC = () => {
   const [contactRequests, setContactRequests] = useState<ContactRequest[]>([]);
   const [contactsLoaded, setContactsLoaded] = useState(false);
   const [expandedContactId, setExpandedContactId] = useState<string | null>(null);
+  const [unreadOrderCount, setUnreadOrderCount] = useState(0);
+  const [productOrders, setProductOrders] = useState<ProductOrder[]>([]);
+  const [ordersLoaded, setOrdersLoaded] = useState(false);
+  const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
 
   // Toast notifications
   const toastIdRef = useRef(0);
@@ -264,6 +272,7 @@ const AdminDashboard: React.FC = () => {
           setData(response);
           setSiteContent(contentRes.content);
           setUnreadContactCount(response.unreadContactCount ?? 0);
+          setUnreadOrderCount(response.unreadOrderCount ?? 0);
           setError(null);
         }
       } catch (err) {
@@ -662,31 +671,40 @@ const AdminDashboard: React.FC = () => {
                   .then((r) => { setContactRequests(r.requests); setContactsLoaded(true); })
                   .catch(() => {});
               }
+              if (s.id === 'orders' && !ordersLoaded) {
+                getAdminProductOrders()
+                  .then((r) => { setProductOrders(r.orders); setOrdersLoaded(true); })
+                  .catch(() => {});
+              }
             }}
             style={{ position: 'relative' }}
           >
             {s.label}
-            {s.id === 'messages' && unreadContactCount > 0 && (
-              <span style={{
-                position: 'absolute',
-                top: -6,
-                right: -6,
-                minWidth: 18,
-                height: 18,
-                borderRadius: 999,
-                background: '#ef4444',
-                color: '#fff',
-                fontSize: '0.65rem',
-                fontWeight: 800,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: '0 4px',
-                boxShadow: '0 0 0 2px #0a0c14',
-              }}>
-                {unreadContactCount > 99 ? '99+' : unreadContactCount}
-              </span>
-            )}
+            {(() => {
+              const badge = s.id === 'messages' ? unreadContactCount : s.id === 'orders' ? unreadOrderCount : 0;
+              if (badge <= 0) return null;
+              return (
+                <span style={{
+                  position: 'absolute',
+                  top: -6,
+                  right: -6,
+                  minWidth: 18,
+                  height: 18,
+                  borderRadius: 999,
+                  background: '#ef4444',
+                  color: '#fff',
+                  fontSize: '0.65rem',
+                  fontWeight: 800,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '0 4px',
+                  boxShadow: '0 0 0 2px #0a0c14',
+                }}>
+                  {badge > 99 ? '99+' : badge}
+                </span>
+              );
+            })()}
           </button>
         ))}
       </nav>
@@ -1223,6 +1241,117 @@ const AdminDashboard: React.FC = () => {
                               ✉️ Send email
                             </a>
                           )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── ORDERS ── */}
+      {activeSection === 'orders' && (
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
+            <h2 style={{ margin: 0, color: '#f1f5f9', fontSize: '1.1rem' }}>Shop orders</h2>
+            {unreadOrderCount > 0 && (
+              <span style={{ padding: '3px 10px', borderRadius: 999, background: 'rgba(239,68,68,0.15)', color: '#ef4444', fontSize: '0.72rem', fontWeight: 700 }}>
+                {unreadOrderCount} new
+              </span>
+            )}
+          </div>
+
+          {!ordersLoaded ? (
+            <p style={{ color: '#475569' }}>Loading…</p>
+          ) : productOrders.length === 0 ? (
+            <p style={{ color: '#334155', fontSize: '0.9rem' }}>No orders yet.</p>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {productOrders.map((order) => {
+                const isExpanded = expandedOrderId === order._id;
+                const statusColors: Record<string, string> = { new: '#22c55e', read: '#94a3b8', contacted: '#38bdf8' };
+                const statusColor = statusColors[order.status] ?? '#94a3b8';
+
+                const markStatus = async (status: ProductOrder['status']) => {
+                  try {
+                    await updateProductOrderStatus(order._id, status);
+                    setProductOrders((prev) => prev.map((o) => o._id === order._id ? { ...o, status } : o));
+                    if (status !== 'new') setUnreadOrderCount((n) => Math.max(0, n - (order.status === 'new' ? 1 : 0)));
+                    showToast(status === 'contacted' ? 'Marked as contacted ✓' : 'Marked as read');
+                  } catch {
+                    showToast('Failed to update status', 'error');
+                  }
+                };
+
+                return (
+                  <div
+                    key={order._id}
+                    className={`msg-card${order.status === 'new' ? ' msg-card--new' : ''}`}
+                    onClick={() => {
+                      const newId = isExpanded ? null : order._id;
+                      setExpandedOrderId(newId);
+                      if (newId && order.status === 'new') void markStatus('read');
+                    }}
+                  >
+                    <div className="msg-card-header">
+                      <div>
+                        <p className="msg-card-name">🛒 {order.fullName}</p>
+                        <p className="msg-card-investment">📦 {order.productName}{order.variant ? ` · ${order.variant}` : ''}</p>
+                      </div>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
+                        <span className={`msg-status-badge msg-status-badge--${order.status}`} style={{ color: statusColor }}>
+                          {order.status === 'new' ? '🔔 New' : order.status === 'read' ? 'Read' : '✓ Contacted'}
+                        </span>
+                        <span style={{ fontSize: '0.7rem', color: '#475569' }}>
+                          {new Date(order.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="msg-card-body">
+                      <div className="msg-detail-row">
+                        <span>🧮</span>
+                        <span style={{ color: '#e2e8f0', fontWeight: 600 }}>
+                          {order.quantity} × {order.unitPrice.toLocaleString()} {order.currency} = {order.total.toLocaleString()} {order.currency}
+                        </span>
+                      </div>
+                      <div className="msg-detail-row">
+                        <span>📍</span>
+                        <span>{order.country}</span>
+                      </div>
+                      <div className="msg-detail-row">
+                        <span>✉️</span>
+                        <span style={{ color: '#e2e8f0', fontWeight: 600 }}>{order.email}</span>
+                      </div>
+                    </div>
+
+                    {isExpanded && (
+                      <div onClick={(e) => e.stopPropagation()}>
+                        {order.message && (
+                          <div style={{ marginTop: 12, padding: '12px 14px', background: 'rgba(255,255,255,0.04)', borderRadius: 10 }}>
+                            <p style={{ margin: 0, fontSize: '0.75rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700, marginBottom: 4 }}>Message</p>
+                            <p style={{ margin: 0, color: '#94a3b8', fontSize: '0.85rem', lineHeight: 1.6 }}>{order.message}</p>
+                          </div>
+                        )}
+                        <div className="msg-card-actions">
+                          {order.status !== 'contacted' && (
+                            <button
+                              type="button"
+                              style={{ padding: '8px 16px', borderRadius: 10, border: 'none', background: 'rgba(56,189,248,0.15)', color: '#38bdf8', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer' }}
+                              onClick={() => void markStatus('contacted')}
+                            >
+                              ✓ Mark as contacted
+                            </button>
+                          )}
+                          <a
+                            href={`mailto:${order.email}?subject=${encodeURIComponent(`Your NomadMee order — ${order.productName}`)}`}
+                            style={{ padding: '8px 16px', borderRadius: 10, background: 'rgba(56,189,248,0.15)', color: '#38bdf8', fontWeight: 700, fontSize: '0.8rem', textDecoration: 'none' }}
+                          >
+                            ✉️ Send email
+                          </a>
                         </div>
                       </div>
                     )}
@@ -1794,6 +1923,11 @@ const AdminDashboard: React.FC = () => {
                   if (next === 'messages' && !contactsLoaded) {
                     getAdminContactRequests()
                       .then((r) => { setContactRequests(r.requests); setContactsLoaded(true); })
+                      .catch(() => {});
+                  }
+                  if (next === 'orders' && !ordersLoaded) {
+                    getAdminProductOrders()
+                      .then((r) => { setProductOrders(r.orders); setOrdersLoaded(true); })
                       .catch(() => {});
                   }
                 }}

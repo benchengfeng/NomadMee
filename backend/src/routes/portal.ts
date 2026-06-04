@@ -13,9 +13,7 @@ import { ContactRequestModel } from '../models/ContactRequest';
 import { SessionModel } from '../models/Session';
 import { AvatarModel } from '../models/Avatar';
 import { ProductModel, ProductVariant } from '../models/Product';
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const nodemailer = require('nodemailer');
+import { ProductOrderModel } from '../models/ProductOrder';
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -169,52 +167,6 @@ function normalizeSocialLinks(value: unknown): Array<{ platform: string; label: 
     })
     .filter((l): l is { platform: string; label: string; url: string } => l !== null)
     .slice(0, 12);
-}
-
-// Best-effort admin notification for a new product order. Never throws —
-// an SMTP hiccup must not fail the customer's order acknowledgement.
-async function sendOrderNotification(order: {
-  productName: string;
-  variant: string;
-  quantity: number;
-  unitPrice: string;
-  fullName: string;
-  email: string;
-  country: string;
-  message: string;
-}): Promise<void> {
-  try {
-    const transporter = nodemailer.createTransport({
-      host: 'smtp.qiye.aliyun.com',
-      port: 465,
-      secureConnection: true,
-      auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
-    });
-
-    const lines = [
-      '🛒 New NomadMee shop order',
-      '',
-      `Product:  ${order.productName}`,
-      order.variant ? `Variant:  ${order.variant}` : '',
-      `Quantity: ${order.quantity}`,
-      order.unitPrice ? `Unit:     ${order.unitPrice}` : '',
-      '',
-      `Name:     ${order.fullName}`,
-      `Email:    ${order.email}`,
-      `Country:  ${order.country}`,
-      order.message ? `Message:  ${order.message}` : '',
-    ].filter(Boolean).join('\n');
-
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: process.env.EMAIL_USER,
-      replyTo: order.email || undefined,
-      subject: `🛒 Order — ${order.productName} (${order.fullName})`,
-      text: lines,
-    });
-  } catch (error) {
-    console.error('Failed to send order notification email:', error);
-  }
 }
 
 const LEGACY_AVATAR_URLS: Record<string, string> = {
@@ -444,20 +396,23 @@ router.post('/public/product-order', async (req: Request, res: Response): Promis
     const qty = Math.max(1, Math.min(9999, Number(quantity) || 1));
     const chosen = (product.variants || []).find((v) => v.label === variant);
     const unit = chosen ? chosen.price : product.price;
-    const unitPrice = `${unit} ${product.currency}`;
 
-    await sendOrderNotification({
+    const order = await ProductOrderModel.create({
+      productId: String(productId),
       productName: product.name,
       variant: (variant || '').trim(),
       quantity: qty,
-      unitPrice,
+      unitPrice: unit,
+      currency: product.currency,
+      total: unit * qty,
       fullName: fullName.trim(),
       email: email.trim(),
       country: country.trim(),
       message: (message ?? '').trim(),
+      status: 'new',
     });
 
-    res.status(201).json({ ok: true });
+    res.status(201).json({ ok: true, order: { _id: order._id } });
   } catch (error) {
     res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to submit order.' });
   }
@@ -855,11 +810,12 @@ router.delete('/admin/investors/:id', async (req: Request, res: Response): Promi
 router.get('/admin/dashboard', async (req: Request, res: Response): Promise<void> => {
   if (!await requireAdmin(req, res)) return;
 
-  const [cargos, investors, investments, unreadContactCount] = await Promise.all([
+  const [cargos, investors, investments, unreadContactCount, unreadOrderCount] = await Promise.all([
     CargoModel.find().sort({ createdAt: -1 }).lean(),
     InvestorModel.find().sort({ createdAt: -1 }).lean(),
     InvestmentModel.find().sort({ createdAt: -1 }).lean(),
     ContactRequestModel.countDocuments({ status: 'new' }),
+    ProductOrderModel.countDocuments({ status: 'new' }),
   ]);
 
   const safeInvestors = investors.map((investor) => ({
@@ -869,7 +825,7 @@ router.get('/admin/dashboard', async (req: Request, res: Response): Promise<void
     currency: investor.currency || 'USD',
   }));
 
-  res.status(200).json({ cargos, investors: safeInvestors, investments, unreadContactCount });
+  res.status(200).json({ cargos, investors: safeInvestors, investments, unreadContactCount, unreadOrderCount });
 });
 
 // ---------------------------------------------------------------------------
@@ -1007,6 +963,46 @@ router.put('/admin/contact-requests/:id/status', async (req: Request, res: Respo
     }
 
     res.status(200).json({ request });
+  } catch (error) {
+    res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to update status.' });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Admin — shop orders (inbox)
+// ---------------------------------------------------------------------------
+
+router.get('/admin/product-orders', async (req: Request, res: Response): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+
+  try {
+    const orders = await ProductOrderModel.find().sort({ createdAt: -1 }).lean();
+    res.status(200).json({ orders });
+  } catch {
+    res.status(500).json({ message: 'Failed to load orders.' });
+  }
+});
+
+router.put('/admin/product-orders/:id/status', async (req: Request, res: Response): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+
+  try {
+    const { id } = req.params;
+    const { status } = req.body as { status?: string };
+
+    if (!['new', 'read', 'contacted'].includes(status ?? '')) {
+      res.status(400).json({ message: 'Invalid status.' });
+      return;
+    }
+
+    const order = await ProductOrderModel.findByIdAndUpdate(id, { status }, { new: true });
+
+    if (!order) {
+      res.status(404).json({ message: 'Order not found.' });
+      return;
+    }
+
+    res.status(200).json({ order });
   } catch (error) {
     res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to update status.' });
   }

@@ -208,11 +208,29 @@ export type ContactRequest = {
   createdAt: string;
 };
 
+export type ProductOrder = {
+  _id: string;
+  productId: string;
+  productName: string;
+  variant: string;
+  quantity: number;
+  unitPrice: number;
+  currency: string;
+  total: number;
+  fullName: string;
+  email: string;
+  country: string;
+  message?: string;
+  status: 'new' | 'read' | 'contacted';
+  createdAt: string;
+};
+
 export type AdminDashboardResponse = {
   cargos: Cargo[];
   investors: InvestorRecord[];
   investments: Investment[];
   unreadContactCount: number;
+  unreadOrderCount: number;
 };
 
 export type InvestorProfile = {
@@ -477,6 +495,17 @@ export async function getAdminContactRequests(): Promise<{ requests: ContactRequ
 
 export async function updateContactRequestStatus(id: string, status: ContactRequest['status']): Promise<void> {
   await request<unknown>(`/admin/contact-requests/${id}/status`, {
+    method: 'PUT',
+    body: JSON.stringify({ status }),
+  }, getAdminToken());
+}
+
+export async function getAdminProductOrders(): Promise<{ orders: ProductOrder[] }> {
+  return request<{ orders: ProductOrder[] }>('/admin/product-orders', { method: 'GET' }, getAdminToken());
+}
+
+export async function updateProductOrderStatus(id: string, status: ProductOrder['status']): Promise<void> {
+  await request<unknown>(`/admin/product-orders/${id}/status`, {
     method: 'PUT',
     body: JSON.stringify({ status }),
   }, getAdminToken());
