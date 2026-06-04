@@ -6,7 +6,7 @@ import WorldMap from '../components/WorldMap';
 import StoryMediaGallery from '../components/cargo/StoryMediaGallery';
 import LanguageSwitcher from '../components/common/LanguageSwitcher';
 import { SocialLinks } from '../components/common/socialPlatforms';
-import ShopSection from '../components/shop/ShopSection';
+import ShopSections from '../components/shop/ShopSections';
 import { track } from '../utils/analytics';
 import { getPublicInvestments, getPublicSiteContent, getPublicProducts, PublicInvestment, PublicProduct, SiteContent } from '../api/portalApi';
 import '../styles/landing.css';
@@ -198,14 +198,17 @@ const LandingPage: React.FC = () => {
         {/* Shop */}
         {section === 'shop' && (
           <div className="landing-section-inner">
-            <p className="landing-section-eyebrow" style={{ color: '#c8a06a' }}>{t('shop.eyebrow')}</p>
-            <h2 className="landing-section-title">{t('shop.title')}</h2>
-            <p className="landing-section-sub">{t('shop.sub')}</p>
-            <ShopSection
+            <ShopSections
               products={products}
               loading={loadingProducts}
-              emptyLabel={t('shop.none')}
               shipNote={t('shop.shipNote')}
+              labels={{
+                earthTitle: t('shop.earthTitle'),
+                earthSub: t('shop.earthSub'),
+                handsTitle: t('shop.handsTitle'),
+                handsSub: t('shop.handsSub'),
+                empty: t('shop.none'),
+              }}
               onOrdered={(p) => track('order-submit', { product: p.name })}
             />
           </div>

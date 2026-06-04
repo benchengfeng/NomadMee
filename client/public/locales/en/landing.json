@@ -20,7 +20,11 @@
     "sub": "Organic West African staples, sourced directly from the people who grow them.",
     "shipNote": "Shipping calculated individually based on your location and order size. We'll contact you after ordering.",
     "none": "Products coming soon.",
-    "backToSite": "Back to site"
+    "backToSite": "Back to site",
+    "earthTitle": "From the Earth",
+    "earthSub": "Organic staples sourced directly from small producers in West Africa",
+    "handsTitle": "From the Hands",
+    "handsSub": "Handcrafted instruments made by artisans, not factories"
   },
   "status": {
     "active": "Active",

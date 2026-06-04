@@ -3,7 +3,7 @@ import { PublicProduct, ProductVariant, submitProductOrder } from '../../api/por
 import { COUNTRIES } from '../../utils/countries';
 import '../../styles/shop.css';
 
-interface ShopTheme {
+export interface ShopTheme {
   accent?: string;
   surface?: string;
   card?: string;
@@ -11,6 +11,19 @@ interface ShopTheme {
   muted?: string;
   border?: string;
   modalBg?: string;
+}
+
+/** Maps a ShopTheme into the CSS custom properties consumed by `.shop-root`. */
+export function shopThemeVars(theme?: ShopTheme): React.CSSProperties {
+  const s: Record<string, string> = {};
+  if (theme?.accent) s['--shop-accent'] = theme.accent;
+  if (theme?.surface) s['--shop-surface'] = theme.surface;
+  if (theme?.card) s['--shop-card'] = theme.card;
+  if (theme?.text) s['--shop-text'] = theme.text;
+  if (theme?.muted) s['--shop-muted'] = theme.muted;
+  if (theme?.border) s['--shop-border'] = theme.border;
+  if (theme?.modalBg) s['--shop-modal-bg'] = theme.modalBg;
+  return s as React.CSSProperties;
 }
 
 interface ShopSectionProps {
@@ -95,17 +108,7 @@ const ShopSection: React.FC<ShopSectionProps> = ({ products, loading, theme, emp
     setActive((prev) => (found && prev?._id !== found._id ? found : prev));
   }, [initialProductId, products]);
 
-  const rootStyle = useMemo(() => {
-    const s: Record<string, string> = {};
-    if (theme?.accent) s['--shop-accent'] = theme.accent;
-    if (theme?.surface) s['--shop-surface'] = theme.surface;
-    if (theme?.card) s['--shop-card'] = theme.card;
-    if (theme?.text) s['--shop-text'] = theme.text;
-    if (theme?.muted) s['--shop-muted'] = theme.muted;
-    if (theme?.border) s['--shop-border'] = theme.border;
-    if (theme?.modalBg) s['--shop-modal-bg'] = theme.modalBg;
-    return s as React.CSSProperties;
-  }, [theme]);
+  const rootStyle = useMemo(() => shopThemeVars(theme), [theme]);
 
   return (
     <div className="shop-root" style={rootStyle}>

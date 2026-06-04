@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import ShopSection from '../components/shop/ShopSection';
+import ShopSections from '../components/shop/ShopSections';
 import LanguageSwitcher from '../components/common/LanguageSwitcher';
 import { track } from '../utils/analytics';
 import { getPublicProducts, PublicProduct } from '../api/portalApi';
@@ -52,11 +52,17 @@ const ShopPage: React.FC = () => {
       </header>
 
       <main className="shop-page-body">
-        <ShopSection
+        <ShopSections
           products={products}
           loading={loading}
-          emptyLabel={t('shop.none')}
           shipNote={t('shop.shipNote')}
+          labels={{
+            earthTitle: t('shop.earthTitle'),
+            earthSub: t('shop.earthSub'),
+            handsTitle: t('shop.handsTitle'),
+            handsSub: t('shop.handsSub'),
+            empty: t('shop.none'),
+          }}
           initialProductId={productId}
           onActiveChange={(p) => navigate(p ? `/shop/${p._id}` : '/shop', { replace: true })}
           onOrdered={(p) => track('order-submit', { product: p.name, source: 'shop-page' })}

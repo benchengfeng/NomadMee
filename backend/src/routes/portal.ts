@@ -364,6 +364,7 @@ function mapPublicProduct(p: Record<string, unknown> & { _id: unknown }) {
     stock: p['stock'] ?? 0,
     coverImageUrl: p['coverImageUrl'] ?? '',
     images: Array.isArray(p['images']) ? p['images'] : [],
+    section: p['section'] === 'artisanal' ? 'artisanal' : 'food',
     category: p['category'] ?? '',
   };
 }
@@ -1326,6 +1327,7 @@ function buildProductPayload(body: Record<string, unknown>) {
     stock: Number.isFinite(Number(body['stock'])) ? Math.max(0, Number(body['stock'])) : 0,
     coverImageUrl: String(body['coverImageUrl'] || '').trim(),
     images: normalizeImages(body['images']),
+    section: body['section'] === 'artisanal' ? 'artisanal' : 'food',
     category: String(body['category'] || '').trim(),
     active: body['active'] !== false,
   };

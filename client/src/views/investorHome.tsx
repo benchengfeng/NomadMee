@@ -12,7 +12,7 @@ import { dashboardThemes } from '../theme';
 import CargoMap from '../components/cargo/CargoMap';
 import WorldMap from '../components/WorldMap';
 import LanguageSwitcher from '../components/common/LanguageSwitcher';
-import ShopSection from '../components/shop/ShopSection';
+import ShopSections from '../components/shop/ShopSections';
 import { track } from '../utils/analytics';
 
 const currencyRatesToUSD: Record<string, number> = {
@@ -427,20 +427,17 @@ const InvestorHome: React.FC = () => {
   const renderShop = () => {
     return (
       <div className="shop-investor-panel" style={{ color: theme.text }}>
-        <div style={{ marginBottom: 22 }}>
-          <p style={{ margin: 0, fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.14em', textTransform: 'uppercase', color: theme.accent }}>
-            {t('shop.eyebrow')}
-          </p>
-          <h2 style={{ margin: '6px 0 6px', fontSize: '1.35rem', fontWeight: 800 }}>{t('shop.title')}</h2>
-          <p style={{ margin: 0, fontSize: '0.85rem', color: theme.secondaryText, lineHeight: 1.6, maxWidth: 560 }}>
-            {t('shop.sub')}
-          </p>
-        </div>
-        <ShopSection
+        <ShopSections
           products={products}
           loading={loadingProducts}
-          emptyLabel={t('shop.none')}
           shipNote={t('shop.shipNote')}
+          labels={{
+            earthTitle: t('shop.earthTitle'),
+            earthSub: t('shop.earthSub'),
+            handsTitle: t('shop.handsTitle'),
+            handsSub: t('shop.handsSub'),
+            empty: t('shop.none'),
+          }}
           theme={{
             accent: theme.accent,
             card: theme.surface,

@@ -93,7 +93,43 @@ const SECTIONS: Array<{ id: AdminSection; label: string }> = [
   { id: 'avatars', label: '🎭 Avatars' },
 ];
 
-const PRODUCT_CATEGORIES = ['Superfood', 'Herbal tea', 'Spice', 'Grain', 'Snack', 'Oil', 'Other'];
+type ProductSectionKey = 'food' | 'artisanal';
+
+const PRODUCT_SECTIONS: Array<{ value: ProductSectionKey; label: string }> = [
+  { value: 'food', label: '🌱 Organic Food' },
+  { value: 'artisanal', label: '🥁 Artisanal & Instruments' },
+];
+
+// Each family fills its details differently — sub-category suggestions, the
+// story field, and the variant wording all adapt to the selected section.
+const SECTION_FIELDS: Record<ProductSectionKey, {
+  categories: string[];
+  storyLabel: string;
+  storyPlaceholder: string;
+  variantsLabel: string;
+  variantsHint: string;
+  variantLabelPlaceholder: string;
+  descriptionPlaceholder: string;
+}> = {
+  food: {
+    categories: ['Superfood', 'Herbal tea', 'Spice', 'Grain', 'Snack', 'Oil', 'Other'],
+    storyLabel: 'Origin / sourcing story',
+    storyPlaceholder: "Where it grows, who farms it, the harvest, why it's special…",
+    variantsLabel: 'Weight / size variants',
+    variantsHint: '(optional — e.g. 250g, 500g, 1kg)',
+    variantLabelPlaceholder: 'Label (e.g. 500g)',
+    descriptionPlaceholder: 'Short description shown on the card…',
+  },
+  artisanal: {
+    categories: ['Djembe', 'Percussion', 'Drum', 'String instrument', 'Mask', 'Sculpture', 'Decor', 'Textile', 'Other'],
+    storyLabel: 'Craft story / the artisan',
+    storyPlaceholder: 'Who handcrafts it, the workshop, the wood & skins, the technique, how long it takes…',
+    variantsLabel: 'Sizes / variants',
+    variantsHint: '(optional — e.g. 12", 13", Standard, Pro)',
+    variantLabelPlaceholder: 'Label (e.g. 13" head)',
+    descriptionPlaceholder: 'Short description shown on the card…',
+  },
+};
 
 const STATUS_OPTIONS: Array<{ value: InvestmentStatus; label: string }> = [
   { value: 'active', label: '🟢 Active' },
@@ -154,6 +190,7 @@ const emptyProductForm = {
   price: '',
   currency: 'USD',
   stock: '',
+  section: 'food' as ProductSectionKey,
   category: '',
   coverImageUrl: '',
   active: true,
@@ -543,6 +580,7 @@ const AdminDashboard: React.FC = () => {
     stock: Number(productForm.stock) || 0,
     coverImageUrl: productForm.coverImageUrl,
     images: productForm.images,
+    section: productForm.section,
     category: productForm.category.trim(),
     active: productForm.active,
   });
@@ -574,6 +612,7 @@ const AdminDashboard: React.FC = () => {
       price: p.price.toString(),
       currency: p.currency,
       stock: (p.stock ?? 0).toString(),
+      section: p.section === 'artisanal' ? 'artisanal' : 'food',
       category: p.category ?? '',
       coverImageUrl: p.coverImageUrl ?? '',
       active: p.active !== false,
@@ -1463,14 +1502,22 @@ const AdminDashboard: React.FC = () => {
           <article className="portal-card">
             <h2>{editingProductId ? 'Edit Product' : 'New Product'}</h2>
             <form className="portal-form" onSubmit={submitProduct}>
+              <label>Product section <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 400 }}>(which shop family this belongs to)</span></label>
+              <select
+                value={productForm.section}
+                onChange={(e) => setProductForm({ ...productForm, section: e.target.value as ProductSectionKey, category: '' })}
+              >
+                {PRODUCT_SECTIONS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
+              </select>
+
               <label>Product name</label>
               <input value={productForm.name} onChange={(e) => setProductForm({ ...productForm, name: e.target.value })} required />
 
               <label>Description</label>
-              <textarea value={productForm.description} onChange={(e) => setProductForm({ ...productForm, description: e.target.value })} placeholder="Short description shown on the card…" />
+              <textarea value={productForm.description} onChange={(e) => setProductForm({ ...productForm, description: e.target.value })} placeholder={SECTION_FIELDS[productForm.section].descriptionPlaceholder} />
 
-              <label>Origin / sourcing story</label>
-              <textarea value={productForm.originStory} onChange={(e) => setProductForm({ ...productForm, originStory: e.target.value })} placeholder="Where it comes from, who grows it, why it's special…" />
+              <label>{SECTION_FIELDS[productForm.section].storyLabel}</label>
+              <textarea value={productForm.originStory} onChange={(e) => setProductForm({ ...productForm, originStory: e.target.value })} placeholder={SECTION_FIELDS[productForm.section].storyPlaceholder} />
 
               <ImageCropUploader
                 value={productForm.coverImageUrl}
@@ -1502,14 +1549,14 @@ const AdminDashboard: React.FC = () => {
                 </select>
               </div>
 
-              <label>Weight / size variants <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 400 }}>(optional — e.g. 250g, 500g, 1kg)</span></label>
+              <label>{SECTION_FIELDS[productForm.section].variantsLabel} <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 400 }}>{SECTION_FIELDS[productForm.section].variantsHint}</span></label>
               <div className="portal-multiselect" style={{ gap: 8 }}>
                 {productForm.variants.length === 0 && (
                   <p className="relation-empty" style={{ margin: 0 }}>No variants — the base price is used.</p>
                 )}
                 {productForm.variants.map((v, i) => (
                   <div key={i} className="portal-amount-row" style={{ gridTemplateColumns: '1fr 1fr auto', display: 'grid', gap: 8, alignItems: 'center' }}>
-                    <input placeholder="Label (e.g. 500g)" value={v.label} onChange={(e) => updateVariant(i, 'label', e.target.value)} />
+                    <input placeholder={SECTION_FIELDS[productForm.section].variantLabelPlaceholder} value={v.label} onChange={(e) => updateVariant(i, 'label', e.target.value)} />
                     <input type="number" min="0" step="0.01" placeholder="Price" value={v.price} onChange={(e) => updateVariant(i, 'price', e.target.value)} />
                     <button type="button" className="portal-btn-delete" onClick={() => removeVariant(i)} style={{ whiteSpace: 'nowrap' }}>✕</button>
                   </div>
@@ -1525,11 +1572,11 @@ const AdminDashboard: React.FC = () => {
                 list="product-category-list"
                 value={productForm.category}
                 onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
-                placeholder="e.g. Superfood, Herbal tea, Spice…"
+                placeholder={`e.g. ${SECTION_FIELDS[productForm.section].categories.slice(0, 3).join(', ')}…`}
                 autoComplete="off"
               />
               <datalist id="product-category-list">
-                {PRODUCT_CATEGORIES.map((c) => <option key={c} value={c} />)}
+                {SECTION_FIELDS[productForm.section].categories.map((c) => <option key={c} value={c} />)}
               </datalist>
 
               <label className="portal-hidden-toggle">
@@ -1586,6 +1633,7 @@ const AdminDashboard: React.FC = () => {
                   {p.description && <p className="portal-item-meta">{p.description}</p>}
                   <p className="portal-item-meta">
                     {p.price.toLocaleString()} {p.currency}
+                    <span className="portal-item-badge">{p.section === 'artisanal' ? '🥁 Artisanal' : '🌱 Food'}</span>
                     {p.category && <span className="portal-item-badge">{p.category}</span>}
                     <span className="portal-item-badge">Stock {p.stock ?? 0}</span>
                     {p.variants?.length > 0 && <span className="portal-item-badge">{p.variants.length} variants</span>}

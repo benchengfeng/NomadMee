@@ -5,6 +5,8 @@ export type ProductVariant = {
   price: number;
 };
 
+export type ProductSection = 'food' | 'artisanal';
+
 export type ProductDocument = {
   name: string;
   description: string;
@@ -15,6 +17,7 @@ export type ProductDocument = {
   stock: number;
   coverImageUrl: string;
   images: string[];
+  section: ProductSection;
   category: string;
   active: boolean;
   createdAt?: Date;
@@ -40,6 +43,7 @@ const ProductSchema = new Schema<ProductDocument>(
     stock: { type: Number, default: 0, min: 0 },
     coverImageUrl: { type: String, default: '', trim: true },
     images: [{ type: String, trim: true }],
+    section: { type: String, enum: ['food', 'artisanal'], default: 'food' },
     category: { type: String, default: '', trim: true },
     active: { type: Boolean, default: true },
   },

@@ -137,6 +137,8 @@ export type ProductVariant = {
   price: number;
 };
 
+export type ProductSection = 'food' | 'artisanal';
+
 export type Product = {
   _id: string;
   name: string;
@@ -148,6 +150,7 @@ export type Product = {
   stock: number;
   coverImageUrl: string;
   images: string[];
+  section: ProductSection;
   category: string;
   active: boolean;
   createdAt?: string;
@@ -167,6 +170,7 @@ export type ProductInput = {
   stock: number;
   coverImageUrl: string;
   images: string[];
+  section: ProductSection;
   category: string;
   active: boolean;
 };

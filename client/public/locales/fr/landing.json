@@ -20,7 +20,11 @@
     "sub": "Des produits bio d'Afrique de l'Ouest, sourcés directement auprès de ceux qui les cultivent.",
     "shipNote": "Frais de livraison calculés individuellement selon votre localisation et la taille de votre commande. Nous vous contacterons après commande.",
     "none": "Produits bientôt disponibles.",
-    "backToSite": "Retour au site"
+    "backToSite": "Retour au site",
+    "earthTitle": "De la Terre",
+    "earthSub": "Des produits bio sourcés directement auprès de petits producteurs d'Afrique de l'Ouest",
+    "handsTitle": "Des Mains",
+    "handsSub": "Des instruments faits main par des artisans, pas des usines"
   },
   "status": {
     "active": "Actif",
