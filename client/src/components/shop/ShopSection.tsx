@@ -226,10 +226,29 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, shipNote, onClose,
   const [message, setMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [copied, setCopied] = useState(false);
 
   const unitPrice = variant ? variant.price : product.price;
   const total = unitPrice * qty;
   const out = product.stock <= 0;
+
+  // Canonical, shareable link to this product on the public shop page —
+  // works no matter which surface the modal was opened from.
+  const shareUrl = `${window.location.origin}/shop/${product._id}`;
+  const copyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+    } catch {
+      const el = document.createElement('input');
+      el.value = shareUrl;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -307,6 +326,10 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, shipNote, onClose,
                     {variant && <small>· {variant.label}</small>}
                   </div>
                   {shipNote && <p className="shop-ship-note">🚚 {shipNote}</p>}
+
+                  <button type="button" className={`shop-share-btn${copied ? ' shop-share-btn--done' : ''}`} onClick={copyLink}>
+                    {copied ? '✓ Link copied!' : '🔗 Copy share link'}
+                  </button>
 
                   {product.description && <p className="shop-modal-desc">{product.description}</p>}
 
