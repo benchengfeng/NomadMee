@@ -40,7 +40,8 @@
     "units": "件",
     "total": "总计",
     "eta": "预计到达",
-    "viewRoute": "查看路线 →"
+    "viewRoute": "查看路线 →",
+    "live": "实时"
   },
   "map": {
     "selectPrompt": "请从「货物」标签中选择一件货物，以查看其实时路线地图和旅程动画。",

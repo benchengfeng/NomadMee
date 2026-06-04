@@ -412,6 +412,118 @@
   animation: fadeSlideIn 0.3s ease-out;
 }
 
+/* ── Live status rail (investment "current status") ───────────────── */
+.live-status-rail {
+  display: grid;
+  gap: 12px;
+}
+
+.live-status-card {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  border: 1px solid;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* Subtle moving sheen to convey live motion */
+.live-status-card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    100deg,
+    transparent 30%,
+    color-mix(in srgb, var(--ls-accent, #38bdf8) 12%, transparent) 50%,
+    transparent 70%
+  );
+  background-size: 220% 100%;
+  animation: ls-sheen 3.6s linear infinite;
+}
+
+@keyframes ls-sheen {
+  from { background-position: 140% 0; }
+  to { background-position: -60% 0; }
+}
+
+/* Radar beacon */
+.live-status-beacon {
+  position: relative;
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+}
+
+.live-status-dot,
+.live-status-ping {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+}
+
+.live-status-dot {
+  box-shadow: 0 0 10px var(--ls-accent, #38bdf8);
+}
+
+.live-status-ping {
+  opacity: 0.55;
+  animation: ls-ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes ls-ping {
+  0%   { transform: scale(1);   opacity: 0.55; }
+  70%  { transform: scale(3);   opacity: 0; }
+  100% { transform: scale(3);   opacity: 0; }
+}
+
+.live-status-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.live-status-label {
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.live-status-text {
+  margin: 0;
+  font-size: 0.96rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.live-status-emoji {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.3));
+  animation: ls-float 3s ease-in-out infinite;
+}
+
+@keyframes ls-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .live-status-card::after,
+  .live-status-ping,
+  .live-status-emoji { animation: none; }
+}
+
 .cargo-list {
   display: grid;
   gap: 14px;

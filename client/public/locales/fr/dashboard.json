@@ -40,7 +40,8 @@
     "units": "unités",
     "total": "total",
     "eta": "ETA",
-    "viewRoute": "Voir l'itinéraire →"
+    "viewRoute": "Voir l'itinéraire →",
+    "live": "En direct"
   },
   "map": {
     "selectPrompt": "Sélectionnez une cargaison dans l'onglet Cargaisons pour voir sa carte d'itinéraire en direct.",

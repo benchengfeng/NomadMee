@@ -250,9 +250,33 @@ const InvestorHome: React.FC = () => {
     if (!data) return null;
 
     const investorCurrency = data.investor.preferredCurrency || data.investor.currency || 'USD';
+    const liveStatuses = (data.investments ?? []).filter((inv) => inv.currentStatus.trim());
 
     return (
       <div className="cargo-panel" style={{ color: theme.text }}>
+        {liveStatuses.length > 0 && (
+          <div className="live-status-rail">
+            {liveStatuses.map((inv) => (
+              <div
+                key={inv._id}
+                className="live-status-card"
+                style={{ background: theme.surface, borderColor: theme.accentSoft, ['--ls-accent' as string]: theme.accent }}
+              >
+                <span className="live-status-beacon">
+                  <span className="live-status-ping" style={{ background: theme.accent }} />
+                  <span className="live-status-dot" style={{ background: theme.accent }} />
+                </span>
+                <div className="live-status-content">
+                  <span className="live-status-label" style={{ color: theme.accent }}>
+                    {t('cargos.live')} · {inv.title}
+                  </span>
+                  <p className="live-status-text">{inv.currentStatus}</p>
+                </div>
+                <span className="live-status-emoji" aria-hidden="true">🛰️</span>
+              </div>
+            ))}
+          </div>
+        )}
         {data.cargos.length === 0 ? (
           <div className="empty-state" style={{ borderColor: theme.accent }}>
             <p>{t('cargos.noneTitle')}</p>

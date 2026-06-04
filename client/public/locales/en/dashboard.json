@@ -40,7 +40,8 @@
     "units": "units",
     "total": "total",
     "eta": "ETA",
-    "viewRoute": "View route →"
+    "viewRoute": "View route →",
+    "live": "Live"
   },
   "map": {
     "selectPrompt": "Select a cargo from the Cargos tab to see its live route map and journey animation.",

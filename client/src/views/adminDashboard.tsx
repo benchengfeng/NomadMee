@@ -137,6 +137,7 @@ const emptyInvestmentForm = {
   minimumInvestment: '',
   cargoIds: [] as string[],
   status: 'active' as InvestmentStatus,
+  currentStatus: '',
   hidden: false,
   coverImageUrl: '',
   location: '',
@@ -413,6 +414,7 @@ const AdminDashboard: React.FC = () => {
           minimumInvestment: Number(investmentForm.minimumInvestment),
           cargoIds: investmentForm.cargoIds,
           status: investmentForm.status,
+          currentStatus: investmentForm.currentStatus,
           hidden: investmentForm.hidden,
           coverImageUrl: investmentForm.coverImageUrl,
           location: investmentForm.location,
@@ -426,6 +428,7 @@ const AdminDashboard: React.FC = () => {
           minimumInvestment: Number(investmentForm.minimumInvestment),
           cargoIds: investmentForm.cargoIds,
           status: investmentForm.status,
+          currentStatus: investmentForm.currentStatus,
           hidden: investmentForm.hidden,
           coverImageUrl: investmentForm.coverImageUrl,
           location: investmentForm.location,
@@ -482,6 +485,7 @@ const AdminDashboard: React.FC = () => {
       minimumInvestment: investment.minimumInvestment.toString(),
       cargoIds: investment.cargoIds || [],
       status: investment.status || 'active',
+      currentStatus: investment.currentStatus ?? '',
       hidden: investment.hidden ?? false,
       coverImageUrl: investment.coverImageUrl ?? '',
       location: investment.location ?? '',
@@ -935,6 +939,13 @@ const AdminDashboard: React.FC = () => {
               <select value={investmentForm.status} onChange={(e) => setInvestmentForm({ ...investmentForm, status: e.target.value as InvestmentStatus })}>
                 {STATUS_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
               </select>
+              <label>Current status <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 400 }}>(live line shown to investors)</span></label>
+              <input
+                value={investmentForm.currentStatus}
+                onChange={(e) => setInvestmentForm({ ...investmentForm, currentStatus: e.target.value })}
+                placeholder="e.g. Currently sailing the Pacific · Being transported from Ghana to Abidjan…"
+                maxLength={140}
+              />
               <div className="portal-multiselect">
                 <span>Assign cargos</span>
                 {cargoOptions.length === 0 ? (

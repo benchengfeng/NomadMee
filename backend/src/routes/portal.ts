@@ -880,9 +880,9 @@ router.post('/admin/investments', async (req: Request, res: Response): Promise<v
   if (!await requireAdmin(req, res)) return;
 
   try {
-    const { title, description, currency, minimumInvestment, cargoIds, status, hidden, coverImageUrl, location } = req.body as {
+    const { title, description, currency, minimumInvestment, cargoIds, status, currentStatus, hidden, coverImageUrl, location } = req.body as {
       title?: string; description?: string; currency?: unknown; minimumInvestment?: unknown;
-      cargoIds?: string[]; status?: string; hidden?: boolean; coverImageUrl?: string; location?: string;
+      cargoIds?: string[]; status?: string; currentStatus?: string; hidden?: boolean; coverImageUrl?: string; location?: string;
     };
 
     const validStatuses = ['active', 'in_progress', 'waiting', 'successful'];
@@ -895,6 +895,7 @@ router.post('/admin/investments', async (req: Request, res: Response): Promise<v
       cargoIds: assignedCargoIds,
       assignedInvestorIds: [],
       status: validStatuses.includes(String(status || '')) ? status : 'active',
+      currentStatus: String(currentStatus || '').trim(),
       hidden: hidden === true,
       coverImageUrl: String(coverImageUrl || '').trim(),
       location: String(location || '').trim(),
@@ -913,9 +914,9 @@ router.put('/admin/investments/:id', async (req: Request, res: Response): Promis
 
   try {
     const { id } = req.params;
-    const { title, description, currency, minimumInvestment, cargoIds, status, hidden, coverImageUrl, location } = req.body as {
+    const { title, description, currency, minimumInvestment, cargoIds, status, currentStatus, hidden, coverImageUrl, location } = req.body as {
       title?: string; description?: string; currency?: unknown; minimumInvestment?: unknown;
-      cargoIds?: string[]; status?: string; hidden?: boolean; coverImageUrl?: string; location?: string;
+      cargoIds?: string[]; status?: string; currentStatus?: string; hidden?: boolean; coverImageUrl?: string; location?: string;
     };
 
     const validStatuses = ['active', 'in_progress', 'waiting', 'successful'];
@@ -928,6 +929,7 @@ router.put('/admin/investments/:id', async (req: Request, res: Response): Promis
         currency: normalizeCurrency(currency),
         minimumInvestment: normalizeNumber(minimumInvestment, 'minimumInvestment'),
         cargoIds: assignedCargoIds,
+        currentStatus: String(currentStatus || '').trim(),
         hidden: hidden === true,
         coverImageUrl: String(coverImageUrl || '').trim(),
         location: String(location || '').trim(),
@@ -1226,6 +1228,11 @@ router.get('/investor/home', async (req: Request, res: Response): Promise<void> 
       kycCompleted: investor.kycCompleted === true,
     },
     cargos,
+    investments: assignedInvestments.map((inv) => ({
+      _id: inv._id,
+      title: inv.title,
+      currentStatus: inv.currentStatus || '',
+    })),
   });
 });
 

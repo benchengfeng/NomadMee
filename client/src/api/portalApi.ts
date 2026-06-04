@@ -112,6 +112,7 @@ export type Investment = {
   cargoIds: string[];
   assignedInvestorIds: string[];
   status?: InvestmentStatus;
+  currentStatus?: string;
   hidden?: boolean;
   coverImageUrl?: string;
   location?: string;
@@ -227,9 +228,16 @@ export type InvestorProfile = {
   kycCompleted: boolean;
 };
 
+export type InvestorInvestmentStatus = {
+  _id: string;
+  title: string;
+  currentStatus: string;
+};
+
 export type InvestorHomeResponse = {
   investor: InvestorProfile;
   cargos: Cargo[];
+  investments: InvestorInvestmentStatus[];
 };
 
 async function parseJsonOrThrow<T>(response: Response): Promise<T> {
@@ -384,6 +392,7 @@ export async function createInvestment(payload: {
   minimumInvestment: number;
   cargoIds: string[];
   status?: InvestmentStatus;
+  currentStatus?: string;
   hidden?: boolean;
   coverImageUrl?: string;
   location?: string;
@@ -403,6 +412,7 @@ export async function updateInvestment(id: string, payload: {
   minimumInvestment: number;
   cargoIds: string[];
   status?: InvestmentStatus;
+  currentStatus?: string;
   hidden?: boolean;
   coverImageUrl?: string;
   location?: string;
