@@ -211,7 +211,7 @@ const LEGACY_AVATAR_URLS: Record<string, string> = {
 // ---------------------------------------------------------------------------
 
 const SITE_ORIGIN = (process.env.SITE_ORIGIN || 'https://app.nomadme.life').replace(/\/$/, '');
-const FALLBACK_IMAGE = `${SITE_ORIGIN}/logo512.png`;
+const FALLBACK_IMAGE = `${SITE_ORIGIN}/nomadme_social_card.jpg`;
 
 function escapeHtml(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
