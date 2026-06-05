@@ -1,4 +1,4 @@
-name: Deploy NomadMee to VPS
+name: Deploy nomadme to VPS
 
 on:
   push:
@@ -133,6 +133,6 @@ jobs:
             cp -r /tmp/build/. "$APP/frontend/"
             rm -rf /tmp/build /tmp/client.tar.gz
 
-            echo "✅ NomadMee deployed successfully"
+            echo "✅ nomadme deployed successfully"
         env:
           VPS_ENV_CONTENT: ${{ secrets.VPS_ENV_FILE }}

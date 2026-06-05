@@ -1,7 +1,7 @@
-# NomadMee App Reference
+# nomadme App Reference
 
 ## High-level overview
-NomadMee is a product sourcing application focused on trade between China and Côte d'Ivoire. It includes:
+nomadme is a product sourcing application focused on trade between China and Côte d'Ivoire. It includes:
 - A public marketing website for visitors.
 - An investor portal where investors sign in to view their investment and assigned cargos.
 - An admin portal where administrators create cargos, create investors, and assign cargos to investors.

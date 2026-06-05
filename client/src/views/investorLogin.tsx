@@ -39,7 +39,7 @@ const InvestorLogin: React.FC = () => {
 			</div>
 
 			<div className="investor-login-logo">
-				<img src="/logo192.png" alt="NomadMee" />
+				<img src="/logo192.png" alt="nomadme" />
 			</div>
 			<p className="investor-login-brand">{t('common:brand')}</p>
 

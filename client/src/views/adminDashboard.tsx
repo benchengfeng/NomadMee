@@ -754,7 +754,7 @@ const AdminDashboard: React.FC = () => {
     <main className="portal-shell admin-shell">
       <header className="portal-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
-          <img src="/logo192.png" className="admin-header-logo" alt="NomadMee" />
+          <img src="/logo192.png" className="admin-header-logo" alt="nomadme" />
           <div>
             <h1>Admin Dashboard</h1>
             <p>{data.cargos.length} cargos · {data.investments.length} investments · {data.investors.length} investors</p>
@@ -1477,7 +1477,7 @@ const AdminDashboard: React.FC = () => {
                             </a>
                           ) : (
                             <a
-                              href={`mailto:${order.contactDetail}?subject=${encodeURIComponent(`Your NomadMee order — ${order.productName}`)}`}
+                              href={`mailto:${order.contactDetail}?subject=${encodeURIComponent(`Your nomadme order — ${order.productName}`)}`}
                               style={{ padding: '8px 16px', borderRadius: 10, background: 'rgba(56,189,248,0.15)', color: '#38bdf8', fontWeight: 700, fontSize: '0.8rem', textDecoration: 'none' }}
                             >
                               ✉️ Send email

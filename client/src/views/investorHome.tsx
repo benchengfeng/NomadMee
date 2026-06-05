@@ -740,7 +740,7 @@ const InvestorHome: React.FC = () => {
     <main className={`investor-dashboard-shell gamified-shell${viewMode === 'globe' ? ' gamified-shell--globe' : ''}`} style={{ background: theme.background, color: theme.text }}>
       <div className="investor-topbar gamified-topbar">
         <div className="topbar-identity">
-          <img src="/logo192.png" className="topbar-brand-logo" alt="NomadMee" />
+          <img src="/logo192.png" className="topbar-brand-logo" alt="nomadme" />
           <div>
             <p className="mini-label">{t('topbar.portal')}</p>
             <h1>{t('topbar.welcome', { name: data.investor.displayName || data.investor.name })}</h1>

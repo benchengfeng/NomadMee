@@ -10,7 +10,7 @@ function AppFooter() {
       <div className="footer">
         <div className="logo">
           <i className="fas fa-bolt"></i>
-          <a href="http://nomadmeshop.com">NomadMee</a>
+          <a href="http://nomadmeshop.com">nomadme</a>
         </div>
         <ul className="socials">
           <li><a href="https://www.facebook.com/" aria-label="Facebook"><i className="fab fa-facebook-f"></i></a></li>

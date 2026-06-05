@@ -116,7 +116,7 @@
 
   "privacyPolicy": {
     "title": "Privacy Policy",
-    "introduction": "At NomadMee, your privacy is of paramount importance to us. This Privacy Policy document outlines the types of personal information that is received and collected by NomadMee and how we use it.",
+    "introduction": "At nomadme, your privacy is of paramount importance to us. This Privacy Policy document outlines the types of personal information that is received and collected by nomadme and how we use it.",
     "section1": {
       "title": "1. Information We Collect",
       "description": "We collect various types of information in order to provide and improve our services:",
@@ -181,7 +181,7 @@
 
   "termsOfService": {
     "title": "Terms of Service",
-    "introduction": "Welcome to NomadMee. These terms and conditions outline the rules and regulations for the use of our platform.",
+    "introduction": "Welcome to nomadme. These terms and conditions outline the rules and regulations for the use of our platform.",
     "section1": {
       "title": "1. User Responsibilities",
       "description": "As a user, you are responsible for ensuring that your activities comply with the following:",

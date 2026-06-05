@@ -1,4 +1,4 @@
-# NomadMee UI/UX Plan
+# nomadme UI/UX Plan
 
 ## Goal
 Build a modern, friendly investment website that appeals to Gen Z and older investors by making the experience:

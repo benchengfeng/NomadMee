@@ -25,7 +25,7 @@ const ShopPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    document.title = 'NomadMee — Shop';
+    document.title = 'nomadme — Shop';
     track('shop-open');
     getPublicProducts()
       .then((r) => { setProducts(r.products); setGalleries(r.galleries); })
@@ -38,7 +38,7 @@ const ShopPage: React.FC = () => {
       <nav className="shop-page-nav">
         <Link to="/" className="shop-page-brand" style={{ color: ACCENT }}>
           <img src="/logo192.png" className="shop-page-logo" alt="" />
-          NomadMee
+          nomadme
         </Link>
         <div className="shop-page-nav-right">
           <LanguageSwitcher variant="ghost" accentColor={ACCENT} />
@@ -73,7 +73,7 @@ const ShopPage: React.FC = () => {
       </main>
 
       <footer className="shop-page-footer">
-        <span>© {new Date().getFullYear()} NomadMee</span>
+        <span>© {new Date().getFullYear()} nomadme</span>
         <Link to="/login" className="shop-page-footer-link">{t('cta.login')}</Link>
       </footer>
     </div>

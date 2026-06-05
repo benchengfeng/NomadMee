@@ -207,6 +207,82 @@ const LEGACY_AVATAR_URLS: Record<string, string> = {
 };
 
 // ---------------------------------------------------------------------------
+// Public — OG prerender for social bots
+// ---------------------------------------------------------------------------
+
+const SITE_ORIGIN = (process.env.SITE_ORIGIN || 'https://app.nomadme.life').replace(/\/$/, '');
+const FALLBACK_IMAGE = `${SITE_ORIGIN}/logo512.png`;
+
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+/**
+ * Returns a minimal HTML page with product-specific OG/Twitter meta tags.
+ * Nginx routes social bot traffic for /shop/:id here; real browsers get the SPA.
+ * Add to nginx (inside the `server {}` block, before the generic `location /`):
+ *
+ *   map $http_user_agent $is_social_bot {
+ *       default 0;
+ *       ~*(bot|crawler|spider|facebookexternalhit|twitterbot|linkedinbot|telegrambot|whatsapp|slackbot|discordbot) 1;
+ *   }
+ *   location ~ "^/shop/[a-fA-F0-9]{24}$" {
+ *       if ($is_social_bot) {
+ *           proxy_pass http://127.0.0.1:8000;
+ *           rewrite ^/shop/(.+)$ /api/portal/public/og/shop/$1 break;
+ *       }
+ *       try_files $uri /index.html;
+ *   }
+ */
+router.get('/public/og/shop/:productId', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const product = await ProductModel.findById(req.params.productId)
+      .select('name description coverImageUrl price currency active')
+      .lean();
+
+    const productUrl = `${SITE_ORIGIN}/shop/${req.params.productId}`;
+
+    const title = product
+      ? `${product.name} — nomadme Shop`
+      : 'nomadme Shop — Authentic West African Products';
+
+    const description = product?.description
+      ? product.description.slice(0, 200)
+      : 'Authentic West African products shipped worldwide — tiger nuts, djembes, spices, and more.';
+
+    const image = product?.coverImageUrl || FALLBACK_IMAGE;
+
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.send(`<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>${escapeHtml(title)}</title>
+  <meta name="description" content="${escapeHtml(description)}" />
+  <meta property="og:type" content="product" />
+  <meta property="og:url" content="${escapeHtml(productUrl)}" />
+  <meta property="og:site_name" content="nomadme" />
+  <meta property="og:title" content="${escapeHtml(title)}" />
+  <meta property="og:description" content="${escapeHtml(description)}" />
+  <meta property="og:image" content="${escapeHtml(image)}" />
+  <meta property="og:image:alt" content="${escapeHtml(product?.name ?? 'nomadme product')}" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="${escapeHtml(title)}" />
+  <meta name="twitter:description" content="${escapeHtml(description)}" />
+  <meta name="twitter:image" content="${escapeHtml(image)}" />
+  <meta http-equiv="refresh" content="0;url=${escapeHtml(productUrl)}" />
+</head>
+<body>
+  <p>Redirecting to <a href="${escapeHtml(productUrl)}">${escapeHtml(title)}</a>…</p>
+</body>
+</html>`);
+  } catch {
+    res.status(404).send('<!DOCTYPE html><html><head><title>nomadme</title></head><body>Product not found.</body></html>');
+  }
+});
+
+// ---------------------------------------------------------------------------
 // Public — no auth required
 // ---------------------------------------------------------------------------
 

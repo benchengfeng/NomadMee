@@ -41,7 +41,7 @@ const AppHeader: React.FC = () => {
               maxWidth: "100%",
               width: isMobile ? "6rem" : "7rem",
             }}
-            alt="NomadMee Logo"
+            alt="nomadme Logo"
           />
         </div>
 
