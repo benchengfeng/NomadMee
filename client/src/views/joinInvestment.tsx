@@ -32,6 +32,7 @@ const JoinInvestment: React.FC = () => {
   const [contactDetail, setContactDetail] = useState('');
   const [rdvDate, setRdvDate] = useState('');
   const [note, setNote] = useState('');
+  const [website, setWebsite] = useState(''); // honeypot — must stay empty
 
   const accent = DEFAULT_ACCENT;
 
@@ -60,6 +61,7 @@ const JoinInvestment: React.FC = () => {
         contactDetail: contactDetail.trim(),
         rdvDate,
         note: note.trim(),
+        website,
       });
       track('join-submit', { investmentId, contactMethod });
       setSubmitted(true);
@@ -164,6 +166,17 @@ const JoinInvestment: React.FC = () => {
             <p className="join-form-sub">{t('form.sub')}</p>
 
             <form className="join-form" onSubmit={handleSubmit}>
+              {/* Honeypot — hidden from humans; bots that fill it are dropped server-side. */}
+              <input
+                type="text"
+                name="website"
+                value={website}
+                onChange={(e) => setWebsite(e.target.value)}
+                tabIndex={-1}
+                autoComplete="off"
+                aria-hidden="true"
+                style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, opacity: 0 }}
+              />
               {/* Full name */}
               <div className="join-field">
                 <label className="join-label">{t('form.fullName')}</label>

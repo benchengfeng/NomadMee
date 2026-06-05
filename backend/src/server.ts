@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 import bodyParser from 'body-parser';
 import sendEmailRoutes from './routes/sendEmail';
 import statusRoutes from './routes/status';
@@ -9,27 +10,32 @@ import { connectMongo } from './config/mongoose';
 
 const app = express();
 
-// Middleware for CORS to allow all origins
-const corsOptions = {
-  origin: true, // Allow all origins
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allowed HTTP methods
-  allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
-  credentials: true, // Allow cookies or auth headers
+// We sit behind one reverse proxy (nginx) in production — trust the first hop
+// so express-rate-limit and req.ip see the real client address, not the proxy's.
+app.set('trust proxy', 1);
+
+// Security headers (HSTS, no-sniff, frameguard, etc.). This is a JSON API, so
+// the CSP defaults don't affect the separately-served frontend.
+app.use(helmet());
+
+// CORS — restricted to our own origins in production. Set ALLOWED_ORIGINS in the
+// backend .env as a comma-separated list (e.g. "https://nomadme.life,https://app.nomadme.life").
+// If unset, falls back to reflecting the request origin so local dev keeps working.
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || '')
+  .split(',')
+  .map((o) => o.trim())
+  .filter(Boolean);
+
+const corsOptions: cors.CorsOptions = {
+  origin: allowedOrigins.length > 0 ? allowedOrigins : true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 };
 
-// Use CORS middleware
 app.use(cors(corsOptions));
 
 // Middleware for parsing requests
 app.use(bodyParser.json());
-
-// Handle preflight requests (OPTIONS)
-app.options('*', (req, res) => {
-  res.header('Access-Control-Allow-Origin', '*'); // Allow all origins in preflight response
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.sendStatus(200); // Respond with OK
-});
 
 // Routes
 app.use('/api/sendEmail', sendEmailRoutes);

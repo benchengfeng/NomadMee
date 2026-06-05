@@ -41,8 +41,9 @@ interface ShopSectionProps {
   onOrdered?: (product: PublicProduct) => void;
 }
 
-// Prices are shown in euros across the shop.
-const CURRENCY_SYMBOLS: Record<string, string> = { USD: '€', EUR: '€', TND: 'DT', CNY: '¥', GBP: '£' };
+// The symbol always matches the currency the product is stored in, so the
+// displayed price can never disagree with the amount recorded on the order.
+const CURRENCY_SYMBOLS: Record<string, string> = { USD: '$', EUR: '€', TND: 'DT', CNY: '¥', GBP: '£' };
 function currencySymbol(currency: string): string {
   return CURRENCY_SYMBOLS[(currency || '').toUpperCase()] ?? currency;
 }
@@ -228,6 +229,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, shipNote, onClose,
   const [contactDetail, setContactDetail] = useState('');
   const [country, setCountry] = useState('');
   const [message, setMessage] = useState('');
+  const [website, setWebsite] = useState(''); // honeypot — must stay empty
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
@@ -268,6 +270,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, shipNote, onClose,
         contactDetail: contactDetail.trim(),
         country: country.trim(),
         message: message.trim(),
+        website,
       });
       onOrdered();
       setStep('done');
@@ -381,6 +384,17 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, shipNote, onClose,
                 </>
               ) : (
                 <form className="shop-form" onSubmit={submit}>
+                  {/* Honeypot — hidden from humans; bots that fill it are dropped server-side. */}
+                  <input
+                    type="text"
+                    name="website"
+                    value={website}
+                    onChange={(e) => setWebsite(e.target.value)}
+                    tabIndex={-1}
+                    autoComplete="off"
+                    aria-hidden="true"
+                    style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, opacity: 0 }}
+                  />
                   <button type="button" className="shop-form-back" onClick={() => setStep('detail')}>← Back to product</button>
 
                   <div className="shop-order-summary">

@@ -197,7 +197,7 @@ const emptyProductForm = {
   description: '',
   originStory: '',
   price: '',
-  currency: 'USD',
+  currency: 'EUR',
   stock: '',
   section: 'food' as ProductSectionKey,
   category: '',

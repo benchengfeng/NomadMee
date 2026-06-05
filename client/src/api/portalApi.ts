@@ -184,6 +184,8 @@ export type ProductOrderInput = {
   contactDetail: string;
   country: string;
   message?: string;
+  /** Honeypot — left empty by real users; filled values are rejected server-side. */
+  website?: string;
 };
 
 export type SocialLink = {
@@ -507,6 +509,8 @@ export async function submitContactRequest(payload: {
   contactDetail: string;
   rdvDate: string;
   note?: string;
+  /** Honeypot — left empty by real users; filled values are rejected server-side. */
+  website?: string;
 }): Promise<{ request: { _id: string } }> {
   return request<{ request: { _id: string } }>('/public/contact-request', {
     method: 'POST',

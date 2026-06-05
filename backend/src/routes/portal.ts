@@ -50,8 +50,14 @@ function uploadToCloudinary(buffer: Buffer, originalname: string): Promise<strin
 
 const router = Router();
 
-const ADMIN_USERNAME = process.env.ADMIN_USERNAME || 'admin';
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin112233';
+const ADMIN_USERNAME = (process.env.ADMIN_USERNAME || 'admin').trim();
+// No insecure default — admin login is disabled until ADMIN_PASSWORD is configured.
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
+
+if (!ADMIN_PASSWORD) {
+  // Loud warning at boot so a misconfigured deploy is obvious in the logs.
+  console.warn('[Security] ADMIN_PASSWORD is not set — admin login is DISABLED until it is configured.');
+}
 
 const BCRYPT_ROUNDS = 12;
 const SESSION_7_DAYS = 7 * 24 * 60 * 60 * 1000;
@@ -64,6 +70,30 @@ const loginLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
 });
+
+// Guards the unauthenticated public write endpoints (orders, contact requests)
+// against bots flooding the admin inboxes.
+const publicWriteLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 8,
+  message: { message: 'Too many submissions. Please try again in a few minutes.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+/** Trim + hard-cap a free-text field so a client can't store huge payloads. */
+function capStr(value: unknown, max: number): string {
+  return String(value ?? '').trim().slice(0, max);
+}
+
+/**
+ * Honeypot check. The public forms include a hidden `website` field that real
+ * users never see or fill; if it arrives populated, the submitter is a bot.
+ */
+function isHoneypotTripped(req: Request): boolean {
+  const hp = (req.body as { website?: unknown })?.website;
+  return typeof hp === 'string' && hp.trim() !== '';
+}
 
 function readBearerToken(req: Request): string | null {
   const authHeader = req.header('Authorization');
@@ -332,8 +362,14 @@ router.get('/public/partners', async (_req: Request, res: Response): Promise<voi
   }
 });
 
-router.post('/public/contact-request', async (req: Request, res: Response): Promise<void> => {
+router.post('/public/contact-request', publicWriteLimiter, async (req: Request, res: Response): Promise<void> => {
   try {
+    // Silently swallow honeypot hits — return a success shape so bots can't tell.
+    if (isHoneypotTripped(req)) {
+      res.status(201).json({ request: { _id: 'ok' } });
+      return;
+    }
+
     const { investmentId, investmentTitle, fullName, contactMethod, contactDetail, rdvDate, note } =
       req.body as Record<string, string>;
 
@@ -347,16 +383,16 @@ router.post('/public/contact-request', async (req: Request, res: Response): Prom
       return;
     }
 
-    const investment = await InvestmentModel.findById(investmentId).lean();
+    const investment = await InvestmentModel.findById(String(investmentId)).lean();
 
     const request = await ContactRequestModel.create({
-      investmentId: investmentId.trim(),
-      investmentTitle: (investmentTitle || investment?.title || 'Unknown Investment').trim(),
-      fullName: fullName.trim(),
+      investmentId: capStr(investmentId, 64),
+      investmentTitle: capStr(investmentTitle || investment?.title || 'Unknown Investment', 200),
+      fullName: capStr(fullName, 120),
       contactMethod,
-      contactDetail: contactDetail.trim(),
-      rdvDate: rdvDate.trim(),
-      note: (note ?? '').trim(),
+      contactDetail: capStr(contactDetail, 200),
+      rdvDate: capStr(rdvDate, 64),
+      note: capStr(note, 2000),
       status: 'new',
     });
 
@@ -413,8 +449,14 @@ router.get('/public/products', async (_req: Request, res: Response): Promise<voi
   }
 });
 
-router.post('/public/product-order', async (req: Request, res: Response): Promise<void> => {
+router.post('/public/product-order', publicWriteLimiter, async (req: Request, res: Response): Promise<void> => {
   try {
+    // Silently swallow honeypot hits — return a success shape so bots can't tell.
+    if (isHoneypotTripped(req)) {
+      res.status(201).json({ ok: true, order: { _id: 'ok' } });
+      return;
+    }
+
     const { productId, variant, quantity, fullName, contactMethod, contactDetail, country, message } =
       req.body as Record<string, string>;
 
@@ -428,7 +470,7 @@ router.post('/public/product-order', async (req: Request, res: Response): Promis
       return;
     }
 
-    const product = await ProductModel.findById(productId).lean();
+    const product = await ProductModel.findById(String(productId)).lean();
     if (!product) {
       res.status(404).json({ message: 'Product not found.' });
       return;
@@ -441,16 +483,16 @@ router.post('/public/product-order', async (req: Request, res: Response): Promis
     const order = await ProductOrderModel.create({
       productId: String(productId),
       productName: product.name,
-      variant: (variant || '').trim(),
+      variant: capStr(variant, 120),
       quantity: qty,
       unitPrice: unit,
       currency: product.currency,
       total: unit * qty,
-      fullName: fullName.trim(),
+      fullName: capStr(fullName, 120),
       contactMethod,
-      contactDetail: contactDetail.trim(),
-      country: country.trim(),
-      message: (message ?? '').trim(),
+      contactDetail: capStr(contactDetail, 200),
+      country: capStr(country, 80),
+      message: capStr(message, 2000),
       status: 'new',
     });
 
@@ -466,6 +508,11 @@ router.post('/public/product-order', async (req: Request, res: Response): Promis
 
 router.post('/admin/login', loginLimiter, async (req: Request, res: Response): Promise<void> => {
   const { username, password } = req.body as { username?: string; password?: string };
+
+  if (!ADMIN_PASSWORD) {
+    res.status(503).json({ message: 'Admin access is not configured.' });
+    return;
+  }
 
   if (username !== ADMIN_USERNAME || password !== ADMIN_PASSWORD) {
     res.status(401).json({ message: 'Invalid admin credentials.' });
@@ -1286,7 +1333,7 @@ router.post('/investor/kyc', async (req: Request, res: Response): Promise<void> 
     };
 
     const normalizedAvatar = normalizeAvatar(avatar);
-    const normalizedDisplayName = String(displayName || '').trim() || 'Future investor';
+    const normalizedDisplayName = capStr(displayName, 80) || 'Future investor';
     const validCurrencies = ['USD', 'EUR', 'TND', 'CNY'];
     const normalizedCurrency = validCurrencies.includes(String(preferredCurrency || '').toUpperCase())
       ? String(preferredCurrency).toUpperCase()
