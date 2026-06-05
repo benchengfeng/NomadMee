@@ -24,7 +24,7 @@ cloudinary.config({
 
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 100 * 1024 * 1024 }, // 100 MB
+  limits: { fileSize: 20 * 1024 * 1024 }, // 20 MB
   fileFilter: (_req, file, cb) => {
     if (/\.(jpg|jpeg|png|gif|webp|mp4|webm|mov)$/i.test(file.originalname)) {
       cb(null, true);
