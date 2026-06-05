@@ -72,7 +72,7 @@ const LandingPage: React.FC = () => {
       <nav className="landing-nav">
         <span className="landing-brand" style={{ color: palette.accent }}>
           <img src="/logo192.png" className="brand-logo" alt="" />
-          nomadme
+          NomadMe
         </span>
 
         <div className="landing-nav-links">

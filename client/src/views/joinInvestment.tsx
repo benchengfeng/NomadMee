@@ -81,7 +81,7 @@ const JoinInvestment: React.FC = () => {
         <Link to="/" className="join-back-btn">← {t('back')}</Link>
         <span className="join-nav-brand" style={{ color: accent }}>
           <img src="/logo192.png" className="brand-logo" alt="" />
-          nomadme
+          NomadMe
         </span>
         <LanguageSwitcher variant="ghost" accentColor={accent} />
       </nav>
