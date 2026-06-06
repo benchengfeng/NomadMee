@@ -23,13 +23,14 @@ const ShopPage: React.FC = () => {
   const [products, setProducts] = useState<PublicProduct[]>([]);
   const [galleries, setGalleries] = useState<ShopGalleries>({ earth: [], hands: [] });
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
     document.title = 'NomadMe — Shop';
     track('shop-open');
     getPublicProducts()
       .then((r) => { setProducts(r.products); setGalleries(r.galleries); })
-      .catch(() => {})
+      .catch(() => setLoadError(true))
       .finally(() => setLoading(false));
   }, []);
 
@@ -53,6 +54,25 @@ const ShopPage: React.FC = () => {
       </header>
 
       <main className="shop-page-body">
+        {loadError && (
+          <div style={{ textAlign: 'center', padding: '40px 0' }}>
+            <p style={{ color: '#94a3b8', fontSize: '0.9rem', marginBottom: 12 }}>{t('shopUi.loadError')}</p>
+            <button
+              type="button"
+              onClick={() => {
+                setLoadError(false);
+                setLoading(true);
+                getPublicProducts()
+                  .then((r) => { setProducts(r.products); setGalleries(r.galleries); })
+                  .catch(() => setLoadError(true))
+                  .finally(() => setLoading(false));
+              }}
+              style={{ padding: '8px 20px', borderRadius: 8, border: `1px solid ${ACCENT}55`, background: 'transparent', color: ACCENT, cursor: 'pointer', fontWeight: 700, fontSize: '0.84rem' }}
+            >
+              {t('shopUi.retry')}
+            </button>
+          </div>
+        )}
         <ShopSections
           products={products}
           loading={loading}

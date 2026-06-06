@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Partner } from '../../api/portalApi';
 
 interface PartnersShowcaseProps {
@@ -29,6 +30,7 @@ const PartnersShowcase: React.FC<PartnersShowcaseProps> = ({ partners, accent, t
 };
 
 const PartnerCard: React.FC<{ partner: Partner; accent: string; index: number }> = ({ partner, accent, index }) => {
+  const { t } = useTranslation('landing');
   const [flipped, setFlipped] = useState(false);
   const hasStory = Boolean(partner.title?.trim() || partner.description?.trim());
 
@@ -53,7 +55,7 @@ const PartnerCard: React.FC<{ partner: Partner; accent: string; index: number }>
               : <span className="partner-logo-fallback">{partner.name.charAt(0)}</span>}
           </div>
           <span className="partner-name">{partner.name}</span>
-          {hasStory && <span className="partner-hint">Tap to learn more</span>}
+          {hasStory && <span className="partner-hint">{t('partners.tapToLearn')}</span>}
         </div>
 
         {/* Back — the story */}
@@ -62,7 +64,7 @@ const PartnerCard: React.FC<{ partner: Partner; accent: string; index: number }>
             {partner.title && <span className="partner-back-title">{partner.title}</span>}
             <strong className="partner-back-name">{partner.name}</strong>
             {partner.description && <p className="partner-back-desc">{partner.description}</p>}
-            <span className="partner-hint partner-hint--back">Tap to flip back</span>
+            <span className="partner-hint partner-hint--back">{t('partners.tapToFlip')}</span>
           </div>
         )}
       </div>

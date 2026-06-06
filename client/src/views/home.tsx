@@ -34,9 +34,11 @@ const LandingPage: React.FC = () => {
   const [selectedTheme, setSelectedTheme] = useState(0);
   const [investments, setInvestments] = useState<PublicInvestment[]>([]);
   const [loadingInvestments, setLoadingInvestments] = useState(false);
+  const [investmentsError, setInvestmentsError] = useState(false);
   const [products, setProducts] = useState<PublicProduct[]>([]);
   const [shopGalleries, setShopGalleries] = useState<ShopGalleries>({ earth: [], hands: [] });
   const [loadingProducts, setLoadingProducts] = useState(false);
+  const [productsError, setProductsError] = useState(false);
   const [productsLoaded, setProductsLoaded] = useState(false);
   const [siteContent, setSiteContent] = useState<SiteContent | null>(null);
   const [partners, setPartners] = useState<Partner[]>([]);
@@ -47,16 +49,18 @@ const LandingPage: React.FC = () => {
   useEffect(() => {
     if (section === 'investments' && investments.length === 0) {
       setLoadingInvestments(true);
+      setInvestmentsError(false);
       getPublicInvestments()
         .then((r) => setInvestments(r.investments))
-        .catch(() => {})
+        .catch(() => setInvestmentsError(true))
         .finally(() => setLoadingInvestments(false));
     }
     if (section === 'shop' && !productsLoaded) {
       setLoadingProducts(true);
+      setProductsError(false);
       getPublicProducts()
         .then((r) => { setProducts(r.products); setShopGalleries(r.galleries); setProductsLoaded(true); })
-        .catch(() => {})
+        .catch(() => setProductsError(true))
         .finally(() => setLoadingProducts(false));
     }
     if (section === 'who' && !siteContent) {
@@ -139,6 +143,24 @@ const LandingPage: React.FC = () => {
                 <div className="investment-card-skeleton" />
                 <div className="investment-card-skeleton" />
               </div>
+            ) : investmentsError ? (
+              <div style={{ textAlign: 'center', marginTop: 60 }}>
+                <p style={{ color: '#94a3b8', fontSize: '0.9rem', marginBottom: 12 }}>{t('shopUi.loadError')}</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setInvestmentsError(false);
+                    setLoadingInvestments(true);
+                    getPublicInvestments()
+                      .then((r) => setInvestments(r.investments))
+                      .catch(() => setInvestmentsError(true))
+                      .finally(() => setLoadingInvestments(false));
+                  }}
+                  style={{ padding: '8px 20px', borderRadius: 8, border: `1px solid ${palette.accent}55`, background: 'transparent', color: palette.accent, cursor: 'pointer', fontWeight: 700, fontSize: '0.84rem' }}
+                >
+                  {t('shopUi.retry')}
+                </button>
+              </div>
             ) : investments.length === 0 ? (
               <p style={{ color: '#334155', textAlign: 'center', marginTop: 60, fontSize: '0.9rem' }}>
                 {t('investments.none')}
@@ -202,6 +224,25 @@ const LandingPage: React.FC = () => {
         {/* Shop */}
         {section === 'shop' && (
           <div className="landing-section-inner">
+            {productsError && (
+              <div style={{ textAlign: 'center', marginBottom: 24 }}>
+                <p style={{ color: '#94a3b8', fontSize: '0.9rem', marginBottom: 12 }}>{t('shopUi.loadError')}</p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setProductsError(false);
+                    setLoadingProducts(true);
+                    getPublicProducts()
+                      .then((r) => { setProducts(r.products); setShopGalleries(r.galleries); setProductsLoaded(true); })
+                      .catch(() => setProductsError(true))
+                      .finally(() => setLoadingProducts(false));
+                  }}
+                  style={{ padding: '8px 20px', borderRadius: 8, border: `1px solid ${palette.accent}55`, background: 'transparent', color: palette.accent, cursor: 'pointer', fontWeight: 700, fontSize: '0.84rem' }}
+                >
+                  {t('shopUi.retry')}
+                </button>
+              </div>
+            )}
             <ShopSections
               products={products}
               loading={loadingProducts}

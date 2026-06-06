@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { PublicProduct, ProductVariant, submitProductOrder } from '../../api/portalApi';
 import { COUNTRIES } from '../../utils/countries';
 import '../../styles/shop.css';
@@ -73,6 +74,7 @@ function categoryEmoji(category: string): string {
 }
 
 const ShopSection: React.FC<ShopSectionProps> = ({ products, loading, theme, emptyLabel, shipNote, initialProductId, onActiveChange, onOrdered }) => {
+  const { t } = useTranslation('landing');
   const [active, setActive] = useState<PublicProduct | null>(null);
   const [category, setCategory] = useState<string>('all');
 
@@ -133,7 +135,7 @@ const ShopSection: React.FC<ShopSectionProps> = ({ products, loading, theme, emp
                 onClick={() => setCategory('all')}
               >
                 <span className="shop-chip-emoji">✨</span>
-                All
+                {t('shopUi.all')}
                 <span className="shop-chip-count">{products.length}</span>
               </button>
               {categories.map((c) => (
@@ -172,7 +174,7 @@ const ShopSection: React.FC<ShopSectionProps> = ({ products, loading, theme, emp
                     <div className="shop-card-media-empty">🌿</div>
                   )}
                   {p.category && <span className="shop-card-cat">{p.category}</span>}
-                  {out && <span className="shop-card-out">Out of stock</span>}
+                  {out && <span className="shop-card-out">{t('shopUi.outOfStock')}</span>}
                 </div>
                 <div className="shop-card-body">
                   <h3 className="shop-card-name">{p.name}</h3>
@@ -181,7 +183,7 @@ const ShopSection: React.FC<ShopSectionProps> = ({ products, loading, theme, emp
                     <span className="shop-card-price">
                       {p.price.toLocaleString()}<small>{currencySymbol(p.currency)}</small>
                     </span>
-                    <span className="shop-card-btn">Order Now</span>
+                    <span className="shop-card-btn">{t('shopUi.orderNow')}</span>
                   </div>
                 </div>
               </button>
@@ -215,6 +217,7 @@ interface ProductModalProps {
 }
 
 const ProductModal: React.FC<ProductModalProps> = ({ product, shipNote, onClose, onOrdered }) => {
+  const { t } = useTranslation('landing');
   const gallery = useMemo(
     () => [product.coverImageUrl, ...(product.images || [])].filter(Boolean),
     [product]
@@ -236,6 +239,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, shipNote, onClose,
 
   const unitPrice = variant ? variant.price : product.price;
   const total = unitPrice * qty;
+  // stock is advisory — orders are inquiries and stock is never decremented
   const out = product.stock <= 0;
 
   // Canonical, shareable link to this product on the public shop page —
@@ -275,7 +279,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, shipNote, onClose,
       onOrdered();
       setStep('done');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Could not submit your order. Please try again.');
+      setError(err instanceof Error ? err.message : t('shopUi.orderError'));
     } finally {
       setSubmitting(false);
     }
@@ -289,13 +293,19 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, shipNote, onClose,
         {step === 'done' ? (
           <div className="shop-success">
             <div className="shop-success-icon">✓</div>
-            <h3 style={{ margin: '0 0 8px', fontSize: '1.25rem', fontWeight: 800 }}>Thank you for your order!</h3>
+            <h3 style={{ margin: '0 0 8px', fontSize: '1.25rem', fontWeight: 800 }}>{t('shopUi.successTitle')}</h3>
             <p style={{ margin: '0 auto', maxWidth: 400, fontSize: '0.88rem', color: 'var(--shop-muted)', lineHeight: 1.65 }}>
-              {fullName.split(' ')[0] ? `Thanks, ${fullName.split(' ')[0]} — your` : 'Your'} request for <strong style={{ color: 'var(--shop-text)' }}>{product.name}</strong> is in.
-              We’ll contact you on {contactMethod === 'whatsapp' ? 'WhatsApp' : 'email'} at <strong style={{ color: 'var(--shop-text)' }}>{contactDetail}</strong> within 24 hours to confirm shipping costs to your location and share payment details. We ship worldwide. 🌍
+              {fullName.split(' ')[0]
+                ? t('shopUi.successLine1WithName', { firstName: fullName.split(' ')[0], product: product.name })
+                : t('shopUi.successLine1Anon', { product: product.name })}
+              {' '}
+              {t('shopUi.successLine2', {
+                method: contactMethod === 'whatsapp' ? t('shopUi.methodWhatsapp') : t('shopUi.methodEmail'),
+                contact: contactDetail,
+              })}
             </p>
             <button type="button" className="shop-order-btn" style={{ marginTop: 22, width: '100%', maxWidth: 240 }} onClick={onClose}>
-              Done
+              {t('shopUi.done')}
             </button>
           </div>
         ) : (
@@ -336,21 +346,21 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, shipNote, onClose,
                   {shipNote && <p className="shop-ship-note">🚚 {shipNote}</p>}
 
                   <button type="button" className={`shop-share-btn${copied ? ' shop-share-btn--done' : ''}`} onClick={copyLink}>
-                    {copied ? '✓ Link copied!' : '🔗 Copy share link'}
+                    {copied ? t('shopUi.linkCopied') : t('shopUi.copyLink')}
                   </button>
 
                   {product.description && <p className="shop-modal-desc">{product.description}</p>}
 
                   {product.originStory && (
                     <>
-                      <p className="shop-modal-section-label">🌍 From the source</p>
+                      <p className="shop-modal-section-label">{t('shopUi.fromSource')}</p>
                       <p className="shop-modal-origin">{product.originStory}</p>
                     </>
                   )}
 
                   {product.variants && product.variants.length > 0 && (
                     <>
-                      <p className="shop-modal-section-label">Choose a size</p>
+                      <p className="shop-modal-section-label">{t('shopUi.chooseSizeLabel')}</p>
                       <div className="shop-variants">
                         {product.variants.map((v) => (
                           <button
@@ -366,7 +376,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, shipNote, onClose,
                     </>
                   )}
 
-                  <p className="shop-modal-section-label">Quantity</p>
+                  <p className="shop-modal-section-label">{t('shopUi.quantityLabel')}</p>
                   <div className="shop-qty">
                     <button type="button" onClick={() => setQty((q) => Math.max(1, q - 1))} disabled={qty <= 1}>−</button>
                     <span>{qty}</span>
@@ -379,7 +389,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, shipNote, onClose,
                     disabled={out}
                     onClick={() => setStep('form')}
                   >
-                    {out ? 'Out of stock' : `Order Now · ${formatPrice(total, product.currency)}`}
+                    {out ? t('shopUi.outOfStock') : `${t('shopUi.orderNow')} · ${formatPrice(total, product.currency)}`}
                   </button>
                 </>
               ) : (
@@ -395,38 +405,38 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, shipNote, onClose,
                     aria-hidden="true"
                     style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, opacity: 0 }}
                   />
-                  <button type="button" className="shop-form-back" onClick={() => setStep('detail')}>← Back to product</button>
+                  <button type="button" className="shop-form-back" onClick={() => setStep('detail')}>{t('shopUi.backToProduct')}</button>
 
                   <div className="shop-order-summary">
                     <strong>{product.name}</strong>{variant ? ` · ${variant.label}` : ''} × {qty}
-                    <br />Total: <strong>{formatPrice(total, product.currency)}</strong>
+                    <br />{t('shopUi.total')} <strong>{formatPrice(total, product.currency)}</strong>
                   </div>
 
                   <div>
-                    <label>Full name</label>
+                    <label>{t('shopUi.labelFullName')}</label>
                     <input value={fullName} onChange={(e) => setFullName(e.target.value)} required autoFocus />
                   </div>
                   <div>
-                    <label>How should we reach you?</label>
+                    <label>{t('shopUi.labelReachYou')}</label>
                     <div className="shop-variants" style={{ marginTop: 2 }}>
                       <button
                         type="button"
                         className={`shop-variant${contactMethod === 'email' ? ' shop-variant--active' : ''}`}
                         onClick={() => setContactMethod('email')}
                       >
-                        ✉️ Email
+                        {t('shopUi.contactEmail')}
                       </button>
                       <button
                         type="button"
                         className={`shop-variant${contactMethod === 'whatsapp' ? ' shop-variant--active' : ''}`}
                         onClick={() => setContactMethod('whatsapp')}
                       >
-                        📱 WhatsApp
+                        {t('shopUi.contactWhatsapp')}
                       </button>
                     </div>
                   </div>
                   <div>
-                    <label>{contactMethod === 'email' ? 'Email address' : 'WhatsApp number'}</label>
+                    <label>{contactMethod === 'email' ? t('shopUi.labelEmailAddress') : t('shopUi.labelWhatsappNumber')}</label>
                     <input
                       type={contactMethod === 'email' ? 'email' : 'tel'}
                       value={contactDetail}
@@ -436,24 +446,24 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, shipNote, onClose,
                     />
                   </div>
                   <div>
-                    <label>Country</label>
-                    <input list="shop-country-list" value={country} onChange={(e) => setCountry(e.target.value)} required autoComplete="off" placeholder="Where should we ship?" />
+                    <label>{t('shopUi.labelCountry')}</label>
+                    <input list="shop-country-list" value={country} onChange={(e) => setCountry(e.target.value)} required autoComplete="off" placeholder={t('shopUi.placeholderCountry')} />
                     <datalist id="shop-country-list">
                       {COUNTRIES.map((c) => <option key={c.code} value={c.name} />)}
                     </datalist>
                   </div>
                   <div>
-                    <label>Message (optional)</label>
-                    <textarea value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Anything we should know?" />
+                    <label>{t('shopUi.labelMessage')}</label>
+                    <textarea value={message} onChange={(e) => setMessage(e.target.value)} placeholder={t('shopUi.placeholderMessage')} />
                   </div>
 
                   {error && <p className="shop-error">{error}</p>}
 
                   <button type="submit" className="shop-order-btn" disabled={submitting}>
-                    {submitting ? 'Sending…' : 'Place order'}
+                    {submitting ? t('shopUi.sending') : t('shopUi.placeOrder')}
                   </button>
                   <p style={{ margin: 0, fontSize: '0.72rem', color: 'var(--shop-muted)', textAlign: 'center', lineHeight: 1.5 }}>
-                    No payment now — we’ll contact you to confirm &amp; arrange delivery.
+                    {t('shopUi.noPayment')}
                   </p>
                 </form>
               )}
