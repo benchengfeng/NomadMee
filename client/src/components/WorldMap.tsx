@@ -333,41 +333,78 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor = '#38bdf8', onDataLoad
       }
       setInvestmentCount(visibleInvestments);
 
-      // ---- Boutique markers ----
-      let visibleBoutiques = 0;
+      // ---- Boutique markers (clustered by country, same pattern as investors) ----
       const boutiqueColor = '#f59e0b';
-      for (const boutique of boutiques) {
-        if (!boutique.location) continue;
-        const coords = findCountryCoords(boutique.location);
-        if (!coords) continue;
-        visibleBoutiques++;
+      const boutiqueGroups = new Map<string, PublicMapBoutique[]>();
+      for (const b of boutiques) {
+        if (!b.location || !findCountryCoords(b.location)) continue;
+        const key = b.location.trim().toLowerCase();
+        const arr = boutiqueGroups.get(key);
+        if (arr) arr.push(b);
+        else boutiqueGroups.set(key, [b]);
+      }
 
-        // Offset slightly from investor markers if same country by shifting lng a bit
-        const lng = (coords[0] as number) + 0.8;
-        const lat = (coords[1] as number) - 0.8;
+      let visibleBoutiques = 0;
+      for (const [, group] of boutiqueGroups) {
+        const coords = findCountryCoords(group[0]!.location)!;
+        const count = group.length;
+        visibleBoutiques += count;
+
+        // Offset from investor markers at same country (shift slightly SE)
+        const lng = (coords[0] as number) + 0.9;
+        const lat = (coords[1] as number) - 0.9;
 
         const wrapper = document.createElement('div');
         wrapper.style.cssText = 'cursor:pointer;width:44px;height:44px;';
 
         const inner = document.createElement('div');
-        inner.style.cssText = `
-          position:relative;width:44px;height:44px;
-          transition:transform 0.16s ease;
-        `;
+        inner.style.cssText = `position:relative;width:44px;height:44px;transition:transform 0.16s ease;`;
 
-        // Square logo avatar for boutiques (rounded square to distinguish from round investor avatars)
-        const av = document.createElement('div');
-        av.style.cssText = `
-          width:40px;height:40px;margin:2px;border-radius:10px;
-          ${boutique.logoUrl
-            ? `background-image:url(${boutique.logoUrl});background-size:cover;background-position:center;`
-            : `background:#1e2535;display:flex;align-items:center;justify-content:center;font-size:18px;`
-          }
-          border:2.5px solid ${boutiqueColor};
-          box-shadow:0 0 0 3px ${boutiqueColor}44,0 4px 14px rgba(0,0,0,0.8);
-        `;
-        if (!boutique.logoUrl) av.textContent = '🏪';
-        inner.appendChild(av);
+        const logoStyle = (b: PublicMapBoutique, extra: string) =>
+          b.logoUrl
+            ? `background-image:url(${b.logoUrl});background-size:cover;background-position:center;${extra}`
+            : `background:#1e2535;${extra}`;
+
+        if (count === 1) {
+          // ── Solo boutique — single rounded-square avatar ──
+          const av = document.createElement('div');
+          av.style.cssText = `
+            width:40px;height:40px;margin:2px;border-radius:10px;
+            ${logoStyle(group[0]!, '')}
+            border:2.5px solid ${boutiqueColor};
+            box-shadow:0 0 0 3px ${boutiqueColor}44,0 4px 14px rgba(0,0,0,0.8);
+            display:flex;align-items:center;justify-content:center;font-size:18px;
+          `;
+          if (!group[0]!.logoUrl) av.textContent = '🏪';
+          inner.appendChild(av);
+        } else {
+          // ── Cluster — stacked deck of up to 3 logos + count badge ──
+          group.slice(0, 3).forEach((b, i) => {
+            const card = document.createElement('div');
+            card.style.cssText = `
+              position:absolute;
+              top:${4 - i}px;left:${i * 5}px;
+              width:32px;height:32px;border-radius:8px;
+              ${logoStyle(b, '')}
+              border:2px solid #0a0c14;
+              box-shadow:0 0 0 1.5px ${boutiqueColor}88, 0 3px 10px rgba(0,0,0,0.7);
+              z-index:${10 - i};
+              display:flex;align-items:center;justify-content:center;font-size:14px;
+            `;
+            if (!b.logoUrl) card.textContent = '🏪';
+            inner.appendChild(card);
+          });
+          const badge = document.createElement('div');
+          badge.style.cssText = `
+            position:absolute;top:-4px;right:-6px;z-index:20;
+            min-width:20px;height:20px;padding:0 5px;border-radius:999px;
+            background:${boutiqueColor};color:#0a0c14;
+            font-size:0.68rem;font-weight:800;line-height:20px;text-align:center;
+            box-shadow:0 0 0 2px #0a0c14,0 2px 8px rgba(0,0,0,0.6);
+          `;
+          badge.textContent = count > 99 ? '99+' : String(count);
+          inner.appendChild(badge);
+        }
         wrapper.appendChild(inner);
 
         // Hover tooltip
@@ -381,28 +418,55 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor = '#38bdf8', onDataLoad
           pointer-events:none;opacity:0;transition:opacity 0.18s;
           box-shadow:0 8px 24px rgba(0,0,0,0.7);z-index:200;
         `;
-        tooltip.innerHTML =
-          `<div style="font-weight:800;color:#f1f5f9;font-size:0.82rem;margin-bottom:3px;">🏪 ${esc(boutique.name)}</div>` +
-          `<div style="color:#64748b;font-size:0.72rem;">📍 ${esc(boutique.location)}</div>`;
+        if (count === 1) {
+          tooltip.innerHTML =
+            `<div style="font-weight:800;color:#f1f5f9;font-size:0.82rem;margin-bottom:3px;">🏪 ${esc(group[0]!.name)}</div>` +
+            `<div style="color:#64748b;font-size:0.72rem;">📍 ${esc(group[0]!.location)}</div>`;
+        } else {
+          tooltip.innerHTML =
+            `<div style="font-weight:800;color:${boutiqueColor};font-size:0.82rem;margin-bottom:2px;">${count} boutiques</div>` +
+            `<div style="color:#64748b;font-size:0.72rem;">📍 ${esc(group[0]!.location)} · click to view</div>`;
+        }
         wrapper.appendChild(tooltip);
 
         wrapper.addEventListener('mouseenter', () => { inner.style.transform = 'scale(1.16)'; tooltip.style.opacity = '1'; });
         wrapper.addEventListener('mouseleave', () => { inner.style.transform = 'scale(1)'; tooltip.style.opacity = '0'; });
 
-        const boutiquePopup = new maplibregl.Popup({
-          closeButton: false,
-          offset: 14,
-          className: 'world-map-popup',
-        }).setHTML(
-          `<strong>🏪 ${esc(boutique.name)}</strong><br/>` +
-          `<span>📍 ${esc(boutique.location)}</span>` +
-          (boutique.description ? `<br/><span style="color:#94a3b8">${esc(boutique.description)}</span>` : '')
-        );
+        // Popup
+        const marker = new maplibregl.Marker({ element: wrapper, anchor: 'center' })
+          .setLngLat([lng, lat] as [number, number]);
 
-        new maplibregl.Marker({ element: wrapper, anchor: 'center' })
-          .setLngLat([lng, lat] as [number, number])
-          .setPopup(boutiquePopup)
-          .addTo(map);
+        if (count === 1) {
+          const popup = new maplibregl.Popup({ closeButton: false, offset: 14, className: 'world-map-popup' })
+            .setHTML(
+              `<strong>🏪 ${esc(group[0]!.name)}</strong><br/>` +
+              `<span>📍 ${esc(group[0]!.location)}</span>` +
+              (group[0]!.description ? `<br/><span style="color:#94a3b8">${esc(group[0]!.description)}</span>` : '')
+            );
+          marker.setPopup(popup);
+        } else {
+          const rows = group.map((b) =>
+            `<div style="display:flex;align-items:center;gap:10px;padding:7px 4px;border-bottom:1px solid rgba(255,255,255,0.06);">` +
+              (b.logoUrl
+                ? `<img src="${b.logoUrl}" style="width:30px;height:30px;border-radius:6px;object-fit:cover;border:1.5px solid ${boutiqueColor};flex-shrink:0;" />`
+                : `<div style="width:30px;height:30px;border-radius:6px;background:#1e2535;border:1.5px solid ${boutiqueColor};flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;">🏪</div>`
+              ) +
+              `<div style="min-width:0;">` +
+                `<div style="color:#f1f5f9;font-size:0.78rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(b.name)}</div>` +
+                (b.description ? `<div style="color:#64748b;font-size:0.66rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(b.description)}</div>` : '') +
+              `</div>` +
+            `</div>`
+          ).join('');
+          const popup = new maplibregl.Popup({ closeButton: true, offset: 22, className: 'world-map-popup world-map-cluster-popup', maxWidth: '260px' })
+            .setHTML(
+              `<div style="font-weight:800;color:#f1f5f9;font-size:0.86rem;margin-bottom:2px;">📍 ${esc(group[0]!.location)}</div>` +
+              `<div style="color:${boutiqueColor};font-size:0.72rem;font-weight:700;margin-bottom:8px;">${count} boutiques</div>` +
+              `<div style="max-height:200px;overflow-y:auto;margin:0 -4px;">${rows}</div>`
+            );
+          marker.setPopup(popup);
+        }
+
+        marker.addTo(map);
       }
       setBoutiqueCount(visibleBoutiques);
     });
