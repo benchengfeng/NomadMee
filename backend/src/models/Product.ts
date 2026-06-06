@@ -20,6 +20,7 @@ export type ProductDocument = {
   section: ProductSection;
   category: string;
   active: boolean;
+  boutiqueId?: string;
   createdAt?: Date;
   updatedAt?: Date;
 };
@@ -46,6 +47,7 @@ const ProductSchema = new Schema<ProductDocument>(
     section: { type: String, enum: ['food', 'artisanal'], default: 'food' },
     category: { type: String, default: '', trim: true },
     active: { type: Boolean, default: true },
+    boutiqueId: { type: String, trim: true },
   },
   { timestamps: true }
 );

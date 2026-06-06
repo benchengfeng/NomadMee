@@ -29,6 +29,7 @@ import { AvatarModel } from '../../models/Avatar';
 import { ProductModel } from '../../models/Product';
 import { ProductOrderModel } from '../../models/ProductOrder';
 import { PartnerModel } from '../../models/Partner';
+import { BoutiqueModel } from '../../models/Boutique';
 
 const router = Router();
 
@@ -681,6 +682,7 @@ function buildProductPayload(body: Record<string, unknown>) {
     section: body['section'] === 'artisanal' ? 'artisanal' : 'food',
     category: String(body['category'] || '').trim(),
     active: body['active'] !== false,
+    boutiqueId: body['boutiqueId'] ? String(body['boutiqueId']).trim() : '',
   };
 }
 
@@ -779,6 +781,63 @@ router.delete('/admin/partners/:id', async (req: Request, res: Response): Promis
     res.status(200).json({ message: 'Partner deleted.' });
   } catch (error) {
     res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to delete partner.' });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Admin — boutiques
+// ---------------------------------------------------------------------------
+
+function buildBoutiquePayload(body: Record<string, unknown>) {
+  return {
+    name: String(body['name'] || '').trim(),
+    logoUrl: String(body['logoUrl'] || '').trim(),
+    description: String(body['description'] || '').trim(),
+    location: String(body['location'] || '').trim(),
+    active: body['active'] !== false,
+  };
+}
+
+router.get('/admin/boutiques', async (req: Request, res: Response): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  const boutiques = await BoutiqueModel.find().sort({ createdAt: 1 }).lean();
+  res.status(200).json({ boutiques });
+});
+
+router.post('/admin/boutiques', async (req: Request, res: Response): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  try {
+    const payload = buildBoutiquePayload(req.body as Record<string, unknown>);
+    if (!payload.name) { res.status(400).json({ message: 'Boutique name is required.' }); return; }
+    const boutique = await BoutiqueModel.create(payload);
+    res.status(201).json({ boutique });
+  } catch (error) {
+    res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to create boutique.' });
+  }
+});
+
+router.put('/admin/boutiques/:id', async (req: Request, res: Response): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  try {
+    const boutique = await BoutiqueModel.findByIdAndUpdate(
+      req.params.id,
+      buildBoutiquePayload(req.body as Record<string, unknown>),
+      { new: true, runValidators: true }
+    );
+    if (!boutique) { res.status(404).json({ message: 'Boutique not found.' }); return; }
+    res.status(200).json({ boutique });
+  } catch (error) {
+    res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to update boutique.' });
+  }
+});
+
+router.delete('/admin/boutiques/:id', async (req: Request, res: Response): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  try {
+    await BoutiqueModel.findByIdAndDelete(req.params.id);
+    res.status(200).json({ message: 'Boutique deleted.' });
+  } catch (error) {
+    res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to delete boutique.' });
   }
 });
 

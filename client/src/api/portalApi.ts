@@ -94,10 +94,19 @@ export type PublicMapInvestment = {
   location: string;
 };
 
+export type PublicMapBoutique = {
+  _id: string;
+  name: string;
+  logoUrl: string;
+  description: string;
+  location: string;
+};
+
 export type PublicMapData = {
   investors: PublicMapInvestor[];
   cargos: PublicMapCargo[];
   investments: PublicMapInvestment[];
+  boutiques: PublicMapBoutique[];
   stats: PublicMapStats;
 };
 
@@ -153,6 +162,7 @@ export type Product = {
   section: ProductSection;
   category: string;
   active: boolean;
+  boutiqueId?: string;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -172,6 +182,26 @@ export type ProductInput = {
   images: string[];
   section: ProductSection;
   category: string;
+  active: boolean;
+  boutiqueId?: string;
+};
+
+export type Boutique = {
+  _id: string;
+  name: string;
+  logoUrl: string;
+  description: string;
+  location: string;
+  active?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export type BoutiqueInput = {
+  name: string;
+  logoUrl: string;
+  description: string;
+  location: string;
   active: boolean;
 };
 
@@ -660,4 +690,28 @@ export async function updatePartner(id: string, payload: PartnerInput): Promise<
 
 export async function deletePartner(id: string): Promise<void> {
   await request<unknown>(`/admin/partners/${id}`, { method: 'DELETE' }, getAdminToken());
+}
+
+export async function getAdminBoutiques(): Promise<{ boutiques: Boutique[] }> {
+  return request<{ boutiques: Boutique[] }>('/admin/boutiques', { method: 'GET' }, getAdminToken());
+}
+
+export async function createBoutique(payload: BoutiqueInput): Promise<Boutique> {
+  const res = await request<{ boutique: Boutique }>('/admin/boutiques', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  }, getAdminToken());
+  return res.boutique;
+}
+
+export async function updateBoutique(id: string, payload: BoutiqueInput): Promise<Boutique> {
+  const res = await request<{ boutique: Boutique }>(`/admin/boutiques/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  }, getAdminToken());
+  return res.boutique;
+}
+
+export async function deleteBoutique(id: string): Promise<void> {
+  await request<unknown>(`/admin/boutiques/${id}`, { method: 'DELETE' }, getAdminToken());
 }

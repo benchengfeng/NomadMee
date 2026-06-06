@@ -4,8 +4,10 @@ import {
   createProduct,
   updateProduct,
   deleteProduct,
+  getAdminBoutiques,
   Product,
   ProductInput,
+  Boutique,
 } from '../../../api/portalApi';
 import ImageCropUploader from '../ImageCropUploader';
 
@@ -62,6 +64,7 @@ const emptyForm = {
   category: '',
   coverImageUrl: '',
   active: true,
+  boutiqueId: '',
   variants: [] as Array<{ label: string; price: string }>,
   images: [] as string[],
 };
@@ -69,6 +72,7 @@ const emptyForm = {
 const AdminProductsSection: React.FC<Props> = ({ showToast }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loaded, setLoaded] = useState(false);
+  const [boutiques, setBoutiques] = useState<Boutique[]>([]);
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -76,8 +80,8 @@ const AdminProductsSection: React.FC<Props> = ({ showToast }) => {
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
 
   useEffect(() => {
-    getAdminProducts()
-      .then((r) => { setProducts(r.products); setLoaded(true); })
+    Promise.all([getAdminProducts(), getAdminBoutiques()])
+      .then(([pr, br]) => { setProducts(pr.products); setBoutiques(br.boutiques); setLoaded(true); })
       .catch(() => { setLoaded(true); });
   }, []);
 
@@ -101,6 +105,7 @@ const AdminProductsSection: React.FC<Props> = ({ showToast }) => {
     section: form.section,
     category: form.category.trim(),
     active: form.active,
+    boutiqueId: form.boutiqueId || undefined,
   });
 
   const submit = async (e: React.FormEvent) => {
@@ -134,6 +139,7 @@ const AdminProductsSection: React.FC<Props> = ({ showToast }) => {
       category: p.category ?? '',
       coverImageUrl: p.coverImageUrl ?? '',
       active: p.active !== false,
+      boutiqueId: p.boutiqueId ?? '',
       variants: (p.variants ?? []).map((v) => ({ label: v.label, price: v.price.toString() })),
       images: p.images ?? [],
     });
@@ -248,6 +254,14 @@ const AdminProductsSection: React.FC<Props> = ({ showToast }) => {
             {SECTION_FIELDS[form.section].categories.map((c) => <option key={c} value={c} />)}
           </datalist>
 
+          <label>Boutique <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 400 }}>(optional — pins this product to a boutique on the globe)</span></label>
+          <select value={form.boutiqueId} onChange={(e) => setForm({ ...form, boutiqueId: e.target.value })}>
+            <option value="">— No boutique —</option>
+            {boutiques.filter((b) => b.active !== false).map((b) => (
+              <option key={b._id} value={b._id}>{b.name}{b.location ? ` (${b.location})` : ''}</option>
+            ))}
+          </select>
+
           <label className="portal-hidden-toggle">
             <input type="checkbox" checked={form.active} onChange={(e) => setForm({ ...form, active: e.target.checked })} />
             <span>Active — visible in the shop</span>
@@ -308,6 +322,7 @@ const AdminProductsSection: React.FC<Props> = ({ showToast }) => {
                     {p.category && <span className="portal-item-badge">{p.category}</span>}
                     <span className="portal-item-badge">Stock {p.stock ?? 0}</span>
                     {p.variants?.length > 0 && <span className="portal-item-badge">{p.variants.length} variants</span>}
+                    {p.boutiqueId && (() => { const b = boutiques.find((b) => b._id === p.boutiqueId); return b ? <span className="portal-item-badge">🏪 {b.name}</span> : null; })()}
                   </p>
                 </div>
               ))}

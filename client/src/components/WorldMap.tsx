@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { getPublicMapData, PublicMapCargo, PublicMapInvestor, PublicMapInvestment, PublicMapData } from '../api/portalApi';
+import { getPublicMapData, PublicMapCargo, PublicMapInvestor, PublicMapInvestment, PublicMapBoutique, PublicMapData } from '../api/portalApi';
 import { buildCargoRoute, getPositionAtProgress } from '../utils/routeBuilder';
 import { findCountryCoords } from '../utils/countries';
 
@@ -36,6 +36,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor = '#38bdf8', onDataLoad
   const [investorCount, setInvestorCount] = useState(0);
   const [cargoCount, setCargoCount] = useState(0);
   const [investmentCount, setInvestmentCount] = useState(0);
+  const [boutiqueCount, setBoutiqueCount] = useState(0);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -65,12 +66,14 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor = '#38bdf8', onDataLoad
       let investors: PublicMapInvestor[] = [];
       let cargos: PublicMapCargo[] = [];
       let investments: PublicMapInvestment[] = [];
+      let boutiques: PublicMapBoutique[] = [];
 
       try {
         const data = await getPublicMapData();
         investors = data.investors;
         cargos = data.cargos;
         investments = data.investments ?? [];
+        boutiques = data.boutiques ?? [];
         onDataLoaded?.(data);
       } catch {
         // Map still shows even if data fetch fails
@@ -329,6 +332,79 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor = '#38bdf8', onDataLoad
           .addTo(map);
       }
       setInvestmentCount(visibleInvestments);
+
+      // ---- Boutique markers ----
+      let visibleBoutiques = 0;
+      const boutiqueColor = '#f59e0b';
+      for (const boutique of boutiques) {
+        if (!boutique.location) continue;
+        const coords = findCountryCoords(boutique.location);
+        if (!coords) continue;
+        visibleBoutiques++;
+
+        // Offset slightly from investor markers if same country by shifting lng a bit
+        const lng = (coords[0] as number) + 0.8;
+        const lat = (coords[1] as number) - 0.8;
+
+        const wrapper = document.createElement('div');
+        wrapper.style.cssText = 'cursor:pointer;width:44px;height:44px;';
+
+        const inner = document.createElement('div');
+        inner.style.cssText = `
+          position:relative;width:44px;height:44px;
+          transition:transform 0.16s ease;
+        `;
+
+        // Square logo avatar for boutiques (rounded square to distinguish from round investor avatars)
+        const av = document.createElement('div');
+        av.style.cssText = `
+          width:40px;height:40px;margin:2px;border-radius:10px;
+          ${boutique.logoUrl
+            ? `background-image:url(${boutique.logoUrl});background-size:cover;background-position:center;`
+            : `background:#1e2535;display:flex;align-items:center;justify-content:center;font-size:18px;`
+          }
+          border:2.5px solid ${boutiqueColor};
+          box-shadow:0 0 0 3px ${boutiqueColor}44,0 4px 14px rgba(0,0,0,0.8);
+        `;
+        if (!boutique.logoUrl) av.textContent = '🏪';
+        inner.appendChild(av);
+        wrapper.appendChild(inner);
+
+        // Hover tooltip
+        const tooltip = document.createElement('div');
+        tooltip.style.cssText = `
+          position:absolute;bottom:calc(100% + 12px);left:50%;
+          transform:translateX(-50%);
+          background:rgba(10,12,20,0.97);
+          border:1px solid rgba(255,255,255,0.12);
+          border-radius:12px;padding:9px 13px;white-space:nowrap;
+          pointer-events:none;opacity:0;transition:opacity 0.18s;
+          box-shadow:0 8px 24px rgba(0,0,0,0.7);z-index:200;
+        `;
+        tooltip.innerHTML =
+          `<div style="font-weight:800;color:#f1f5f9;font-size:0.82rem;margin-bottom:3px;">🏪 ${esc(boutique.name)}</div>` +
+          `<div style="color:#64748b;font-size:0.72rem;">📍 ${esc(boutique.location)}</div>`;
+        wrapper.appendChild(tooltip);
+
+        wrapper.addEventListener('mouseenter', () => { inner.style.transform = 'scale(1.16)'; tooltip.style.opacity = '1'; });
+        wrapper.addEventListener('mouseleave', () => { inner.style.transform = 'scale(1)'; tooltip.style.opacity = '0'; });
+
+        const boutiquePopup = new maplibregl.Popup({
+          closeButton: false,
+          offset: 14,
+          className: 'world-map-popup',
+        }).setHTML(
+          `<strong>🏪 ${esc(boutique.name)}</strong><br/>` +
+          `<span>📍 ${esc(boutique.location)}</span>` +
+          (boutique.description ? `<br/><span style="color:#94a3b8">${esc(boutique.description)}</span>` : '')
+        );
+
+        new maplibregl.Marker({ element: wrapper, anchor: 'center' })
+          .setLngLat([lng, lat] as [number, number])
+          .setPopup(boutiquePopup)
+          .addTo(map);
+      }
+      setBoutiqueCount(visibleBoutiques);
     });
 
     map.once('idle', () => setMapReady(true));
@@ -417,7 +493,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor = '#38bdf8', onDataLoad
         </div>
       )}
       {/* Stats overlay */}
-      {(investorCount > 0 || cargoCount > 0 || investmentCount > 0) && (
+      {(investorCount > 0 || cargoCount > 0 || investmentCount > 0 || boutiqueCount > 0) && (
         <div style={{
           position: 'absolute',
           bottom: 14,
@@ -463,6 +539,19 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor = '#38bdf8', onDataLoad
               fontWeight: 600,
             }}>
               {investmentCount} investment{investmentCount !== 1 ? 's' : ''}
+            </span>
+          )}
+          {boutiqueCount > 0 && (
+            <span style={{
+              background: 'rgba(15,18,28,0.88)',
+              border: '1px solid rgba(245,158,11,0.35)',
+              borderRadius: 999,
+              padding: '4px 12px',
+              fontSize: '0.72rem',
+              color: '#f59e0b',
+              fontWeight: 600,
+            }}>
+              {boutiqueCount} boutique{boutiqueCount !== 1 ? 's' : ''}
             </span>
           )}
         </div>

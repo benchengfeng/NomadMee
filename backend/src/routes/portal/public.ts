@@ -19,6 +19,7 @@ import { AvatarModel } from '../../models/Avatar';
 import { ProductModel } from '../../models/Product';
 import { ProductOrderModel } from '../../models/ProductOrder';
 import { PartnerModel } from '../../models/Partner';
+import { BoutiqueModel } from '../../models/Boutique';
 
 const router = Router();
 
@@ -99,7 +100,7 @@ router.get('/public/map-data', async (_req: Request, res: Response): Promise<voi
   try {
     const now = new Date();
 
-    const [investors, cargos, investmentCount, allInvestors, investorInvestmentCounts, avatarDocs] = await Promise.all([
+    const [investors, cargos, investmentCount, allInvestors, investorInvestmentCounts, avatarDocs, boutiques] = await Promise.all([
       InvestorModel.find({ kycCompleted: true }).select('displayName name avatar location').lean(),
       CargoModel.find({ hidden: { $ne: true } }).select('productBeingShipped shippingType purchaseLocation shippingDestination estimatedTimeOfArrival createdAt purchaseDate').lean(),
       InvestmentModel.countDocuments({ hidden: { $ne: true } }),
@@ -109,6 +110,7 @@ router.get('/public/map-data', async (_req: Request, res: Response): Promise<voi
         { $group: { _id: { $toString: '$assignedInvestorIds' }, count: { $sum: 1 } } },
       ]),
       AvatarModel.find().select('imageUrl').lean(),
+      BoutiqueModel.find({ active: true }).select('name logoUrl description location').lean(),
     ]);
     const dbAvatarMap = new Map((avatarDocs as Array<{ _id: unknown; imageUrl: string }>).map((a) => [String(a._id), a.imageUrl]));
 
@@ -167,6 +169,13 @@ router.get('/public/map-data', async (_req: Request, res: Response): Promise<voi
           location: invDoc.location || cargoFallback,
         };
       }),
+      boutiques: boutiques.map((b) => ({
+        _id: b._id,
+        name: b.name,
+        logoUrl: b.logoUrl || '',
+        description: b.description || '',
+        location: b.location || '',
+      })),
       stats: {
         totalInvested: Math.round(totalInvested),
         totalExpectedProfit: Math.round(totalExpectedProfit),
