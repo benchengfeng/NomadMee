@@ -1,0 +1,29 @@
+{
+  "back": "Retour",
+  "backHome": "Retour à l'accueil",
+  "error": "Une erreur s'est produite. Veuillez réessayer.",
+  "success": {
+    "title": "Message reçu !",
+    "subWhatsapp": "Notre équipe vous contactera via WhatsApp très prochainement.",
+    "subEmail": "Notre équipe vous contactera par e-mail très prochainement."
+  },
+  "form": {
+    "title": "Contactez-nous",
+    "sub": "Une question ou envie d'en savoir plus ? Nous vous répondrons rapidement.",
+    "fullName": "Nom complet",
+    "fullNamePlaceholder": "Votre nom complet",
+    "contactMethod": "Méthode de contact préférée",
+    "whatsapp": "WhatsApp",
+    "whatsappDesc": "Rapide & personnel",
+    "email": "E-mail",
+    "emailDesc": "Formel & documenté",
+    "whatsappNumber": "Numéro WhatsApp",
+    "emailAddress": "Adresse e-mail",
+    "emailPlaceholder": "vous@exemple.com",
+    "countryCodeHint": "Incluez l'indicatif pays, ex. +33 X XX XX XX XX",
+    "message": "Message",
+    "messagePlaceholder": "Comment pouvons-nous vous aider ? Partagez vos questions ou contexte…",
+    "submit": "✓ Envoyer le message",
+    "submitting": "Envoi en cours…"
+  }
+}

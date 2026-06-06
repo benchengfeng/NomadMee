@@ -66,6 +66,11 @@
   align-items: start;
 }
 
+.join-body--single {
+  grid-template-columns: 1fr;
+  max-width: 600px;
+}
+
 /* ── Investment info card ── */
 .join-info-card {
   background: rgba(255,255,255,0.04);

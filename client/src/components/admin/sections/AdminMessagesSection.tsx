@@ -69,7 +69,11 @@ const AdminMessagesSection: React.FC<Props> = ({ showToast, unreadCount, onUnrea
                 <div className="msg-card-header">
                   <div>
                     <p className="msg-card-name">{methodIcon} {req.fullName}</p>
-                    <p className="msg-card-investment">💼 {req.investmentTitle}</p>
+                    {req.type === 'contact_us' || !req.investmentTitle ? (
+                      <p className="msg-card-investment" style={{ color: '#64748b' }}>📩 General inquiry</p>
+                    ) : (
+                      <p className="msg-card-investment">💼 {req.investmentTitle}</p>
+                    )}
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
                     <span className={`msg-status-badge msg-status-badge--${req.status}`} style={{ color: statusColor }}>
@@ -86,10 +90,12 @@ const AdminMessagesSection: React.FC<Props> = ({ showToast, unreadCount, onUnrea
                     <span>{req.contactMethod === 'whatsapp' ? '📱' : '✉️'}</span>
                     <span style={{ color: '#e2e8f0', fontWeight: 600 }}>{req.contactDetail}</span>
                   </div>
-                  <div className="msg-detail-row">
-                    <span>📅</span>
-                    <span>RDV: {new Date(req.rdvDate).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' })}</span>
-                  </div>
+                  {req.rdvDate && (
+                    <div className="msg-detail-row">
+                      <span>📅</span>
+                      <span>RDV: {new Date(req.rdvDate).toLocaleString('en-GB', { dateStyle: 'medium', timeStyle: 'short' })}</span>
+                    </div>
+                  )}
                 </div>
 
                 {isExpanded && (

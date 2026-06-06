@@ -1,0 +1,29 @@
+{
+  "back": "Back",
+  "backHome": "Back to home",
+  "error": "Something went wrong. Please try again.",
+  "success": {
+    "title": "Message received!",
+    "subWhatsapp": "Our team will reach out to you via WhatsApp shortly.",
+    "subEmail": "Our team will reach out to you via email shortly."
+  },
+  "form": {
+    "title": "Contact us",
+    "sub": "Have a question or want to learn more? We'll get back to you promptly.",
+    "fullName": "Full name",
+    "fullNamePlaceholder": "Your full name",
+    "contactMethod": "Preferred contact method",
+    "whatsapp": "WhatsApp",
+    "whatsappDesc": "Quick & personal",
+    "email": "Email",
+    "emailDesc": "Formal & documented",
+    "whatsappNumber": "WhatsApp number",
+    "emailAddress": "Email address",
+    "emailPlaceholder": "you@example.com",
+    "countryCodeHint": "Include country code, e.g. +216 XX XXX XXX",
+    "message": "Message",
+    "messagePlaceholder": "How can we help? Share any questions or context…",
+    "submit": "✓ Send message",
+    "submitting": "Sending…"
+  }
+}

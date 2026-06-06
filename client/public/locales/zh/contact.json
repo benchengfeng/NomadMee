@@ -1,0 +1,29 @@
+{
+  "back": "返回",
+  "backHome": "返回首页",
+  "error": "出现错误，请重试。",
+  "success": {
+    "title": "消息已收到！",
+    "subWhatsapp": "我们的团队将很快通过 WhatsApp 联系您。",
+    "subEmail": "我们的团队将很快通过电子邮件联系您。"
+  },
+  "form": {
+    "title": "联系我们",
+    "sub": "有问题或想了解更多？我们会尽快回复您。",
+    "fullName": "全名",
+    "fullNamePlaceholder": "您的全名",
+    "contactMethod": "首选联系方式",
+    "whatsapp": "WhatsApp",
+    "whatsappDesc": "快捷 & 个人化",
+    "email": "电子邮件",
+    "emailDesc": "正式 & 有记录",
+    "whatsappNumber": "WhatsApp 号码",
+    "emailAddress": "电子邮件地址",
+    "emailPlaceholder": "you@example.com",
+    "countryCodeHint": "请包含国家代码，例如 +86 XXX XXXX XXXX",
+    "message": "消息",
+    "messagePlaceholder": "我们能如何帮助您？请分享您的问题或背景信息…",
+    "submit": "✓ 发送消息",
+    "submitting": "发送中…"
+  }
+}

@@ -223,12 +223,13 @@ export type SiteContent = {
 
 export type ContactRequest = {
   _id: string;
-  investmentId: string;
-  investmentTitle: string;
+  type?: 'investment' | 'contact_us';
+  investmentId?: string;
+  investmentTitle?: string;
   fullName: string;
   contactMethod: 'whatsapp' | 'email';
   contactDetail: string;
-  rdvDate: string;
+  rdvDate?: string;
   note?: string;
   status: 'new' | 'read' | 'contacted';
   createdAt: string;
@@ -502,12 +503,13 @@ export async function completeInvestorKyc(payload: { avatar: string; displayName
 }
 
 export async function submitContactRequest(payload: {
-  investmentId: string;
-  investmentTitle: string;
+  type?: 'investment' | 'contact_us';
+  investmentId?: string;
+  investmentTitle?: string;
   fullName: string;
   contactMethod: 'whatsapp' | 'email';
   contactDetail: string;
-  rdvDate: string;
+  rdvDate?: string;
   note?: string;
   /** Honeypot — left empty by real users; filled values are rejected server-side. */
   website?: string;

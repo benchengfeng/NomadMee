@@ -27,7 +27,7 @@ export const LANGUAGES: LanguageMeta[] = [
 export const LANGUAGE_CODES = LANGUAGES.map((l) => l.code);
 
 // Namespaces — one per feature surface so files stay small and lazy-load.
-export const NAMESPACES = ['common', 'landing', 'auth', 'dashboard', 'join', 'translation'] as const;
+export const NAMESPACES = ['common', 'landing', 'auth', 'dashboard', 'join', 'contact', 'translation'] as const;
 
 export function getLanguageMeta(code: string): LanguageMeta {
   return LANGUAGES.find((l) => l.code === code) ?? LANGUAGES[0]!;

@@ -254,11 +254,11 @@ router.post('/public/contact-request', publicWriteLimiter, async (req: Request, 
       return;
     }
 
-    const { investmentId, investmentTitle, fullName, contactMethod, contactDetail, rdvDate, note } =
+    const { type, investmentId, investmentTitle, fullName, contactMethod, contactDetail, rdvDate, note } =
       req.body as Record<string, string>;
 
-    if (!fullName?.trim() || !contactMethod || !contactDetail?.trim() || !rdvDate?.trim() || !investmentId) {
-      res.status(400).json({ message: 'All fields are required.' });
+    if (!fullName?.trim() || !contactMethod || !contactDetail?.trim()) {
+      res.status(400).json({ message: 'Name, contact method, and contact detail are required.' });
       return;
     }
 
@@ -267,20 +267,31 @@ router.post('/public/contact-request', publicWriteLimiter, async (req: Request, 
       return;
     }
 
-    const investment = await InvestmentModel.findById(String(investmentId)).lean();
+    const isInvestment = type !== 'contact_us' && !!investmentId;
 
-    const request = await ContactRequestModel.create({
-      investmentId: capStr(investmentId, 64),
-      investmentTitle: capStr(investmentTitle || investment?.title || 'Unknown Investment', 200),
+    if (isInvestment && !rdvDate?.trim()) {
+      res.status(400).json({ message: 'Meeting date is required for investment enquiries.' });
+      return;
+    }
+
+    let resolvedTitle = investmentTitle;
+    if (isInvestment && !resolvedTitle) {
+      const investment = await InvestmentModel.findById(String(investmentId)).lean();
+      resolvedTitle = investment?.title ?? 'Unknown Investment';
+    }
+
+    const contactRequest = await ContactRequestModel.create({
+      type: isInvestment ? 'investment' : 'contact_us',
+      ...(isInvestment && { investmentId: capStr(investmentId!, 64), investmentTitle: capStr(resolvedTitle!, 200) }),
       fullName: capStr(fullName, 120),
       contactMethod,
       contactDetail: capStr(contactDetail, 200),
-      rdvDate: capStr(rdvDate, 64),
-      note: capStr(note, 2000),
+      ...(rdvDate?.trim() && { rdvDate: capStr(rdvDate, 64) }),
+      note: capStr(note ?? '', 2000),
       status: 'new',
     });
 
-    res.status(201).json({ request: { _id: request._id } });
+    res.status(201).json({ request: { _id: contactRequest._id } });
   } catch (error) {
     res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to submit request.' });
   }

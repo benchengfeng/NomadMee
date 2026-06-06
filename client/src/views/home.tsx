@@ -278,6 +278,16 @@ const LandingPage: React.FC = () => {
             )}
             <SocialLinks links={siteContent?.links ?? []} accent={palette.accent} className="social-links--who" />
             <PartnersShowcase partners={partners} accent={palette.accent} title={t('who.partnersTitle')} />
+            <div style={{ marginTop: 40, display: 'flex', justifyContent: 'center' }}>
+              <button
+                type="button"
+                className="landing-cta-btn"
+                onClick={() => { track('contact-us-click'); navigate('/contact-us'); }}
+                style={{ background: `linear-gradient(90deg, ${palette.accent}, ${palette.highlight})`, color: '#000', fontSize: '0.9rem', padding: '13px 32px' }}
+              >
+                {t('who.contactCta')}
+              </button>
+            </div>
           </div>
         )}
       </div>

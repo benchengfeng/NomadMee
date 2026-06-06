@@ -12,6 +12,7 @@ import KycOnboarding from "../views/kycOnboarding";
 import AdminLogin from "../views/adminLogin";
 import AdminDashboard from "../views/adminDashboard";
 import JoinInvestment from "../views/joinInvestment";
+import ContactUs from "../views/contactUs";
 import ShopPage from "../views/shopPage";
 import NotFound from "../views/notFound";
 import { getAdminToken, getSessionToken } from "../utils/auth";
@@ -66,6 +67,7 @@ const AppRouter = () => {
           }
         />
         <Route path="/join/:investmentId" element={<JoinInvestment />} />
+        <Route path="/contact-us" element={<ContactUs />} />
         <Route path="/shop" element={<ShopPage />} />
         <Route path="/shop/:productId" element={<ShopPage />} />
         <Route path="/landing" element={<AppHome />} />

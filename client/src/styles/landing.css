@@ -389,7 +389,7 @@
   align-items: flex-start;
   text-align: left;
   gap: 7px;
-  background: rgba(255, 255, 255, 0.05);
+  background: #0f1420;
   border-color: color-mix(in srgb, var(--p-accent, #38bdf8) 45%, transparent);
   overflow: hidden;
 }

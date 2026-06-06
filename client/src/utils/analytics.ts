@@ -41,7 +41,10 @@ export type AnalyticsEvent =
   | 'login-cta'
   // ── Shop ──
   | 'shop-open'
-  | 'order-submit';
+  | 'order-submit'
+  // ── Contact ──
+  | 'contact-us-click'
+  | 'contact-us-submit';
 
 /** Inject the Umami script once, on app boot. No-op if unconfigured. */
 export function initAnalytics(): void {
