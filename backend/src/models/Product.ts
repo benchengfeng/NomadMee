@@ -21,6 +21,7 @@ export type ProductDocument = {
   category: string;
   active: boolean;
   boutiqueId?: string;
+  position: number;
   createdAt?: Date;
   updatedAt?: Date;
 };
@@ -48,6 +49,7 @@ const ProductSchema = new Schema<ProductDocument>(
     category: { type: String, default: '', trim: true },
     active: { type: Boolean, default: true },
     boutiqueId: { type: String, trim: true },
+    position: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

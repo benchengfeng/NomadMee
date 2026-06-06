@@ -163,6 +163,7 @@ export type Product = {
   category: string;
   active: boolean;
   boutiqueId?: string;
+  position?: number;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -658,6 +659,10 @@ export async function updateProduct(id: string, payload: ProductInput): Promise<
 
 export async function deleteProduct(id: string): Promise<void> {
   await request<unknown>(`/admin/products/${id}`, { method: 'DELETE' }, getAdminToken());
+}
+
+export async function reorderProducts(order: Array<{ id: string; position: number }>): Promise<void> {
+  await request<unknown>('/admin/products/reorder', { method: 'PUT', body: JSON.stringify({ order }) }, getAdminToken());
 }
 
 // ---------------------------------------------------------------------------

@@ -309,7 +309,7 @@ router.post('/public/contact-request', publicWriteLimiter, async (req: Request, 
 router.get('/public/products', async (_req: Request, res: Response): Promise<void> => {
   try {
     const [products, galleries] = await Promise.all([
-      ProductModel.find({ active: true }).sort({ createdAt: -1 }).lean(),
+      ProductModel.find({ active: true }).sort({ position: 1, createdAt: -1 }).lean(),
       loadShopGalleries(),
     ]);
     res.status(200).json({ products: products.map((p) => mapPublicProduct(p as never)), galleries });

@@ -4,6 +4,7 @@ import {
   createProduct,
   updateProduct,
   deleteProduct,
+  reorderProducts,
   getAdminBoutiques,
   Product,
   ProductInput,
@@ -78,6 +79,9 @@ const AdminProductsSection: React.FC<Props> = ({ showToast }) => {
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState('');
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [reorderMode, setReorderMode] = useState(false);
+  const [reorderList, setReorderList] = useState<Product[]>([]);
+  const [savingOrder, setSavingOrder] = useState(false);
 
   useEffect(() => {
     Promise.all([getAdminProducts(), getAdminBoutiques()])
@@ -90,6 +94,31 @@ const AdminProductsSection: React.FC<Props> = ({ showToast }) => {
   const refreshProducts = async () => {
     const r = await getAdminProducts();
     setProducts(r.products);
+  };
+
+  const enterReorder = () => { setReorderList([...products]); setReorderMode(true); };
+  const cancelReorder = () => setReorderMode(false);
+
+  const moveProduct = (from: number, to: number) => {
+    setReorderList((prev) => {
+      if (to < 0 || to >= prev.length) return prev;
+      const next = [...prev];
+      const [item] = next.splice(from, 1);
+      next.splice(to, 0, item!);
+      return next;
+    });
+  };
+
+  const saveOrder = async () => {
+    setSavingOrder(true);
+    try {
+      await reorderProducts(reorderList.map((p, i) => ({ id: p._id, position: i })));
+      setProducts(reorderList);
+      setReorderMode(false);
+      showToast('Product order saved!');
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Failed to save order', 'error');
+    } finally { setSavingOrder(false); }
   };
 
   const payload = (): ProductInput => ({
@@ -275,58 +304,98 @@ const AdminProductsSection: React.FC<Props> = ({ showToast }) => {
       </article>
 
       <article className="portal-card">
-        <h2>All Products <span className="portal-item-badge">{products.length}</span></h2>
-        {!loaded ? <p style={{ color: '#475569' }}>Loading…</p> : (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+          <h2 style={{ margin: 0 }}>All Products <span className="portal-item-badge">{products.length}</span></h2>
+          {!reorderMode && products.length > 1 && (
+            <button type="button" className="portal-btn-edit" onClick={enterReorder} style={{ whiteSpace: 'nowrap' }}>
+              ↕ Reorder
+            </button>
+          )}
+        </div>
+
+        {reorderMode ? (
           <>
-            {products.length > 0 && (
-              <input
-                className="admin-search"
-                placeholder="Search products…"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                style={{ marginBottom: 12 }}
-              />
-            )}
+            <p style={{ color: '#64748b', fontSize: '0.8rem', marginBottom: 12 }}>
+              Drag with ▲/▼ to set the order products appear in the shop.
+            </p>
             <div className="portal-stack">
-              {products.length === 0 ? (
-                <p className="relation-empty">No products yet — create your first one.</p>
-              ) : filtered.length === 0 ? (
-                <p className="relation-empty">No products match "{search}".</p>
-              ) : filtered.map((p) => (
-                <div className="portal-item" key={p._id}>
-                  <div className="portal-item-head">
-                    <h3 style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      {p.coverImageUrl
-                        ? <img src={p.coverImageUrl} alt="" style={{ width: 38, height: 38, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }} />
-                        : <span style={{ fontSize: '1.3rem' }}>🌿</span>}
-                      {p.name}
-                      {!p.active && <span className="hidden-badge">Inactive</span>}
-                    </h3>
-                    {confirmDelete === p._id ? (
-                      <div className="portal-inline-confirm">
-                        <span>Delete?</span>
-                        <button type="button" className="portal-btn-delete" onClick={() => { void remove(p._id); setConfirmDelete(null); }}>Yes</button>
-                        <button type="button" className="portal-btn-cancel" onClick={() => setConfirmDelete(null)}>Cancel</button>
-                      </div>
-                    ) : (
-                      <div className="portal-item-actions">
-                        <button type="button" className="portal-btn-edit" onClick={() => startEdit(p)}>Edit</button>
-                        <button type="button" className="portal-btn-delete" onClick={() => setConfirmDelete(p._id)}>Delete</button>
-                      </div>
-                    )}
+              {reorderList.map((p, i) => (
+                <div className="portal-item" key={p._id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span className="mu-position-badge" style={{ flexShrink: 0 }}>{i + 1}</span>
+                  {p.coverImageUrl
+                    ? <img src={p.coverImageUrl} alt="" style={{ width: 32, height: 32, borderRadius: 6, objectFit: 'cover', flexShrink: 0 }} />
+                    : <span style={{ fontSize: '1.1rem', flexShrink: 0 }}>🌿</span>}
+                  <span style={{ flex: 1, color: '#f1f5f9', fontSize: '0.88rem', fontWeight: 600 }}>{p.name}</span>
+                  {!p.active && <span className="hidden-badge">Inactive</span>}
+                  <div className="mu-move-btns">
+                    <button type="button" className="mu-move-btn" onClick={() => moveProduct(i, i - 1)} disabled={i === 0} title="Move up">▲</button>
+                    <button type="button" className="mu-move-btn" onClick={() => moveProduct(i, i + 1)} disabled={i === reorderList.length - 1} title="Move down">▼</button>
                   </div>
-                  {p.description && <p className="portal-item-meta">{p.description}</p>}
-                  <p className="portal-item-meta">
-                    {p.price.toLocaleString()} {p.currency}
-                    <span className="portal-item-badge">{p.section === 'artisanal' ? '🥁 Artisanal' : '🌱 Food'}</span>
-                    {p.category && <span className="portal-item-badge">{p.category}</span>}
-                    <span className="portal-item-badge">Stock {p.stock ?? 0}</span>
-                    {p.variants?.length > 0 && <span className="portal-item-badge">{p.variants.length} variants</span>}
-                    {p.boutiqueId && (() => { const b = boutiques.find((b) => b._id === p.boutiqueId); return b ? <span className="portal-item-badge">🏪 {b.name}</span> : null; })()}
-                  </p>
                 </div>
               ))}
             </div>
+            <div className="portal-form-actions" style={{ marginTop: 16 }}>
+              <button type="button" onClick={() => void saveOrder()} disabled={savingOrder}>
+                {savingOrder ? 'Saving…' : 'Save order'}
+              </button>
+              <button type="button" onClick={cancelReorder}>Cancel</button>
+            </div>
+          </>
+        ) : (
+          <>
+            {!loaded ? <p style={{ color: '#475569' }}>Loading…</p> : (
+              <>
+                {products.length > 0 && (
+                  <input
+                    className="admin-search"
+                    placeholder="Search products…"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    style={{ marginBottom: 12 }}
+                  />
+                )}
+                <div className="portal-stack">
+                  {products.length === 0 ? (
+                    <p className="relation-empty">No products yet — create your first one.</p>
+                  ) : filtered.length === 0 ? (
+                    <p className="relation-empty">No products match "{search}".</p>
+                  ) : filtered.map((p) => (
+                    <div className="portal-item" key={p._id}>
+                      <div className="portal-item-head">
+                        <h3 style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                          {p.coverImageUrl
+                            ? <img src={p.coverImageUrl} alt="" style={{ width: 38, height: 38, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }} />
+                            : <span style={{ fontSize: '1.3rem' }}>🌿</span>}
+                          {p.name}
+                          {!p.active && <span className="hidden-badge">Inactive</span>}
+                        </h3>
+                        {confirmDelete === p._id ? (
+                          <div className="portal-inline-confirm">
+                            <span>Delete?</span>
+                            <button type="button" className="portal-btn-delete" onClick={() => { void remove(p._id); setConfirmDelete(null); }}>Yes</button>
+                            <button type="button" className="portal-btn-cancel" onClick={() => setConfirmDelete(null)}>Cancel</button>
+                          </div>
+                        ) : (
+                          <div className="portal-item-actions">
+                            <button type="button" className="portal-btn-edit" onClick={() => startEdit(p)}>Edit</button>
+                            <button type="button" className="portal-btn-delete" onClick={() => setConfirmDelete(p._id)}>Delete</button>
+                          </div>
+                        )}
+                      </div>
+                      {p.description && <p className="portal-item-meta">{p.description}</p>}
+                      <p className="portal-item-meta">
+                        {p.price.toLocaleString()} {p.currency}
+                        <span className="portal-item-badge">{p.section === 'artisanal' ? '🥁 Artisanal' : '🌱 Food'}</span>
+                        {p.category && <span className="portal-item-badge">{p.category}</span>}
+                        <span className="portal-item-badge">Stock {p.stock ?? 0}</span>
+                        {p.variants?.length > 0 && <span className="portal-item-badge">{p.variants.length} variants</span>}
+                        {p.boutiqueId && (() => { const b = boutiques.find((b) => b._id === p.boutiqueId); return b ? <span className="portal-item-badge">🏪 {b.name}</span> : null; })()}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </>
         )}
       </article>

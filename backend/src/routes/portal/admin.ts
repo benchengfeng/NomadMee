@@ -688,8 +688,20 @@ function buildProductPayload(body: Record<string, unknown>) {
 
 router.get('/admin/products', async (req: Request, res: Response): Promise<void> => {
   if (!await requireAdmin(req, res)) return;
-  const products = await ProductModel.find().sort({ createdAt: -1 }).lean();
+  const products = await ProductModel.find().sort({ position: 1, createdAt: -1 }).lean();
   res.status(200).json({ products });
+});
+
+router.put('/admin/products/reorder', async (req: Request, res: Response): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  const { order } = req.body as { order: Array<{ id: string; position: number }> };
+  if (!Array.isArray(order)) { res.status(400).json({ message: 'Invalid order payload.' }); return; }
+  await ProductModel.bulkWrite(
+    order.map(({ id, position }) => ({
+      updateOne: { filter: { _id: id }, update: { $set: { position } } },
+    }))
+  );
+  res.status(200).json({ message: 'Products reordered.' });
 });
 
 router.post('/admin/products', async (req: Request, res: Response): Promise<void> => {
