@@ -1,0 +1,78 @@
+name: Weekly MongoDB off-site backup
+
+on:
+  schedule:
+    - cron: '0 3 * * 0'   # Sunday 03:00 UTC
+  workflow_dispatch:       # allow manual runs any time
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── 1. Trigger a fresh backup on the VPS ──────────────────────────────
+      - name: Run backup on VPS
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ vars.VPS_HOST }}
+          username: ${{ vars.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ vars.VPS_PORT }}
+          script: |
+            /usr/local/bin/nomadme-mongo-backup.sh >> /var/log/nomadme-backup.log 2>&1
+
+      # ── 2. Set up SSH key so we can scp the archive to the runner ─────────
+      - name: Set up SSH key for download
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/nomadme_backup_rsa
+          chmod 600 ~/.ssh/nomadme_backup_rsa
+          ssh-keyscan -p "${{ vars.VPS_PORT }}" "${{ vars.VPS_HOST }}" \
+            >> ~/.ssh/known_hosts 2>/dev/null
+
+      # ── 3. Download the newest archive to the runner ──────────────────────
+      - name: Download newest backup from VPS
+        id: dl
+        run: |
+          REMOTE=$(ssh \
+            -i ~/.ssh/nomadme_backup_rsa \
+            -p "${{ vars.VPS_PORT }}" \
+            "${{ vars.VPS_USERNAME }}@${{ vars.VPS_HOST }}" \
+            "find /var/backups/nomadme/mongodb -maxdepth 1 -name '*.tar.gz' | sort -r | head -1")
+
+          if [[ -z "$REMOTE" ]]; then
+            echo "::error::No backup archive found on VPS" && exit 1
+          fi
+
+          FILE=$(basename "$REMOTE")
+          scp \
+            -i ~/.ssh/nomadme_backup_rsa \
+            -P "${{ vars.VPS_PORT }}" \
+            "${{ vars.VPS_USERNAME }}@${{ vars.VPS_HOST }}:${REMOTE}" \
+            "./${FILE}"
+
+          echo "file=${FILE}"                          >> "$GITHUB_OUTPUT"
+          echo "size=$(du -sh "$FILE" | cut -f1)"      >> "$GITHUB_OUTPUT"
+
+      # ── 4. Upload as a GitHub artifact (retained for 90 days) ────────────
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: nomadme-mongodb-${{ github.run_id }}
+          path: ${{ steps.dl.outputs.file }}
+          retention-days: 90
+          if-no-files-found: error
+
+      # ── 5. Write a readable job summary ───────────────────────────────────
+      - name: Job summary
+        run: |
+          {
+            echo "## MongoDB Backup"
+            echo ""
+            echo "| Field     | Value |"
+            echo "|-----------|-------|"
+            echo "| File      | \`${{ steps.dl.outputs.file }}\` |"
+            echo "| Size      | ${{ steps.dl.outputs.size }} |"
+            echo "| Retention | 90 days |"
+            echo "| Download  | Actions tab → this run → **Artifacts** |"
+          } >> "$GITHUB_STEP_SUMMARY"
