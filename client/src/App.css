@@ -2019,6 +2019,49 @@ responsive
   min-width: 0;
 }
 
+/* Position badge — "1", "2", "3" … */
+.media-uploader-wrap .mu-position-badge {
+  flex-shrink: 0;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 6px;
+  background: rgba(56,189,248,0.12);
+  border: 1px solid rgba(56,189,248,0.3);
+  color: #38bdf8;
+  font-size: 0.65rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ▲/▼ reorder button pair */
+.media-uploader-wrap .mu-move-btns {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex-shrink: 0;
+}
+
+.media-uploader-wrap .mu-move-btn {
+  padding: 1px 5px;
+  border-radius: 4px;
+  color: #94a3b8;
+  font-size: 0.58rem;
+  line-height: 1;
+  transition: background 0.12s, color 0.12s;
+}
+
+.media-uploader-wrap .mu-move-btn:hover:not(:disabled) {
+  background: rgba(255,255,255,0.1);
+  color: #e2e8f0;
+}
+
+.media-uploader-wrap .mu-move-btn:disabled {
+  opacity: 0.2;
+  cursor: default;
+}
+
 /* ── Toast notifications ── */
 .toast-container {
   position: fixed;

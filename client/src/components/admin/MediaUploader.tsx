@@ -5,9 +5,11 @@ interface MediaUploaderProps {
   urls: string[];
   onAdd: (url: string) => void;
   onRemove: (url: string) => void;
+  /** When provided, shows position badges and ▲/▼ reorder buttons on each item. */
+  onMove?: (fromIndex: number, toIndex: number) => void;
 }
 
-const MediaUploader: React.FC<MediaUploaderProps> = ({ urls, onAdd, onRemove }) => {
+const MediaUploader: React.FC<MediaUploaderProps> = ({ urls, onAdd, onRemove, onMove }) => {
   const fileRef = useRef<HTMLInputElement>(null);
   const [urlInput, setUrlInput] = useState('');
   const [uploading, setUploading] = useState(false);
@@ -78,13 +80,34 @@ const MediaUploader: React.FC<MediaUploaderProps> = ({ urls, onAdd, onRemove }) 
       {/* Media list */}
       {urls.length > 0 && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 4 }}>
-          {urls.map((url) => (
-            <div key={url} className="mu-item">
+          {urls.map((url, i) => (
+            <div key={url + i} className="mu-item">
+              {onMove && (
+                <span className="mu-position-badge">{i + 1}</span>
+              )}
               {isImage(url)
                 ? <img src={url} alt="" className="mu-thumb" />
                 : <span style={{ fontSize: '1rem', flexShrink: 0 }}>{icon(url)}</span>
               }
               <span className="mu-item-label">{url}</span>
+              {onMove && (
+                <div className="mu-move-btns">
+                  <button
+                    type="button"
+                    className="mu-move-btn"
+                    onClick={() => onMove(i, i - 1)}
+                    disabled={i === 0}
+                    title="Move up"
+                  >▲</button>
+                  <button
+                    type="button"
+                    className="mu-move-btn"
+                    onClick={() => onMove(i, i + 1)}
+                    disabled={i === urls.length - 1}
+                    title="Move down"
+                  >▼</button>
+                </div>
+              )}
               <button type="button" className="mu-remove-btn" onClick={() => onRemove(url)}>✕</button>
             </div>
           ))}

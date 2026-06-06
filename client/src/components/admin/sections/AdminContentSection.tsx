@@ -56,6 +56,16 @@ const AdminContentSection: React.FC<Props> = ({ showToast }) => {
     } finally { setSavingGallery(null); }
   };
 
+  const moveItem = (set: React.Dispatch<React.SetStateAction<string[]>>) =>
+    (from: number, to: number) =>
+      set((prev) => {
+        if (to < 0 || to >= prev.length) return prev;
+        const next = [...prev];
+        const [item] = next.splice(from, 1);
+        next.splice(to, 0, item!);
+        return next;
+      });
+
   const galleryCards: Array<{ which: 'earth' | 'hands'; title: string; hint: string; urls: string[]; set: React.Dispatch<React.SetStateAction<string[]>> }> = [
     { which: 'earth', title: '🌱 Shop · From the Earth gallery', hint: 'Photos & videos showcased at the bottom of the "From the Earth" shop section.', urls: earthGallery, set: setEarthGallery },
     { which: 'hands', title: '🥁 Shop · From the Hands gallery', hint: 'Photos & videos showcased at the bottom of the "From the Hands" shop section.', urls: handsGallery, set: setHandsGallery },
@@ -88,6 +98,13 @@ const AdminContentSection: React.FC<Props> = ({ showToast }) => {
               urls={siteContent.mediaUrls ?? []}
               onAdd={(url) => setSiteContent((c) => ({ ...c, mediaUrls: [...(c.mediaUrls ?? []), url] }))}
               onRemove={(url) => setSiteContent((c) => ({ ...c, mediaUrls: c.mediaUrls?.filter((u) => u !== url) }))}
+              onMove={(from, to) => setSiteContent((c) => {
+                const next = [...(c.mediaUrls ?? [])];
+                if (to < 0 || to >= next.length) return c;
+                const [item] = next.splice(from, 1);
+                next.splice(to, 0, item!);
+                return { ...c, mediaUrls: next };
+              })}
             />
             <label style={{ marginTop: 8, borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 12 }}>
               Social &amp; external links <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 400 }}>(shown under the story)</span>
@@ -133,6 +150,7 @@ const AdminContentSection: React.FC<Props> = ({ showToast }) => {
                 urls={g.urls}
                 onAdd={(url) => g.set((prev) => [...prev, url])}
                 onRemove={(url) => g.set((prev) => prev.filter((u) => u !== url))}
+                onMove={moveItem(g.set)}
               />
               <button type="submit" disabled={savingGallery === g.which}>
                 {savingGallery === g.which ? 'Saving…' : 'Save gallery'}
