@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import express from 'express';
+import { logger } from './utils/logger';
 import cors from 'cors';
 import helmet from 'helmet';
 import bodyParser from 'body-parser';
@@ -47,11 +48,11 @@ async function startServer(): Promise<void> {
 
   const port = process.env.PORT || 8000;
   app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
+    logger.info('Server started', { port });
   });
 }
 
 void startServer().catch((error) => {
-  console.error('Failed to start server:', error);
+  logger.error('Failed to start server', { error: String(error) });
   process.exit(1);
 });

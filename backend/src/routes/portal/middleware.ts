@@ -39,13 +39,14 @@ export function uploadToCloudinary(buffer: Buffer, originalname: string): Promis
   });
 }
 
+import { logger } from '../../utils/logger';
+
 export const ADMIN_USERNAME = (process.env.ADMIN_USERNAME || 'admin').trim();
 // No insecure default — admin login is disabled until ADMIN_PASSWORD is configured.
 export const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
 
 if (!ADMIN_PASSWORD) {
-  // Loud warning at boot so a misconfigured deploy is obvious in the logs.
-  console.warn('[Security] ADMIN_PASSWORD is not set — admin login is DISABLED until it is configured.');
+  logger.warn('ADMIN_PASSWORD is not set — admin login is DISABLED until it is configured.');
 }
 
 export const BCRYPT_ROUNDS = 12;

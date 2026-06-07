@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { logger } from '../utils/logger';
 
 const DEFAULT_MONGO_URL = 'mongodb://127.0.0.1:27017/nomadme';
 
@@ -16,5 +17,5 @@ export async function connectMongo(): Promise<void> {
   mongoose.set('strictQuery', true);
   await mongoose.connect(mongoUrl);
 
-  console.log(`[Mongo] Connected to ${mongoUrl}`);
+  logger.info('MongoDB connected', { url: mongoUrl.replace(/\/\/[^:]+:[^@]+@/, '//<credentials>@') });
 }

@@ -8,17 +8,22 @@ import {
   uploadToCloudinary,
   loginLimiter,
   capStr,
-  normalizeDate,
-  normalizeNumber,
-  normalizeCurrency,
-  normalizeVariants,
-  normalizeImages,
-  normalizeSocialLinks,
   ADMIN_USERNAME,
   ADMIN_PASSWORD,
   BCRYPT_ROUNDS,
   SESSION_24_HOURS,
 } from './middleware';
+import {
+  CargoBody,
+  InvestorBody,
+  InvestmentBody,
+  ProductBody,
+  SiteContentBody,
+  PartnerBody,
+  BoutiqueBody,
+  BundleBody,
+  zodErr,
+} from './schemas';
 import { CargoModel } from '../../models/Cargo';
 import { InvestorModel } from '../../models/Investor';
 import { InvestmentModel } from '../../models/Investment';
@@ -103,55 +108,29 @@ router.post('/admin/cargos', async (req: Request, res: Response): Promise<void> 
   if (!await requireAdmin(req, res)) return;
 
   try {
-    const {
-      productBeingShipped,
-      quantity,
-      purchaseLocation,
-      purchasePrice,
-      currency,
-      shippingDestination,
-      shippingPrice,
-      otherExpenses,
-      estimatedTimeOfArrival,
-      estimatedTimeOfSelling,
-      shippingType,
-      cargoDescription,
-    } = req.body as Record<string, unknown>;
-
-    const validShippingTypes = ['sea', 'air', 'land'];
-    const normalizedShippingType = validShippingTypes.includes(String(shippingType || ''))
-      ? (String(shippingType) as 'sea' | 'air' | 'land')
-      : 'sea';
-
-    const { storyText, storyMediaUrls } = req.body as { storyText?: string; storyMediaUrls?: string[] };
-    const { hidden, coverImageUrl, purchaseDate } = req.body as { hidden?: boolean; coverImageUrl?: string; purchaseDate?: string };
-
+    const b = CargoBody.parse(req.body);
     const cargo = await CargoModel.create({
-      productBeingShipped: String(productBeingShipped || '').trim(),
-      quantity: normalizeNumber(quantity, 'quantity'),
-      purchaseLocation: String(purchaseLocation || '').trim(),
-      purchasePrice: normalizeNumber(purchasePrice, 'purchasePrice'),
-      currency: normalizeCurrency(currency),
-      shippingDestination: String(shippingDestination || '').trim(),
-      shippingPrice: normalizeNumber(shippingPrice, 'shippingPrice'),
-      otherExpenses: normalizeNumber(otherExpenses, 'otherExpenses'),
-      estimatedTimeOfArrival: normalizeDate(estimatedTimeOfArrival),
-      estimatedTimeOfSelling: normalizeDate(estimatedTimeOfSelling),
-      purchaseDate: purchaseDate ? new Date(purchaseDate) : undefined,
-      shippingType: normalizedShippingType,
-      cargoDescription: String(cargoDescription || '').trim(),
-      story: {
-        text: String(storyText || '').trim(),
-        mediaUrls: Array.isArray(storyMediaUrls) ? storyMediaUrls.filter(Boolean) : [],
-      },
-      hidden: hidden === true,
-      coverImageUrl: String(coverImageUrl || '').trim(),
+      productBeingShipped: b.productBeingShipped,
+      quantity:            b.quantity,
+      purchaseLocation:    b.purchaseLocation,
+      purchasePrice:       b.purchasePrice,
+      currency:            b.currency,
+      shippingDestination: b.shippingDestination,
+      shippingPrice:       b.shippingPrice,
+      otherExpenses:       b.otherExpenses,
+      estimatedTimeOfArrival: b.estimatedTimeOfArrival,
+      estimatedTimeOfSelling: b.estimatedTimeOfSelling,
+      purchaseDate:        b.purchaseDate,
+      shippingType:        b.shippingType,
+      cargoDescription:    b.cargoDescription,
+      story: { text: b.storyText, mediaUrls: b.storyMediaUrls },
+      hidden:              b.hidden,
+      coverImageUrl:       b.coverImageUrl,
       assignedInvestorIds: [],
     });
-
     res.status(201).json({ cargo });
   } catch (error) {
-    res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to create cargo.' });
+    res.status(400).json({ message: zodErr(error, 'Failed to create cargo.') });
   }
 });
 
@@ -160,51 +139,26 @@ router.put('/admin/cargos/:id', async (req: Request, res: Response): Promise<voi
 
   try {
     const { id } = req.params;
-    const {
-      productBeingShipped,
-      quantity,
-      purchaseLocation,
-      purchasePrice,
-      currency,
-      shippingDestination,
-      shippingPrice,
-      otherExpenses,
-      estimatedTimeOfArrival,
-      estimatedTimeOfSelling,
-      shippingType,
-      cargoDescription,
-    } = req.body as Record<string, unknown>;
-
-    const validShippingTypes = ['sea', 'air', 'land'];
-    const normalizedShippingType = validShippingTypes.includes(String(shippingType || ''))
-      ? (String(shippingType) as 'sea' | 'air' | 'land')
-      : 'sea';
-
-    const { storyText, storyMediaUrls } = req.body as { storyText?: string; storyMediaUrls?: string[] };
-    const { hidden, coverImageUrl, purchaseDate } = req.body as { hidden?: boolean; coverImageUrl?: string; purchaseDate?: string };
-
+    const b = CargoBody.parse(req.body);
     const cargo = await CargoModel.findByIdAndUpdate(
       id,
       {
-        productBeingShipped: String(productBeingShipped || '').trim(),
-        quantity: normalizeNumber(quantity, 'quantity'),
-        purchaseLocation: String(purchaseLocation || '').trim(),
-        purchasePrice: normalizeNumber(purchasePrice, 'purchasePrice'),
-        currency: normalizeCurrency(currency),
-        shippingDestination: String(shippingDestination || '').trim(),
-        shippingPrice: normalizeNumber(shippingPrice, 'shippingPrice'),
-        otherExpenses: normalizeNumber(otherExpenses, 'otherExpenses'),
-        estimatedTimeOfArrival: normalizeDate(estimatedTimeOfArrival),
-        estimatedTimeOfSelling: normalizeDate(estimatedTimeOfSelling),
-        shippingType: normalizedShippingType,
-        cargoDescription: String(cargoDescription || '').trim(),
-        story: {
-          text: String(storyText || '').trim(),
-          mediaUrls: Array.isArray(storyMediaUrls) ? storyMediaUrls.filter(Boolean) : [],
-        },
-        hidden: hidden === true,
-        coverImageUrl: String(coverImageUrl || '').trim(),
-        ...(purchaseDate !== undefined && { purchaseDate: purchaseDate ? new Date(purchaseDate) : undefined }),
+        productBeingShipped: b.productBeingShipped,
+        quantity:            b.quantity,
+        purchaseLocation:    b.purchaseLocation,
+        purchasePrice:       b.purchasePrice,
+        currency:            b.currency,
+        shippingDestination: b.shippingDestination,
+        shippingPrice:       b.shippingPrice,
+        otherExpenses:       b.otherExpenses,
+        estimatedTimeOfArrival: b.estimatedTimeOfArrival,
+        estimatedTimeOfSelling: b.estimatedTimeOfSelling,
+        shippingType:        b.shippingType,
+        cargoDescription:    b.cargoDescription,
+        story: { text: b.storyText, mediaUrls: b.storyMediaUrls },
+        hidden:              b.hidden,
+        coverImageUrl:       b.coverImageUrl,
+        ...(b.purchaseDate !== undefined && { purchaseDate: b.purchaseDate }),
       },
       { new: true, runValidators: true }
     );
@@ -216,7 +170,7 @@ router.put('/admin/cargos/:id', async (req: Request, res: Response): Promise<voi
 
     res.status(200).json({ cargo });
   } catch (error) {
-    res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to update cargo.' });
+    res.status(400).json({ message: zodErr(error, 'Failed to update cargo.') });
   }
 });
 
@@ -256,45 +210,35 @@ router.post('/admin/investors', async (req: Request, res: Response): Promise<voi
   if (!await requireAdmin(req, res)) return;
 
   try {
-    const {
-      name, username, password, investmentAmount, profitPercentageOnInvestment, currency, investmentIds, location,
-    } = req.body as {
-      name?: string; username?: string; password?: string; investmentAmount?: unknown;
-      profitPercentageOnInvestment?: unknown; currency?: unknown; investmentIds?: string[]; location?: string;
-    };
-
-    const assignedInvestmentIds = Array.isArray(investmentIds) ? investmentIds.filter(Boolean) : [];
-    const investment = normalizeNumber(investmentAmount, 'investmentAmount');
-    const profitPercentage = normalizeNumber(profitPercentageOnInvestment, 'profitPercentageOnInvestment');
-    const normalizedCurrency = normalizeCurrency(currency);
-    const estimatedROI = Number(((investment * profitPercentage) / 100).toFixed(2));
-    const hashedPassword = await bcrypt.hash(String(password || ''), BCRYPT_ROUNDS);
+    const b = InvestorBody.parse(req.body);
+    const estimatedROI = Number(((b.investmentAmount * b.profitPercentageOnInvestment) / 100).toFixed(2));
+    const hashedPassword = await bcrypt.hash(b.password ?? '', BCRYPT_ROUNDS);
 
     const investor = await InvestorModel.create({
-      name: String(name || '').trim(),
-      displayName: String(name || '').trim(),
-      username: String(username || '').trim().toLowerCase(),
-      password: hashedPassword,
-      investmentAmount: investment,
-      profitPercentageOnInvestment: profitPercentage,
+      name:                         b.name,
+      displayName:                  b.name,
+      username:                     b.username,
+      password:                     hashedPassword,
+      investmentAmount:             b.investmentAmount,
+      profitPercentageOnInvestment: b.profitPercentageOnInvestment,
       estimatedROI,
-      currency: normalizedCurrency,
-      location: String(location || '').trim() || undefined,
-      kycCompleted: false,
-      assignedCargoIds: [],
-      assignedInvestmentIds,
+      currency:                     b.currency,
+      location:                     b.location || undefined,
+      kycCompleted:                 false,
+      assignedCargoIds:             [],
+      assignedInvestmentIds:        b.investmentIds,
     });
 
-    if (assignedInvestmentIds.length > 0) {
+    if (b.investmentIds.length > 0) {
       await InvestmentModel.updateMany(
-        { _id: { $in: assignedInvestmentIds } },
+        { _id: { $in: b.investmentIds } },
         { $addToSet: { assignedInvestorIds: investor._id } }
       );
     }
 
     res.status(201).json({ investor });
   } catch (error) {
-    res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to create investor.' });
+    res.status(400).json({ message: zodErr(error, 'Failed to create investor.') });
   }
 });
 
@@ -303,34 +247,24 @@ router.put('/admin/investors/:id', async (req: Request, res: Response): Promise<
 
   try {
     const { id } = req.params;
-    const {
-      name, username, password, investmentAmount, profitPercentageOnInvestment, currency, investmentIds, location,
-    } = req.body as {
-      name?: string; username?: string; password?: string; investmentAmount?: unknown;
-      profitPercentageOnInvestment?: unknown; currency?: unknown; investmentIds?: string[]; location?: string;
-    };
-
-    const assignedInvestmentIds = Array.isArray(investmentIds) ? investmentIds.filter(Boolean) : [];
-    const investment = normalizeNumber(investmentAmount, 'investmentAmount');
-    const profitPercentage = normalizeNumber(profitPercentageOnInvestment, 'profitPercentageOnInvestment');
-    const normalizedCurrency = normalizeCurrency(currency);
-    const estimatedROI = Number(((investment * profitPercentage) / 100).toFixed(2));
+    const b = InvestorBody.parse(req.body);
+    const estimatedROI = Number(((b.investmentAmount * b.profitPercentageOnInvestment) / 100).toFixed(2));
 
     const updatePayload: Record<string, unknown> = {
-      name: String(name || '').trim(),
-      displayName: String(name || '').trim(),
-      username: String(username || '').trim().toLowerCase(),
-      investmentAmount: investment,
-      profitPercentageOnInvestment: profitPercentage,
+      name:                         b.name,
+      displayName:                  b.name,
+      username:                     b.username,
+      investmentAmount:             b.investmentAmount,
+      profitPercentageOnInvestment: b.profitPercentageOnInvestment,
       estimatedROI,
-      currency: normalizedCurrency,
-      location: String(location || '').trim() || undefined,
-      assignedCargoIds: [],
-      assignedInvestmentIds,
+      currency:                     b.currency,
+      location:                     b.location || undefined,
+      assignedCargoIds:             [],
+      assignedInvestmentIds:        b.investmentIds,
     };
 
-    if (typeof password === 'string' && password.length > 0) {
-      updatePayload.password = await bcrypt.hash(password, BCRYPT_ROUNDS);
+    if (b.password && b.password.length > 0) {
+      updatePayload.password = await bcrypt.hash(b.password, BCRYPT_ROUNDS);
     }
 
     const investor = await InvestorModel.findByIdAndUpdate(id, updatePayload, { new: true, runValidators: true });
@@ -345,16 +279,16 @@ router.put('/admin/investors/:id', async (req: Request, res: Response): Promise<
       { $pull: { assignedInvestorIds: investor._id } }
     );
 
-    if (assignedInvestmentIds.length > 0) {
+    if (b.investmentIds.length > 0) {
       await InvestmentModel.updateMany(
-        { _id: { $in: assignedInvestmentIds } },
+        { _id: { $in: b.investmentIds } },
         { $addToSet: { assignedInvestorIds: investor._id } }
       );
     }
 
     res.status(200).json({ investor });
   } catch (error) {
-    res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to update investor.' });
+    res.status(400).json({ message: zodErr(error, 'Failed to update investor.') });
   }
 });
 
@@ -410,30 +344,23 @@ router.post('/admin/investments', async (req: Request, res: Response): Promise<v
   if (!await requireAdmin(req, res)) return;
 
   try {
-    const { title, description, currency, minimumInvestment, cargoIds, status, currentStatus, hidden, coverImageUrl, location } = req.body as {
-      title?: string; description?: string; currency?: unknown; minimumInvestment?: unknown;
-      cargoIds?: string[]; status?: string; currentStatus?: string; hidden?: boolean; coverImageUrl?: string; location?: string;
-    };
-
-    const validStatuses = ['active', 'in_progress', 'waiting', 'successful'];
-    const assignedCargoIds = Array.isArray(cargoIds) ? cargoIds.filter(Boolean) : [];
+    const b = InvestmentBody.parse(req.body);
     const investment = await InvestmentModel.create({
-      title: String(title || '').trim(),
-      description: String(description || '').trim(),
-      currency: normalizeCurrency(currency),
-      minimumInvestment: normalizeNumber(minimumInvestment, 'minimumInvestment'),
-      cargoIds: assignedCargoIds,
+      title:             b.title,
+      description:       b.description,
+      currency:          b.currency,
+      minimumInvestment: b.minimumInvestment,
+      cargoIds:          b.cargoIds,
       assignedInvestorIds: [],
-      status: validStatuses.includes(String(status || '')) ? status : 'active',
-      currentStatus: String(currentStatus || '').trim(),
-      hidden: hidden === true,
-      coverImageUrl: String(coverImageUrl || '').trim(),
-      location: String(location || '').trim(),
+      status:            b.status,
+      currentStatus:     b.currentStatus,
+      hidden:            b.hidden,
+      coverImageUrl:     b.coverImageUrl,
+      location:          b.location,
     });
-
     res.status(201).json({ investment });
   } catch (error) {
-    res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to create investment.' });
+    res.status(400).json({ message: zodErr(error, 'Failed to create investment.') });
   }
 });
 
@@ -442,26 +369,20 @@ router.put('/admin/investments/:id', async (req: Request, res: Response): Promis
 
   try {
     const { id } = req.params;
-    const { title, description, currency, minimumInvestment, cargoIds, status, currentStatus, hidden, coverImageUrl, location } = req.body as {
-      title?: string; description?: string; currency?: unknown; minimumInvestment?: unknown;
-      cargoIds?: string[]; status?: string; currentStatus?: string; hidden?: boolean; coverImageUrl?: string; location?: string;
-    };
-
-    const validStatuses = ['active', 'in_progress', 'waiting', 'successful'];
-    const assignedCargoIds = Array.isArray(cargoIds) ? cargoIds.filter(Boolean) : [];
+    const b = InvestmentBody.parse(req.body);
     const investment = await InvestmentModel.findByIdAndUpdate(
       id,
       {
-        title: String(title || '').trim(),
-        description: String(description || '').trim(),
-        currency: normalizeCurrency(currency),
-        minimumInvestment: normalizeNumber(minimumInvestment, 'minimumInvestment'),
-        cargoIds: assignedCargoIds,
-        currentStatus: String(currentStatus || '').trim(),
-        hidden: hidden === true,
-        coverImageUrl: String(coverImageUrl || '').trim(),
-        location: String(location || '').trim(),
-        ...(validStatuses.includes(String(status || '')) && { status }),
+        title:             b.title,
+        description:       b.description,
+        currency:          b.currency,
+        minimumInvestment: b.minimumInvestment,
+        cargoIds:          b.cargoIds,
+        currentStatus:     b.currentStatus,
+        hidden:            b.hidden,
+        coverImageUrl:     b.coverImageUrl,
+        location:          b.location,
+        status:            b.status,
       },
       { new: true, runValidators: true }
     );
@@ -473,7 +394,7 @@ router.put('/admin/investments/:id', async (req: Request, res: Response): Promis
 
     res.status(200).json({ investment });
   } catch (error) {
-    res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to update investment.' });
+    res.status(400).json({ message: zodErr(error, 'Failed to update investment.') });
   }
 });
 
@@ -583,23 +504,16 @@ router.put('/admin/site-content/:key', async (req: Request, res: Response): Prom
 
   try {
     const { key } = req.params;
-    const { title, body, mediaUrls, links } = req.body as { title?: string; body?: string; mediaUrls?: string[]; links?: unknown };
-
+    const b = SiteContentBody.parse(req.body);
     const content = await SiteContentModel.findOneAndUpdate(
       { key },
-      {
-        key,
-        title: String(title || '').trim(),
-        body: String(body || '').trim(),
-        mediaUrls: Array.isArray(mediaUrls) ? mediaUrls.filter(Boolean) : [],
-        links: normalizeSocialLinks(links),
-      },
+      { key, title: b.title, body: b.body, mediaUrls: b.mediaUrls, links: b.links },
       { new: true, upsert: true, runValidators: true }
     );
 
     res.status(200).json({ content });
   } catch (error) {
-    res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to save content.' });
+    res.status(400).json({ message: zodErr(error, 'Failed to save content.') });
   }
 });
 
@@ -669,24 +583,6 @@ router.delete('/admin/avatars/:id', async (req: Request, res: Response): Promise
 // Admin — products
 // ---------------------------------------------------------------------------
 
-function buildProductPayload(body: Record<string, unknown>) {
-  return {
-    name: String(body['name'] || '').trim(),
-    description: String(body['description'] || '').trim(),
-    originStory: String(body['originStory'] || '').trim(),
-    price: normalizeNumber(body['price'], 'price'),
-    currency: normalizeCurrency(body['currency']),
-    variants: normalizeVariants(body['variants']),
-    stock: Number.isFinite(Number(body['stock'])) ? Math.max(0, Number(body['stock'])) : 0,
-    coverImageUrl: String(body['coverImageUrl'] || '').trim(),
-    images: normalizeImages(body['images']),
-    section: body['section'] === 'artisanal' ? 'artisanal' : 'food',
-    category: String(body['category'] || '').trim(),
-    active: body['active'] !== false,
-    boutiqueId: body['boutiqueId'] ? String(body['boutiqueId']).trim() : '',
-  };
-}
-
 router.get('/admin/products', async (req: Request, res: Response): Promise<void> => {
   if (!await requireAdmin(req, res)) return;
   const products = await ProductModel.find().sort({ position: 1, createdAt: -1 }).lean();
@@ -708,25 +604,27 @@ router.put('/admin/products/reorder', async (req: Request, res: Response): Promi
 router.post('/admin/products', async (req: Request, res: Response): Promise<void> => {
   if (!await requireAdmin(req, res)) return;
   try {
-    const product = await ProductModel.create(buildProductPayload(req.body as Record<string, unknown>));
+    const payload = ProductBody.parse(req.body);
+    const product = await ProductModel.create(payload);
     res.status(201).json({ product });
   } catch (error) {
-    res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to create product.' });
+    res.status(400).json({ message: zodErr(error, 'Failed to create product.') });
   }
 });
 
 router.put('/admin/products/:id', async (req: Request, res: Response): Promise<void> => {
   if (!await requireAdmin(req, res)) return;
   try {
+    const payload = ProductBody.parse(req.body);
     const product = await ProductModel.findByIdAndUpdate(
       req.params.id,
-      buildProductPayload(req.body as Record<string, unknown>),
+      payload,
       { new: true, runValidators: true }
     );
     if (!product) { res.status(404).json({ message: 'Product not found.' }); return; }
     res.status(200).json({ product });
   } catch (error) {
-    res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to update product.' });
+    res.status(400).json({ message: zodErr(error, 'Failed to update product.') });
   }
 });
 
@@ -744,16 +642,6 @@ router.delete('/admin/products/:id', async (req: Request, res: Response): Promis
 // Admin — partners
 // ---------------------------------------------------------------------------
 
-function buildPartnerPayload(body: Record<string, unknown>) {
-  return {
-    name: String(body['name'] || '').trim(),
-    logoUrl: String(body['logoUrl'] || '').trim(),
-    title: String(body['title'] || '').trim(),
-    description: String(body['description'] || '').trim(),
-    active: body['active'] !== false,
-  };
-}
-
 router.get('/admin/partners', async (req: Request, res: Response): Promise<void> => {
   if (!await requireAdmin(req, res)) return;
   const partners = await PartnerModel.find().sort({ createdAt: 1 }).lean();
@@ -763,27 +651,27 @@ router.get('/admin/partners', async (req: Request, res: Response): Promise<void>
 router.post('/admin/partners', async (req: Request, res: Response): Promise<void> => {
   if (!await requireAdmin(req, res)) return;
   try {
-    const payload = buildPartnerPayload(req.body as Record<string, unknown>);
-    if (!payload.name) { res.status(400).json({ message: 'Partner name is required.' }); return; }
+    const payload = PartnerBody.parse(req.body);
     const partner = await PartnerModel.create(payload);
     res.status(201).json({ partner });
   } catch (error) {
-    res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to create partner.' });
+    res.status(400).json({ message: zodErr(error, 'Failed to create partner.') });
   }
 });
 
 router.put('/admin/partners/:id', async (req: Request, res: Response): Promise<void> => {
   if (!await requireAdmin(req, res)) return;
   try {
+    const payload = PartnerBody.parse(req.body);
     const partner = await PartnerModel.findByIdAndUpdate(
       req.params.id,
-      buildPartnerPayload(req.body as Record<string, unknown>),
+      payload,
       { new: true, runValidators: true }
     );
     if (!partner) { res.status(404).json({ message: 'Partner not found.' }); return; }
     res.status(200).json({ partner });
   } catch (error) {
-    res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to update partner.' });
+    res.status(400).json({ message: zodErr(error, 'Failed to update partner.') });
   }
 });
 
@@ -801,16 +689,6 @@ router.delete('/admin/partners/:id', async (req: Request, res: Response): Promis
 // Admin — boutiques
 // ---------------------------------------------------------------------------
 
-function buildBoutiquePayload(body: Record<string, unknown>) {
-  return {
-    name: String(body['name'] || '').trim(),
-    logoUrl: String(body['logoUrl'] || '').trim(),
-    description: String(body['description'] || '').trim(),
-    location: String(body['location'] || '').trim(),
-    active: body['active'] !== false,
-  };
-}
-
 router.get('/admin/boutiques', async (req: Request, res: Response): Promise<void> => {
   if (!await requireAdmin(req, res)) return;
   const boutiques = await BoutiqueModel.find().sort({ createdAt: 1 }).lean();
@@ -820,27 +698,27 @@ router.get('/admin/boutiques', async (req: Request, res: Response): Promise<void
 router.post('/admin/boutiques', async (req: Request, res: Response): Promise<void> => {
   if (!await requireAdmin(req, res)) return;
   try {
-    const payload = buildBoutiquePayload(req.body as Record<string, unknown>);
-    if (!payload.name) { res.status(400).json({ message: 'Boutique name is required.' }); return; }
+    const payload = BoutiqueBody.parse(req.body);
     const boutique = await BoutiqueModel.create(payload);
     res.status(201).json({ boutique });
   } catch (error) {
-    res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to create boutique.' });
+    res.status(400).json({ message: zodErr(error, 'Failed to create boutique.') });
   }
 });
 
 router.put('/admin/boutiques/:id', async (req: Request, res: Response): Promise<void> => {
   if (!await requireAdmin(req, res)) return;
   try {
+    const payload = BoutiqueBody.parse(req.body);
     const boutique = await BoutiqueModel.findByIdAndUpdate(
       req.params.id,
-      buildBoutiquePayload(req.body as Record<string, unknown>),
+      payload,
       { new: true, runValidators: true }
     );
     if (!boutique) { res.status(404).json({ message: 'Boutique not found.' }); return; }
     res.status(200).json({ boutique });
   } catch (error) {
-    res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to update boutique.' });
+    res.status(400).json({ message: zodErr(error, 'Failed to update boutique.') });
   }
 });
 
@@ -857,20 +735,6 @@ router.delete('/admin/boutiques/:id', async (req: Request, res: Response): Promi
 // ---------------------------------------------------------------------------
 // Admin — bundles
 // ---------------------------------------------------------------------------
-
-function buildBundlePayload(body: Record<string, unknown>) {
-  return {
-    name: String(body['name'] || '').trim(),
-    imageUrl: String(body['imageUrl'] || '').trim(),
-    description: String(body['description'] || '').trim(),
-    price: normalizeNumber(body['price'], 'price'),
-    currency: normalizeCurrency(body['currency']),
-    productIds: Array.isArray(body['productIds'])
-      ? body['productIds'].map((id) => String(id).trim()).filter(Boolean)
-      : [],
-    active: body['active'] !== false,
-  };
-}
 
 router.get('/admin/bundles', async (req: Request, res: Response): Promise<void> => {
   if (!await requireAdmin(req, res)) return;
@@ -893,27 +757,27 @@ router.put('/admin/bundles/reorder', async (req: Request, res: Response): Promis
 router.post('/admin/bundles', async (req: Request, res: Response): Promise<void> => {
   if (!await requireAdmin(req, res)) return;
   try {
-    const payload = buildBundlePayload(req.body as Record<string, unknown>);
-    if (!payload.name) { res.status(400).json({ message: 'Bundle name is required.' }); return; }
+    const payload = BundleBody.parse(req.body);
     const bundle = await BundleModel.create(payload);
     res.status(201).json({ bundle });
   } catch (error) {
-    res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to create bundle.' });
+    res.status(400).json({ message: zodErr(error, 'Failed to create bundle.') });
   }
 });
 
 router.put('/admin/bundles/:id', async (req: Request, res: Response): Promise<void> => {
   if (!await requireAdmin(req, res)) return;
   try {
+    const payload = BundleBody.parse(req.body);
     const bundle = await BundleModel.findByIdAndUpdate(
       req.params.id,
-      buildBundlePayload(req.body as Record<string, unknown>),
+      payload,
       { new: true, runValidators: true }
     );
     if (!bundle) { res.status(404).json({ message: 'Bundle not found.' }); return; }
     res.status(200).json({ bundle });
   } catch (error) {
-    res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to update bundle.' });
+    res.status(400).json({ message: zodErr(error, 'Failed to update bundle.') });
   }
 });
 
