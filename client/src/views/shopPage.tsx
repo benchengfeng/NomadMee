@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import ShopSections from '../components/shop/ShopSections';
 import LanguageSwitcher from '../components/common/LanguageSwitcher';
 import { track } from '../utils/analytics';
-import { getPublicProducts, PublicProduct, ShopGalleries } from '../api/portalApi';
+import { getPublicProducts, PublicProduct, PublicBundle, ShopGalleries } from '../api/portalApi';
 import '../styles/shop.css';
 
 const ACCENT = '#c8a06a';
@@ -21,6 +21,7 @@ const ShopPage: React.FC = () => {
   const { productId } = useParams<{ productId?: string }>();
 
   const [products, setProducts] = useState<PublicProduct[]>([]);
+  const [bundles, setBundles] = useState<PublicBundle[]>([]);
   const [galleries, setGalleries] = useState<ShopGalleries>({ earth: [], hands: [] });
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
@@ -29,7 +30,7 @@ const ShopPage: React.FC = () => {
     document.title = 'NomadMe — Shop';
     track('shop-open');
     getPublicProducts()
-      .then((r) => { setProducts(r.products); setGalleries(r.galleries); })
+      .then((r) => { setProducts(r.products); setGalleries(r.galleries); setBundles(r.bundles ?? []); })
       .catch(() => setLoadError(true))
       .finally(() => setLoading(false));
   }, []);
@@ -63,7 +64,7 @@ const ShopPage: React.FC = () => {
                 setLoadError(false);
                 setLoading(true);
                 getPublicProducts()
-                  .then((r) => { setProducts(r.products); setGalleries(r.galleries); })
+                  .then((r) => { setProducts(r.products); setGalleries(r.galleries); setBundles(r.bundles ?? []); })
                   .catch(() => setLoadError(true))
                   .finally(() => setLoading(false));
               }}
@@ -75,6 +76,7 @@ const ShopPage: React.FC = () => {
         )}
         <ShopSections
           products={products}
+          bundles={bundles}
           loading={loading}
           galleries={galleries}
           shipNote={t('shop.shipNote')}

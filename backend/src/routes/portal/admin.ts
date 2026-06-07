@@ -30,6 +30,7 @@ import { ProductModel } from '../../models/Product';
 import { ProductOrderModel } from '../../models/ProductOrder';
 import { PartnerModel } from '../../models/Partner';
 import { BoutiqueModel } from '../../models/Boutique';
+import { BundleModel } from '../../models/Bundle';
 
 const router = Router();
 
@@ -850,6 +851,79 @@ router.delete('/admin/boutiques/:id', async (req: Request, res: Response): Promi
     res.status(200).json({ message: 'Boutique deleted.' });
   } catch (error) {
     res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to delete boutique.' });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Admin — bundles
+// ---------------------------------------------------------------------------
+
+function buildBundlePayload(body: Record<string, unknown>) {
+  return {
+    name: String(body['name'] || '').trim(),
+    imageUrl: String(body['imageUrl'] || '').trim(),
+    description: String(body['description'] || '').trim(),
+    price: normalizeNumber(body['price'], 'price'),
+    currency: normalizeCurrency(body['currency']),
+    productIds: Array.isArray(body['productIds'])
+      ? body['productIds'].map((id) => String(id).trim()).filter(Boolean)
+      : [],
+    active: body['active'] !== false,
+  };
+}
+
+router.get('/admin/bundles', async (req: Request, res: Response): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  const bundles = await BundleModel.find().sort({ position: 1, createdAt: -1 }).lean();
+  res.status(200).json({ bundles });
+});
+
+router.put('/admin/bundles/reorder', async (req: Request, res: Response): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  const { order } = req.body as { order: Array<{ id: string; position: number }> };
+  if (!Array.isArray(order)) { res.status(400).json({ message: 'Invalid order payload.' }); return; }
+  await BundleModel.bulkWrite(
+    order.map(({ id, position }) => ({
+      updateOne: { filter: { _id: id }, update: { $set: { position } } },
+    }))
+  );
+  res.status(200).json({ message: 'Bundles reordered.' });
+});
+
+router.post('/admin/bundles', async (req: Request, res: Response): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  try {
+    const payload = buildBundlePayload(req.body as Record<string, unknown>);
+    if (!payload.name) { res.status(400).json({ message: 'Bundle name is required.' }); return; }
+    const bundle = await BundleModel.create(payload);
+    res.status(201).json({ bundle });
+  } catch (error) {
+    res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to create bundle.' });
+  }
+});
+
+router.put('/admin/bundles/:id', async (req: Request, res: Response): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  try {
+    const bundle = await BundleModel.findByIdAndUpdate(
+      req.params.id,
+      buildBundlePayload(req.body as Record<string, unknown>),
+      { new: true, runValidators: true }
+    );
+    if (!bundle) { res.status(404).json({ message: 'Bundle not found.' }); return; }
+    res.status(200).json({ bundle });
+  } catch (error) {
+    res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to update bundle.' });
+  }
+});
+
+router.delete('/admin/bundles/:id', async (req: Request, res: Response): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  try {
+    await BundleModel.findByIdAndDelete(req.params.id);
+    res.status(200).json({ message: 'Bundle deleted.' });
+  } catch (error) {
+    res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to delete bundle.' });
   }
 });
 

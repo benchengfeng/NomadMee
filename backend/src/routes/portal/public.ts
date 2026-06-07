@@ -20,6 +20,7 @@ import { ProductModel } from '../../models/Product';
 import { ProductOrderModel } from '../../models/ProductOrder';
 import { PartnerModel } from '../../models/Partner';
 import { BoutiqueModel } from '../../models/Boutique';
+import { BundleModel } from '../../models/Bundle';
 
 const router = Router();
 
@@ -308,11 +309,32 @@ router.post('/public/contact-request', publicWriteLimiter, async (req: Request, 
 
 router.get('/public/products', async (_req: Request, res: Response): Promise<void> => {
   try {
-    const [products, galleries] = await Promise.all([
+    const [products, galleries, rawBundles] = await Promise.all([
       ProductModel.find({ active: true }).sort({ position: 1, createdAt: -1 }).lean(),
       loadShopGalleries(),
+      BundleModel.find({ active: true }).sort({ position: 1, createdAt: -1 }).lean(),
     ]);
-    res.status(200).json({ products: products.map((p) => mapPublicProduct(p as never)), galleries });
+
+    // resolve product names for each bundle's included products
+    const allIds = rawBundles.flatMap((b) => b.productIds);
+    const nameMap = new Map<string, string>();
+    if (allIds.length > 0) {
+      const prods = await ProductModel.find({ _id: { $in: allIds } }).select('name').lean();
+      for (const p of prods) nameMap.set(p._id.toString(), p.name as string);
+    }
+
+    const bundles = rawBundles.map((b) => ({
+      _id: b._id.toString(),
+      name: b.name,
+      imageUrl: b.imageUrl,
+      description: b.description,
+      price: b.price,
+      currency: b.currency,
+      position: b.position,
+      includedProducts: b.productIds.map((id) => ({ _id: id, name: nameMap.get(id) ?? '?' })),
+    }));
+
+    res.status(200).json({ products: products.map((p) => mapPublicProduct(p as never)), galleries, bundles });
   } catch {
     res.status(500).json({ message: 'Failed to load products.' });
   }
@@ -368,6 +390,56 @@ router.post('/public/product-order', publicWriteLimiter, async (req: Request, re
     res.status(201).json({ ok: true, order: { _id: order._id } });
   } catch (error) {
     res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to submit order.' });
+  }
+});
+
+router.post('/public/bundle-order', publicWriteLimiter, async (req: Request, res: Response): Promise<void> => {
+  try {
+    if (isHoneypotTripped(req)) {
+      res.status(201).json({ ok: true, order: { _id: 'ok' } });
+      return;
+    }
+
+    const { bundleId, quantity, fullName, contactMethod, contactDetail, country, message } =
+      req.body as Record<string, string>;
+
+    if (!bundleId || !fullName?.trim() || !contactDetail?.trim() || !country?.trim()) {
+      res.status(400).json({ message: 'Name, contact detail and country are required.' });
+      return;
+    }
+
+    if (!['whatsapp', 'email'].includes(contactMethod)) {
+      res.status(400).json({ message: 'Invalid contact method.' });
+      return;
+    }
+
+    const bundle = await BundleModel.findById(String(bundleId)).lean();
+    if (!bundle) {
+      res.status(404).json({ message: 'Bundle not found.' });
+      return;
+    }
+
+    const qty = Math.max(1, Math.min(99, Number(quantity) || 1));
+
+    const order = await ProductOrderModel.create({
+      productId: String(bundleId),
+      productName: `📦 Bundle: ${bundle.name}`,
+      variant: '',
+      quantity: qty,
+      unitPrice: bundle.price,
+      currency: bundle.currency,
+      total: bundle.price * qty,
+      fullName: capStr(fullName, 120),
+      contactMethod,
+      contactDetail: capStr(contactDetail, 200),
+      country: capStr(country, 80),
+      message: capStr(message, 2000),
+      status: 'new',
+    });
+
+    res.status(201).json({ ok: true, order: { _id: order._id } });
+  } catch (error) {
+    res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to submit bundle order.' });
   }
 });
 

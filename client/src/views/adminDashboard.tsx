@@ -12,14 +12,16 @@ import AdminPartnersSection from '../components/admin/sections/AdminPartnersSect
 import AdminAvatarsSection from '../components/admin/sections/AdminAvatarsSection';
 import AdminRelationsSection from '../components/admin/sections/AdminRelationsSection';
 import AdminBoutiquesSection from '../components/admin/sections/AdminBoutiquesSection';
+import AdminBundlesSection from '../components/admin/sections/AdminBundlesSection';
 
-type AdminSection = 'cargos' | 'investments' | 'investors' | 'products' | 'orders' | 'partners' | 'boutiques' | 'relations' | 'content' | 'messages' | 'avatars';
+type AdminSection = 'cargos' | 'investments' | 'investors' | 'products' | 'bundles' | 'orders' | 'partners' | 'boutiques' | 'relations' | 'content' | 'messages' | 'avatars';
 
 const SECTIONS: Array<{ id: AdminSection; label: string }> = [
   { id: 'cargos', label: '📦 Cargos' },
   { id: 'investments', label: '💼 Investments' },
   { id: 'investors', label: '👤 Investors' },
   { id: 'products', label: '🛒 Products' },
+  { id: 'bundles', label: '📦 Bundles' },
   { id: 'orders', label: '🧾 Orders' },
   { id: 'partners', label: '🤝 Partners' },
   { id: 'boutiques', label: '🏪 Boutiques' },
@@ -158,6 +160,9 @@ const AdminDashboard: React.FC = () => {
       )}
       {activeSection === 'products' && (
         <AdminProductsSection showToast={showToast} />
+      )}
+      {activeSection === 'bundles' && (
+        <AdminBundlesSection showToast={showToast} />
       )}
       {activeSection === 'partners' && (
         <AdminPartnersSection showToast={showToast} />

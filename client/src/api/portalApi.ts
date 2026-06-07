@@ -617,17 +617,51 @@ export async function changeInvestorPassword(payload: { currentPassword: string;
 }
 
 // ---------------------------------------------------------------------------
-// Shop — products
+// Shop — products & bundles
 // ---------------------------------------------------------------------------
 
 export type ShopGalleries = { earth: string[]; hands: string[] };
 
-export async function getPublicProducts(): Promise<{ products: PublicProduct[]; galleries: ShopGalleries }> {
-  return request<{ products: PublicProduct[]; galleries: ShopGalleries }>('/public/products', { method: 'GET' });
+export type PublicBundle = {
+  _id: string;
+  name: string;
+  imageUrl: string;
+  description: string;
+  price: number;
+  currency: string;
+  position: number;
+  includedProducts: Array<{ _id: string; name: string }>;
+};
+
+export type Bundle = PublicBundle & { active: boolean; productIds: string[] };
+
+export type BundleInput = {
+  name: string;
+  imageUrl: string;
+  description: string;
+  price: number;
+  currency: string;
+  productIds: string[];
+  active: boolean;
+};
+
+export type BundleOrderInput = {
+  bundleId: string;
+  quantity: number;
+  fullName: string;
+  contactMethod: 'email' | 'whatsapp';
+  contactDetail: string;
+  country: string;
+  message?: string;
+  website?: string;
+};
+
+export async function getPublicProducts(): Promise<{ products: PublicProduct[]; galleries: ShopGalleries; bundles: PublicBundle[] }> {
+  return request<{ products: PublicProduct[]; galleries: ShopGalleries; bundles: PublicBundle[] }>('/public/products', { method: 'GET' });
 }
 
-export async function getInvestorProducts(): Promise<{ products: PublicProduct[]; galleries: ShopGalleries }> {
-  return request<{ products: PublicProduct[]; galleries: ShopGalleries }>('/investor/products', { method: 'GET' }, getInvestorToken());
+export async function getInvestorProducts(): Promise<{ products: PublicProduct[]; galleries: ShopGalleries; bundles: PublicBundle[] }> {
+  return request<{ products: PublicProduct[]; galleries: ShopGalleries; bundles: PublicBundle[] }>('/investor/products', { method: 'GET' }, getInvestorToken());
 }
 
 export async function submitProductOrder(payload: ProductOrderInput): Promise<{ ok: boolean }> {
@@ -635,6 +669,35 @@ export async function submitProductOrder(payload: ProductOrderInput): Promise<{ 
     method: 'POST',
     body: JSON.stringify(payload),
   });
+}
+
+export async function submitBundleOrder(payload: BundleOrderInput): Promise<{ ok: boolean }> {
+  return request<{ ok: boolean }>('/public/bundle-order', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function getAdminBundles(): Promise<{ bundles: Bundle[] }> {
+  return request<{ bundles: Bundle[] }>('/admin/bundles', { method: 'GET' }, getAdminToken());
+}
+
+export async function createBundle(payload: BundleInput): Promise<Bundle> {
+  const r = await request<{ bundle: Bundle }>('/admin/bundles', { method: 'POST', body: JSON.stringify(payload) }, getAdminToken());
+  return r.bundle;
+}
+
+export async function updateBundle(id: string, payload: BundleInput): Promise<Bundle> {
+  const r = await request<{ bundle: Bundle }>(`/admin/bundles/${id}`, { method: 'PUT', body: JSON.stringify(payload) }, getAdminToken());
+  return r.bundle;
+}
+
+export async function deleteBundle(id: string): Promise<void> {
+  await request<unknown>(`/admin/bundles/${id}`, { method: 'DELETE' }, getAdminToken());
+}
+
+export async function reorderBundles(order: Array<{ id: string; position: number }>): Promise<void> {
+  await request<unknown>('/admin/bundles/reorder', { method: 'PUT', body: JSON.stringify({ order }) }, getAdminToken());
 }
 
 export async function getAdminProducts(): Promise<{ products: Product[] }> {

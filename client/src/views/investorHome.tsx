@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { FiHome, FiPackage, FiMap, FiHeadphones, FiSettings, FiShoppingBag } from 'react-icons/fi';
 import type { IconType } from 'react-icons';
-import { getInvestorHome, logoutInvestor, completeInvestorKyc, getPublicAvatars, changeInvestorPassword, getInvestorProducts, AvatarData, InvestorHomeResponse, PublicProduct, ShopGalleries } from '../api/portalApi';
+import { getInvestorHome, logoutInvestor, completeInvestorKyc, getPublicAvatars, changeInvestorPassword, getInvestorProducts, AvatarData, InvestorHomeResponse, PublicProduct, PublicBundle, ShopGalleries } from '../api/portalApi';
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { setTheme } from '../redux/slices/themeSlice';
 import { PanelId, setActivePanel, setSelectedCargoId } from '../redux/slices/dashboardUiSlice';
@@ -84,6 +84,7 @@ const InvestorHome: React.FC = () => {
 
   // Shop products
   const [products, setProducts] = useState<PublicProduct[]>([]);
+  const [bundles, setBundles] = useState<PublicBundle[]>([]);
   const [shopGalleries, setShopGalleries] = useState<ShopGalleries>({ earth: [], hands: [] });
   const [productsLoaded, setProductsLoaded] = useState(false);
   const [loadingProducts, setLoadingProducts] = useState(false);
@@ -180,7 +181,7 @@ const InvestorHome: React.FC = () => {
       track('shop-open');
       setLoadingProducts(true);
       getInvestorProducts()
-        .then((r) => { setProducts(r.products); setShopGalleries(r.galleries); setProductsLoaded(true); })
+        .then((r) => { setProducts(r.products); setShopGalleries(r.galleries); setBundles(r.bundles ?? []); setProductsLoaded(true); })
         .catch(() => {})
         .finally(() => setLoadingProducts(false));
     }
@@ -430,6 +431,7 @@ const InvestorHome: React.FC = () => {
       <div className="shop-investor-panel" style={{ color: theme.text }}>
         <ShopSections
           products={products}
+          bundles={bundles}
           loading={loadingProducts}
           galleries={shopGalleries}
           shipNote={t('shop.shipNote')}

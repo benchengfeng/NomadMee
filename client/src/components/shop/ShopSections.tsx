@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react';
-import { PublicProduct, ShopGalleries } from '../../api/portalApi';
+import { PublicProduct, PublicBundle, ShopGalleries } from '../../api/portalApi';
 import ShopSection, { ShopTheme, shopThemeVars } from './ShopSection';
 import ShopGallery from './ShopGallery';
+import BundleSection from './BundleSection';
 import '../../styles/shop.css';
 
 export type ShopFamily = 'earth' | 'hands';
@@ -31,6 +32,7 @@ export interface ShopFamilyLabels {
 
 interface ShopSectionsProps {
   products: PublicProduct[];
+  bundles?: PublicBundle[];
   loading?: boolean;
   theme?: ShopTheme;
   shipNote?: string;
@@ -47,7 +49,7 @@ interface ShopSectionsProps {
  * same ShopSection grid & card design. Empty families are hidden entirely.
  */
 const ShopSections: React.FC<ShopSectionsProps> = ({
-  products, loading, theme, shipNote, labels, galleries, initialProductId, onActiveChange, onOrdered,
+  products, bundles = [], loading, theme, shipNote, labels, galleries, initialProductId, onActiveChange, onOrdered,
 }) => {
   const rootStyle = useMemo(() => shopThemeVars(theme), [theme]);
 
@@ -71,6 +73,7 @@ const ShopSections: React.FC<ShopSectionsProps> = ({
 
   return (
     <div className="shop-root" style={rootStyle}>
+      <BundleSection bundles={bundles} shipNote={shipNote} />
       {families.map((f) => (
         <section key={f.key} className="shop-family">
           <h3 className="shop-family-title">{f.title}</h3>

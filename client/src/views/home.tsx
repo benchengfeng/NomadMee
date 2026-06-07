@@ -9,7 +9,7 @@ import { SocialLinks } from '../components/common/socialPlatforms';
 import PartnersShowcase from '../components/home/PartnersShowcase';
 import ShopSections from '../components/shop/ShopSections';
 import { track } from '../utils/analytics';
-import { getPublicInvestments, getPublicSiteContent, getPublicProducts, getPublicPartners, Partner, PublicInvestment, PublicProduct, ShopGalleries, SiteContent } from '../api/portalApi';
+import { getPublicInvestments, getPublicSiteContent, getPublicProducts, getPublicPartners, Partner, PublicInvestment, PublicProduct, PublicBundle, ShopGalleries, SiteContent } from '../api/portalApi';
 import '../styles/landing.css';
 
 type LandingSection = 'globe' | 'investments' | 'shop' | 'who';
@@ -36,6 +36,7 @@ const LandingPage: React.FC = () => {
   const [loadingInvestments, setLoadingInvestments] = useState(false);
   const [investmentsError, setInvestmentsError] = useState(false);
   const [products, setProducts] = useState<PublicProduct[]>([]);
+  const [bundles, setBundles] = useState<PublicBundle[]>([]);
   const [shopGalleries, setShopGalleries] = useState<ShopGalleries>({ earth: [], hands: [] });
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [productsError, setProductsError] = useState(false);
@@ -59,7 +60,7 @@ const LandingPage: React.FC = () => {
       setLoadingProducts(true);
       setProductsError(false);
       getPublicProducts()
-        .then((r) => { setProducts(r.products); setShopGalleries(r.galleries); setProductsLoaded(true); })
+        .then((r) => { setProducts(r.products); setShopGalleries(r.galleries); setBundles(r.bundles ?? []); setProductsLoaded(true); })
         .catch(() => setProductsError(true))
         .finally(() => setLoadingProducts(false));
     }
@@ -245,6 +246,7 @@ const LandingPage: React.FC = () => {
             )}
             <ShopSections
               products={products}
+              bundles={bundles}
               loading={loadingProducts}
               galleries={shopGalleries}
               shipNote={t('shop.shipNote')}
