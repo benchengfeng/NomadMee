@@ -982,6 +982,21 @@
   }
 }
 
+/* ── Inline bundle grid (inside a family section) ────────────────────────── */
+
+.shop-bundles-inline {
+  margin-bottom: 28px;
+}
+
+.shop-bundles-inline-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--shop-muted);
+  margin: 0 0 12px;
+}
+
 /* ── Bundle includes list ─────────────────────────────────────────────────── */
 
 .shop-bundle-includes {

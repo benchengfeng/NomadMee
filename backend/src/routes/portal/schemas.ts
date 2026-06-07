@@ -165,6 +165,7 @@ export const BundleBody = z.object({
   price:       NonNeg('price'),
   currency:    Currency,
   productIds:  StringIds,
+  section:     z.enum(['food', 'artisanal']).default('food'),
   active:      z.boolean().default(true),
 });
 export type BundleBody = z.infer<typeof BundleBody>;

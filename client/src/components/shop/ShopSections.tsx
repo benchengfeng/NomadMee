@@ -56,11 +56,13 @@ const ShopSections: React.FC<ShopSectionsProps> = ({
   const families = useMemo(() => {
     const earth = products.filter((p) => productFamily(p) === 'earth');
     const hands = products.filter((p) => productFamily(p) === 'hands');
+    const earthBundles = bundles.filter((b) => (b.section ?? 'food') === 'food');
+    const handsBundles = bundles.filter((b) => b.section === 'artisanal');
     return [
-      { key: 'earth' as const, items: earth, title: labels.earthTitle, sub: labels.earthSub },
-      { key: 'hands' as const, items: hands, title: labels.handsTitle, sub: labels.handsSub },
-    ].filter((f) => f.items.length > 0);
-  }, [products, labels]);
+      { key: 'earth' as const, items: earth, bundles: earthBundles, title: labels.earthTitle, sub: labels.earthSub },
+      { key: 'hands' as const, items: hands, bundles: handsBundles, title: labels.handsTitle, sub: labels.handsSub },
+    ].filter((f) => f.items.length > 0 || f.bundles.length > 0);
+  }, [products, bundles, labels]);
 
   // Loading or totally empty: defer to a single ShopSection (skeleton / empty copy).
   if (loading || products.length === 0) {
@@ -73,11 +75,11 @@ const ShopSections: React.FC<ShopSectionsProps> = ({
 
   return (
     <div className="shop-root" style={rootStyle}>
-      <BundleSection bundles={bundles} shipNote={shipNote} />
       {families.map((f) => (
         <section key={f.key} className="shop-family">
           <h3 className="shop-family-title">{f.title}</h3>
           <p className="shop-family-sub">{f.sub}</p>
+          <BundleSection bundles={f.bundles} shipNote={shipNote} inline />
           {/* initialProductId is forwarded to both families; only the one that
               actually contains the product opens its modal. */}
           <ShopSection

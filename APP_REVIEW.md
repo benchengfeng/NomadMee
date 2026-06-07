@@ -1,16 +1,4 @@
-# nomadme — Full App Review & Improvement Plan
 
-_Senior engineering + design audit. Prepared 2026-06-05, ahead of public launch._
-
-This document is the result of a full sweep of the codebase: backend (Express/Mongo),
-frontend (React/Redux/i18n), auth, deploy pipeline, data model, business logic, and UX.
-It is organized so you can act on it in order:
-
-- 🔴 **Before launch** — do these today / this week. Real risk to money, data, or reputation.
-- 🟡 **Right after launch** — important, but won't break the launch.
-- 🟢 **Future** — polish, scale, and maintainability.
-
-Each item has a **severity**, **effort** (S/M/L), and a concrete fix.
 
 ---
 
@@ -40,52 +28,13 @@ notification email (you already have a working `nodemailer` transport in `routes
 and `EMAIL_USER/EMAIL_PASS` configured). Fire-and-forget, wrapped in try/catch so a mail
 failure never fails the customer's request. Optionally a WhatsApp/Telegram webhook later.
 
-### 6. Confirm a MongoDB backup exists — **CRITICAL / S**
-Investors, orders, and contact requests will live only in Mongo on your VPS. There's no backup
-step in the pipeline.
-**Fix:** enable automated `mongodump` (cron + offsite copy) or use a managed Mongo with backups
-**before** real data arrives. Test a restore once.
-
-### 7. Lock down CORS for production — **MEDIUM / S**
-`server.ts` uses `origin: true` (reflect any origin) **with** `credentials: true`, and the manual
-`OPTIONS` handler sets `Access-Control-Allow-Origin: *`. That's both permissive and internally
-inconsistent (`*` + credentials is invalid and can cause sporadic CORS failures).
-**Fix:** restrict `origin` to your real domains (`https://nomadme.life`, `https://app.nomadme.life`,
-plus localhost for dev). Since auth is a Bearer token in `localStorage` (not cookies), you can
-also drop `credentials: true`. Remove the redundant manual OPTIONS block.
-
 
 ## 🟡 Right after launch
 
-### 9. Cookie-consent / analytics compliance — **MEDIUM / S**
-You ship **two** analytics systems: Google Analytics (`gtag`, id `G-VBZ0CR1STL` hardcoded in
-`index.html`) **and** Umami (cookieless). For an EU/worldwide audience, GA sets cookies and needs
-consent; running it without a banner is a GDPR risk.
-**Fix:** pick one. Umami (already wired, privacy-first, no banner needed) is the cleaner choice —
-remove the GA snippet. If you keep GA, add a consent banner.
 
-### 10. Internationalize the shop & partner components — **MEDIUM / M**
-The site advertises EN/FR/AR/ZH, but the entire shop UI is hardcoded English:
-`"Order Now"`, `"Choose a size"`, `"Quantity"`, `"Out of stock"`, the full success message,
-and every form label in `ShopSection.tsx`; plus `"Tap to learn more"` / `"Tap to flip back"` in
-`PartnersShowcase.tsx`. An Arabic or Chinese visitor sees a half-translated store.
-**Fix:** move these strings into the `landing` i18n namespace like the rest of the app.
 
-### 11. Graceful error states instead of silent `.catch(() => {})` — **MEDIUM / S-M**
-Data fetches in `home.tsx`, `shopPage.tsx`, etc. swallow errors (`.catch(() => {})`). If the API
-is down, sections just render empty with no explanation, looking broken.
-**Fix:** show a small "couldn't load — retry" state. Add a top-level React **ErrorBoundary**
-(there is none today) so a render crash shows a friendly page instead of a white screen.
 
-### 12. Order/stock race & "no stock decrement" — document or handle — **LOW-MEDIUM / S**
-Orders are inquiries (no payment, no stock decrement), so two people can "order" the last unit
-and `stock` never changes. That's fine for a contact-first model, but make it intentional:
-either hide the stock number, or clearly treat "Out of stock" as advisory. Decide and document.
 
-### 13. Use `npm ci` in CI; pin Node — **LOW / S**
-`.github/workflows/deploy-vps.yml` builds with `npm install` (frontend + backend), which can
-drift from the lockfile. The VPS step already uses `npm ci --omit=dev` (good). Switch the build
-steps to `npm ci` for reproducible builds.
 
 ### 14. Health, uptime, logging — **LOW-MEDIUM / S**
 `/api/status` exists — point an uptime monitor (UptimeRobot/BetterStack) at it so you know if the
@@ -95,13 +44,6 @@ VPS or Mongo goes down. Consider minimal structured logging; today it's 4 `conso
 
 ## 🟢 Future (scale & maintainability)
 
-### 15. Split the monolith files — **M-L**
-- `backend/src/routes/portal.ts` is **1,481 lines** doing auth, uploads, cargo, investors,
-  investments, shop, orders, partners, avatars, site content. Split into route modules
-  (`routes/admin/*`, `routes/public/*`, `routes/investor/*`) + a shared `requireAdmin`/`requireInvestor`
-  **middleware** (the current "returns boolean and writes the response" pattern works but is unusual).
-- `client/src/views/adminDashboard.tsx` is **2,239 lines**. Extract each admin section
-  (Products, Orders, Partners, Investors, Cargos, Content) into its own component file.
 
 ### 16. Adopt a validation library (zod) — **M**
 The hand-rolled `normalizeNumber/Currency/Variants/...` helpers are verbose and easy to drift.
@@ -115,12 +57,6 @@ whatever you typed. The earlier `LocalizedString {en,fr,ar,zh}` direction was th
 was reverted to keep things manual for now. When the audience justifies it, reintroduce the
 4-field manual inputs (no auto-translate) and a `loc()` resolver, rolled out model by model.
 
-### 18. Delete dead/legacy template code — **S-M**
-Confirmed **unused** (0 references): `components/home/` → `appAfrica`, `appEurope`, `pricing`,
-`works`, `faq`, `hero`, `company`, `buisinessShowCase` (also a typo'd filename), `homeDeals`,
-`about`. Also: the legacy `client/src/common/i18n/{en,fr}.json` (superseded by
-`public/locales/*`), stray `translation.json` (only en/fr), and the unused `api/fetcher.tsx`
-(`useFetcher`, typed `any[]`). Removing these shrinks the bundle and the mental load.
 
 ### 19. Modernize React 18 root + minor cleanups — **S**
 `index.tsx` still uses the React-17 `ReactDOM.render` even though React 18 is installed — switch

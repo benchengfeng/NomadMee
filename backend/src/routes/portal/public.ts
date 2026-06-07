@@ -331,6 +331,7 @@ router.get('/public/products', async (_req: Request, res: Response): Promise<voi
       price: b.price,
       currency: b.currency,
       position: b.position,
+      section: b.section ?? 'food',
       includedProducts: b.productIds.map((id) => ({ _id: id, name: nameMap.get(id) ?? '?' })),
     }));
 

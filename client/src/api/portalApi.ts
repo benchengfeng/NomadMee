@@ -630,6 +630,7 @@ export type PublicBundle = {
   price: number;
   currency: string;
   position: number;
+  section: 'food' | 'artisanal';
   includedProducts: Array<{ _id: string; name: string }>;
 };
 
@@ -642,6 +643,7 @@ export type BundleInput = {
   price: number;
   currency: string;
   productIds: string[];
+  section: 'food' | 'artisanal';
   active: boolean;
 };
 

@@ -7,6 +7,7 @@ export type BundleDocument = {
   price: number;
   currency: string;
   productIds: string[];
+  section: 'food' | 'artisanal';
   active: boolean;
   position: number;
   createdAt?: Date;
@@ -21,6 +22,7 @@ const BundleSchema = new Schema<BundleDocument>(
     price: { type: Number, required: true, min: 0 },
     currency: { type: String, required: true, trim: true, default: 'EUR' },
     productIds: [{ type: String, trim: true }],
+    section: { type: String, enum: ['food', 'artisanal'], default: 'food' },
     active: { type: Boolean, default: true },
     position: { type: Number, default: 0 },
   },

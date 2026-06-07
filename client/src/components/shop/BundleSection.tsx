@@ -10,57 +10,70 @@ function formatPrice(price: number, currency: string) { return `${price.toLocale
 interface BundleSectionProps {
   bundles: PublicBundle[];
   shipNote?: string;
+  /** When true, renders only the card grid (no section wrapper / title). Use when embedding inside a family section. */
+  inline?: boolean;
   onOrdered?: (bundle: PublicBundle) => void;
 }
 
-const BundleSection: React.FC<BundleSectionProps> = ({ bundles, shipNote, onOrdered }) => {
+const BundleSection: React.FC<BundleSectionProps> = ({ bundles, shipNote, inline, onOrdered }) => {
   const { t } = useTranslation('landing');
   const [active, setActive] = useState<PublicBundle | null>(null);
 
   if (bundles.length === 0) return null;
 
+  const grid = (
+    <div className="shop-grid">
+      {bundles.map((b, i) => (
+        <button
+          key={b._id}
+          type="button"
+          className="shop-card"
+          style={{ animationDelay: `${Math.min(i, 12) * 45}ms` }}
+          onClick={() => setActive(b)}
+        >
+          <div className="shop-card-media">
+            {b.imageUrl
+              ? <img src={b.imageUrl} alt={b.name} loading="lazy" />
+              : <div className="shop-card-media-empty">📦</div>
+            }
+            <span className="shop-card-cat">✨ Bundle</span>
+          </div>
+          <div className="shop-card-body">
+            <h3 className="shop-card-name">{b.name}</h3>
+            {b.includedProducts.length > 0 && (
+              <ul className="shop-bundle-includes">
+                {b.includedProducts.map((p) => (
+                  <li key={p._id}>· {p.name}</li>
+                ))}
+              </ul>
+            )}
+            {b.description && <p className="shop-card-desc">{b.description}</p>}
+            <div className="shop-card-footer">
+              <span className="shop-card-price">
+                {b.price.toLocaleString()}<small>{currencySymbol(b.currency)}</small>
+              </span>
+              <span className="shop-card-btn">{t('shop.orderBundle', 'Order Bundle')}</span>
+            </div>
+          </div>
+        </button>
+      ))}
+    </div>
+  );
+
   return (
     <>
-      <section className="shop-family" style={{ marginBottom: 8 }}>
-        <h3 className="shop-family-title">{t('shop.bundlesTitle', 'Bundles')}</h3>
-        <p className="shop-family-sub">{t('shop.bundlesSub', 'Curated sets — everything you need, ready to order.')}</p>
-        <div className="shop-grid">
-          {bundles.map((b, i) => (
-            <button
-              key={b._id}
-              type="button"
-              className="shop-card"
-              style={{ animationDelay: `${Math.min(i, 12) * 45}ms` }}
-              onClick={() => setActive(b)}
-            >
-              <div className="shop-card-media">
-                {b.imageUrl
-                  ? <img src={b.imageUrl} alt={b.name} loading="lazy" />
-                  : <div className="shop-card-media-empty">📦</div>
-                }
-                <span className="shop-card-cat">✨ Bundle</span>
-              </div>
-              <div className="shop-card-body">
-                <h3 className="shop-card-name">{b.name}</h3>
-                {b.includedProducts.length > 0 && (
-                  <ul className="shop-bundle-includes">
-                    {b.includedProducts.map((p) => (
-                      <li key={p._id}>· {p.name}</li>
-                    ))}
-                  </ul>
-                )}
-                {b.description && <p className="shop-card-desc">{b.description}</p>}
-                <div className="shop-card-footer">
-                  <span className="shop-card-price">
-                    {b.price.toLocaleString()}<small>{currencySymbol(b.currency)}</small>
-                  </span>
-                  <span className="shop-card-btn">{t('shop.orderBundle', 'Order Bundle')}</span>
-                </div>
-              </div>
-            </button>
-          ))}
+      {inline ? (
+        <div className="shop-bundles-inline">
+          <p className="shop-bundles-inline-label">{t('shop.bundlesTitle', 'Bundles')}</p>
+          {grid}
         </div>
-      </section>
+      ) : (
+        <section className="shop-family" style={{ marginBottom: 8 }}>
+          <h3 className="shop-family-title">{t('shop.bundlesTitle', 'Bundles')}</h3>
+          <p className="shop-family-sub">{t('shop.bundlesSub', 'Curated sets — everything you need, ready to order.')}</p>
+          {grid}
+        </section>
+      )}
 
       {active && (
         <BundleModal

@@ -25,7 +25,13 @@ const emptyForm: BundleInput = {
   price: 0,
   currency: 'EUR',
   productIds: [],
+  section: 'food',
   active: true,
+};
+
+const SECTION_LABELS: Record<string, string> = {
+  food: 'From the Earth (food / organic)',
+  artisanal: 'From the Hands (artisanal / instruments)',
 };
 
 const AdminBundlesSection: React.FC<Props> = ({ showToast }) => {
@@ -89,6 +95,7 @@ const AdminBundlesSection: React.FC<Props> = ({ showToast }) => {
       price: b.price,
       currency: b.currency,
       productIds: b.productIds ?? [],
+      section: b.section ?? 'food',
       active: b.active !== false,
     });
   };
@@ -163,6 +170,12 @@ const AdminBundlesSection: React.FC<Props> = ({ showToast }) => {
               {CURRENCY_OPTIONS.map((c) => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
+
+          <label>Shop section</label>
+          <select value={form.section} onChange={(e) => setForm({ ...form, section: e.target.value as 'food' | 'artisanal' })}>
+            <option value="food">From the Earth (food / organic)</option>
+            <option value="artisanal">From the Hands (artisanal / instruments)</option>
+          </select>
 
           <label>Included products</label>
           {!loaded ? (
@@ -272,6 +285,9 @@ const AdminBundlesSection: React.FC<Props> = ({ showToast }) => {
                       <p className="portal-item-meta">
                         {b.price.toLocaleString()} {b.currency}
                         <span className="portal-item-badge">{(b.productIds ?? []).length} products</span>
+                        <span className="portal-item-badge" style={{ background: 'rgba(100,116,139,0.15)', color: '#94a3b8' }}>
+                          {SECTION_LABELS[b.section ?? 'food']?.split(' (')[0]}
+                        </span>
                       </p>
                       {includedNames.length > 0 && (
                         <p className="portal-item-meta" style={{ color: '#475569', fontSize: '0.75rem' }}>
