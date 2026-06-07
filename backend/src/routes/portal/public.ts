@@ -123,10 +123,10 @@ router.get('/public/map-data', async (_req: Request, res: Response): Promise<voi
 
     const activeInvestments = await InvestmentModel.find({ status: { $ne: 'successful' }, hidden: { $ne: true } }).select('title status currency minimumInvestment cargoIds assignedInvestorIds location').lean();
     const activeCargoIds = new Set(activeInvestments.flatMap((inv) => inv.cargoIds.map(String)));
-    const activeCargos = cargos.filter((c) => activeCargoIds.has(String(c._id)));
     const cargoPurchaseMap = Object.fromEntries(cargos.map((c) => [String(c._id), c.purchaseLocation]));
 
-    const activeShipments = activeCargos.filter(
+    // All non-hidden cargos appear on the map, not just investment-linked ones.
+    const activeShipments = cargos.filter(
       (c) => c.createdAt != null && c.createdAt <= now && new Date(c.estimatedTimeOfArrival) >= now
     ).length;
 
@@ -146,7 +146,7 @@ router.get('/public/map-data', async (_req: Request, res: Response): Promise<voi
           investmentCount: investmentCountMap[String(inv._id)] ?? 0,
         };
       }),
-      cargos: activeCargos.map((c) => ({
+      cargos: cargos.map((c) => ({
         _id: c._id,
         productBeingShipped: c.productBeingShipped,
         shippingType: c.shippingType || 'sea',
