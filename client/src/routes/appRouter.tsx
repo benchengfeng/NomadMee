@@ -1,5 +1,14 @@
-import React from "react";
-import { BrowserRouter as Router, Navigate, Route, Routes } from "react-router-dom";
+import React, { useEffect } from "react";
+import { BrowserRouter as Router, Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { track } from "../utils/analytics";
+
+const PageTracker: React.FC = () => {
+  const location = useLocation();
+  useEffect(() => {
+    track('page-view', { path: location.pathname });
+  }, [location.pathname]);
+  return null;
+};
 import AppHotDeals from "../components/home/appHotDeals";
 import AppHome from "../views/home";
 import PrivacyPolicy from "../components/common/privacy-policy";
@@ -38,6 +47,7 @@ const AdminProtectedRoute: React.FC<{ children: JSX.Element }> = ({ children }) 
 const AppRouter = () => {
   return (
     <Router>
+      <PageTracker />
       <Routes>
         <Route path="/" element={<AppHome />} />
         <Route path="/login" element={<InvestorLogin />} />

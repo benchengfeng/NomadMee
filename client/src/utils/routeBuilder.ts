@@ -105,6 +105,9 @@ const CITY_COORDS: Record<string, Coord> = {
 function normalizeLocationText(text: string): string {
   return text
     .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')   // strip diacritics: ô→o, é→e, etc.
+    .replace(/[''`´']/g, '')           // strip all apostrophe variants
     .replace(/[,./\-_]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
@@ -112,13 +115,17 @@ function normalizeLocationText(text: string): string {
 
 /**
  * Find coordinates for a free-text location string.
+ * Normalizes both input AND dictionary keys before comparison so that
+ * "Côte d'Ivoire", "cote d'ivoire", and "Cote dIvoire" all match.
  * Tries longest-key match first to avoid partial false positives.
  */
 export function findCoords(locationText: string, fallback: Coord): Coord {
   const norm = normalizeLocationText(locationText);
-  const sortedKeys = Object.keys(CITY_COORDS).sort((a, b) => b.length - a.length);
-  for (const key of sortedKeys) {
-    if (norm.includes(key)) return CITY_COORDS[key]!;
+  const entries = Object.keys(CITY_COORDS)
+    .map((key) => ({ key, normKey: normalizeLocationText(key) }))
+    .sort((a, b) => b.normKey.length - a.normKey.length);
+  for (const { key, normKey } of entries) {
+    if (normKey && norm.includes(normKey)) return CITY_COORDS[key]!;
   }
   return fallback;
 }

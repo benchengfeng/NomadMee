@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PublicBundle, BundleOrderInput, submitBundleOrder } from '../../api/portalApi';
 import { COUNTRIES } from '../../utils/countries';
+import { track } from '../../utils/analytics';
 
 const CURRENCY_SYMBOLS: Record<string, string> = { USD: '$', EUR: '€', TND: 'DT', CNY: '¥', GBP: '£' };
 function currencySymbol(c: string) { return CURRENCY_SYMBOLS[(c || '').toUpperCase()] ?? c; }
@@ -29,7 +30,7 @@ const BundleSection: React.FC<BundleSectionProps> = ({ bundles, shipNote, inline
           type="button"
           className="shop-card"
           style={{ animationDelay: `${Math.min(i, 12) * 45}ms` }}
-          onClick={() => setActive(b)}
+          onClick={() => { setActive(b); track('bundle-open', { bundle: b.name }); }}
         >
           <div className="shop-card-media">
             {b.imageUrl
@@ -129,6 +130,7 @@ const BundleModal: React.FC<BundleModalProps> = ({ bundle, shipNote, onClose, on
         website,
       };
       await submitBundleOrder(payload);
+      track('bundle-order-submit', { bundle: bundle.name, contactMethod, qty });
       onOrdered();
       setStep('done');
     } catch (err) {
@@ -199,7 +201,7 @@ const BundleModal: React.FC<BundleModalProps> = ({ bundle, shipNote, onClose, on
                     <button type="button" onClick={() => setQty((q) => Math.min(99, q + 1))}>+</button>
                   </div>
 
-                  <button type="button" className="shop-order-btn" onClick={() => setStep('form')}>
+                  <button type="button" className="shop-order-btn" onClick={() => { setStep('form'); track('bundle-to-form', { bundle: bundle.name }); }}>
                     {`${t('shop.orderBundle', 'Order Bundle')} · ${formatPrice(total, bundle.currency)}`}
                   </button>
                 </>
@@ -229,8 +231,8 @@ const BundleModal: React.FC<BundleModalProps> = ({ bundle, shipNote, onClose, on
                   <div>
                     <label>{t('shopUi.labelReachYou')}</label>
                     <div className="shop-variants" style={{ marginTop: 2 }}>
-                      <button type="button" className={`shop-variant${contactMethod === 'email' ? ' shop-variant--active' : ''}`} onClick={() => setContactMethod('email')}>{t('shopUi.contactEmail')}</button>
-                      <button type="button" className={`shop-variant${contactMethod === 'whatsapp' ? ' shop-variant--active' : ''}`} onClick={() => setContactMethod('whatsapp')}>{t('shopUi.contactWhatsapp')}</button>
+                      <button type="button" className={`shop-variant${contactMethod === 'email' ? ' shop-variant--active' : ''}`} onClick={() => { setContactMethod('email'); track('bundle-contact-method', { bundle: bundle.name, method: 'email' }); }}>{t('shopUi.contactEmail')}</button>
+                      <button type="button" className={`shop-variant${contactMethod === 'whatsapp' ? ' shop-variant--active' : ''}`} onClick={() => { setContactMethod('whatsapp'); track('bundle-contact-method', { bundle: bundle.name, method: 'whatsapp' }); }}>{t('shopUi.contactWhatsapp')}</button>
                     </div>
                   </div>
                   <div>

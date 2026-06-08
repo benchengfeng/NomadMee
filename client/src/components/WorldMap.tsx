@@ -4,6 +4,7 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 import { getPublicMapData, PublicMapCargo, PublicMapInvestor, PublicMapInvestment, PublicMapBoutique, PublicMapData } from '../api/portalApi';
 import { buildCargoRoute, getPositionAtProgress } from '../utils/routeBuilder';
 import { findCountryCoords } from '../utils/countries';
+import { track } from '../utils/analytics';
 
 const MAP_STYLE = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
 
@@ -212,6 +213,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ onDataLoaded }) => {
 
         wrapper.addEventListener('mouseenter', () => { inner.style.transform = 'scale(1.16)'; tooltip.style.opacity = '1'; });
         wrapper.addEventListener('mouseleave', () => { inner.style.transform = 'scale(1)';    tooltip.style.opacity = '0'; });
+        wrapper.addEventListener('click', () => track('map-marker-click', { category: 'investor', location: group[0]!.location, count }));
 
         const marker = new maplibregl.Marker({ element: wrapper, anchor: 'center', offset: OFF_INVESTOR })
           .setLngLat(coords as [number, number]);
@@ -320,6 +322,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ onDataLoaded }) => {
 
         wrapper.addEventListener('mouseenter', () => { inner.style.transform = 'scale(1.16)'; tooltip.style.opacity = '1'; });
         wrapper.addEventListener('mouseleave', () => { inner.style.transform = 'scale(1)';    tooltip.style.opacity = '0'; });
+        wrapper.addEventListener('click', () => track('map-marker-click', { category: 'investment', location: group[0]!.location, count }));
 
         const marker = new maplibregl.Marker({ element: wrapper, anchor: 'center', offset: OFF_INVESTMENT })
           .setLngLat(coords as [number, number]);
@@ -417,6 +420,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ onDataLoaded }) => {
 
         wrapper.addEventListener('mouseenter', () => { inner.style.transform = 'scale(1.16)'; tooltip.style.opacity = '1'; });
         wrapper.addEventListener('mouseleave', () => { inner.style.transform = 'scale(1)';    tooltip.style.opacity = '0'; });
+        wrapper.addEventListener('click', () => track('map-marker-click', { category: 'boutique', location: group[0]!.location, count }));
 
         const marker = new maplibregl.Marker({ element: wrapper, anchor: 'center', offset: OFF_BOUTIQUE })
           .setLngLat(coords as [number, number]);
@@ -509,6 +513,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ onDataLoaded }) => {
 
         pulseEl.addEventListener('mouseenter', () => { cargoInner.style.transform = 'scale(1.22)'; cargoInner.style.boxShadow = `0 0 18px ${color}99,0 4px 14px rgba(0,0,0,0.9)`; });
         pulseEl.addEventListener('mouseleave', () => { cargoInner.style.transform = 'scale(1)';    cargoInner.style.boxShadow = `0 0 10px ${color}55,0 3px 10px rgba(0,0,0,0.75)`; });
+        pulseEl.addEventListener('click', () => track('map-marker-click', { category: 'cargo', product: cargo.productBeingShipped, type: shippingType, progress: Math.round(progress * 100) }));
 
         new maplibregl.Marker({ element: pulseEl, anchor: 'center' })
           .setLngLat(pos as [number, number])

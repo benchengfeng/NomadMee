@@ -29,12 +29,23 @@ export type AnalyticsEvent =
   // ── Conversion funnel ──
   | 'login-success'
   | 'kyc-complete'
+  | 'kyc-currency-select'
+  | 'kyc-avatar-select'
   | 'join-submit'
+  | 'join-view'
+  | 'join-contact-method'
   // ── Engagement ──
   | 'language-switch'
   | 'theme-change'
   | 'globe-open'
   | 'cargo-open'
+  | 'investor-panel-switch'
+  | 'investor-view-mode'
+  | 'investor-logout'
+  | 'investor-settings-save'
+  | 'investor-password-change'
+  | 'investor-avatar-select'
+  | 'map-marker-click'
   // ── Landing interactions ──
   | 'landing-section'
   | 'join-click'
@@ -42,9 +53,21 @@ export type AnalyticsEvent =
   // ── Shop ──
   | 'shop-open'
   | 'order-submit'
+  | 'product-open'
+  | 'product-share'
+  | 'product-variant-select'
+  | 'product-to-form'
+  | 'order-contact-method'
+  | 'bundle-open'
+  | 'bundle-to-form'
+  | 'bundle-order-submit'
+  | 'bundle-contact-method'
   // ── Contact ──
   | 'contact-us-click'
-  | 'contact-us-submit';
+  | 'contact-us-submit'
+  | 'contact-method-select'
+  // ── Navigation ──
+  | 'page-view';
 
 /** Inject the Umami script once, on app boot. No-op if unconfigured. */
 export function initAnalytics(): void {

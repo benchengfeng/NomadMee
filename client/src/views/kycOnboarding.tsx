@@ -111,7 +111,7 @@ const KycOnboarding: React.FC = () => {
                   <button
                     key={cur}
                     type="button"
-                    onClick={() => setPreferredCurrency(cur)}
+                    onClick={() => { setPreferredCurrency(cur); track('kyc-currency-select', { currency: cur }); }}
                     className={`kyc-currency-btn${preferredCurrency === cur ? ' kyc-currency-btn--active' : ''}`}
                   >
                     {cur}
@@ -130,7 +130,7 @@ const KycOnboarding: React.FC = () => {
                     <button
                       key={av._id}
                       type="button"
-                      onClick={() => setSelectedAvatarId(av._id)}
+                      onClick={() => { setSelectedAvatarId(av._id); track('kyc-avatar-select', { avatar: av.name }); }}
                       className={`kyc-avatar-btn${selectedAvatarId === av._id ? ' kyc-avatar-btn--active' : ''}${av.secret ? ' kyc-avatar-btn--wide' : ''}`}
                     >
                       <img src={av.imageUrl} alt={av.name} />

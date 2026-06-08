@@ -37,6 +37,7 @@ const JoinInvestment: React.FC = () => {
   const accent = DEFAULT_ACCENT;
 
   useEffect(() => {
+    track('join-view', { investmentId });
     getPublicInvestments()
       .then((r) => {
         const found = r.investments.find((inv) => inv._id === investmentId);
@@ -196,7 +197,7 @@ const JoinInvestment: React.FC = () => {
                   <button
                     type="button"
                     className={`join-method-card join-method-card--whatsapp${contactMethod === 'whatsapp' ? ' join-method-card--active' : ''}`}
-                    onClick={() => { setContactMethod('whatsapp'); setContactDetail(''); }}
+                    onClick={() => { setContactMethod('whatsapp'); setContactDetail(''); track('join-contact-method', { method: 'whatsapp', investmentId }); }}
                   >
                     <span className="join-method-icon">📱</span>
                     <span className="join-method-name">{t('form.whatsapp')}</span>
@@ -205,7 +206,7 @@ const JoinInvestment: React.FC = () => {
                   <button
                     type="button"
                     className={`join-method-card join-method-card--email${contactMethod === 'email' ? ' join-method-card--active' : ''}`}
-                    onClick={() => { setContactMethod('email'); setContactDetail(''); }}
+                    onClick={() => { setContactMethod('email'); setContactDetail(''); track('join-contact-method', { method: 'email', investmentId }); }}
                   >
                     <span className="join-method-icon">✉️</span>
                     <span className="join-method-name">{t('form.email')}</span>

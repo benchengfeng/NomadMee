@@ -152,6 +152,7 @@ const InvestorHome: React.FC = () => {
   }, [data, selectedCargoId, dispatch]);
 
   const handleLogout = async () => {
+    track('investor-logout');
     await logoutInvestor();
     navigate('/');
   };
@@ -163,6 +164,7 @@ const InvestorHome: React.FC = () => {
 
   const handlePanelChange = (panelId: PanelId) => {
     dispatch(setActivePanel(panelId));
+    track('investor-panel-switch', { panel: panelId });
   };
 
   const handleThemeChange = (index: number) => {
@@ -170,8 +172,9 @@ const InvestorHome: React.FC = () => {
     track('theme-change', { theme: dashboardThemes[index]?.name ?? index });
   };
 
-  // Track entering the globe view (covers all toggle entry points)
+  // Track view mode switches and globe entry (covers all toggle entry points)
   useEffect(() => {
+    track('investor-view-mode', { mode: viewMode });
     if (viewMode === 'globe') track('globe-open');
   }, [viewMode]);
 
@@ -508,6 +511,7 @@ const InvestorHome: React.FC = () => {
           preferredCurrency: settingsCurrency,
         });
         setData((prev) => prev ? { ...prev, investor: { ...prev.investor, ...updatedInvestor } } : prev);
+        track('investor-settings-save', { currency: settingsCurrency });
         setSettingsSaved(true);
         setTimeout(() => setSettingsSaved(false), 3000);
       } catch (err) {
@@ -529,6 +533,7 @@ const InvestorHome: React.FC = () => {
       setPwSaving(true);
       try {
         await changeInvestorPassword({ currentPassword: pwCurrent, newPassword: pwNew });
+        track('investor-password-change');
         setPwSaved(true);
         setPwCurrent(''); setPwNew(''); setPwConfirm('');
         setTimeout(() => setPwSaved(false), 3000);
@@ -609,7 +614,7 @@ const InvestorHome: React.FC = () => {
                     <button
                       key={av._id}
                       type="button"
-                      onClick={() => { setSettingsAvatar(av._id); dispatch(setTheme(av.defaultTheme ?? 0)); }}
+                      onClick={() => { setSettingsAvatar(av._id); dispatch(setTheme(av.defaultTheme ?? 0)); track('investor-avatar-select', { avatar: av.name }); }}
                       style={{
                         display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 16,
                         border: settingsAvatar === av._id ? `2px solid ${theme.accent}` : `1px solid rgba(255,255,255,0.1)`,

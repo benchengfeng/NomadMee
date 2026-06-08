@@ -121,7 +121,7 @@ const ContactUs: React.FC = () => {
                   <button
                     type="button"
                     className={`join-method-card join-method-card--whatsapp${contactMethod === 'whatsapp' ? ' join-method-card--active' : ''}`}
-                    onClick={() => { setContactMethod('whatsapp'); setContactDetail(''); }}
+                    onClick={() => { setContactMethod('whatsapp'); setContactDetail(''); track('contact-method-select', { method: 'whatsapp' }); }}
                   >
                     <span className="join-method-icon">📱</span>
                     <span className="join-method-name">{t('form.whatsapp')}</span>
@@ -130,7 +130,7 @@ const ContactUs: React.FC = () => {
                   <button
                     type="button"
                     className={`join-method-card join-method-card--email${contactMethod === 'email' ? ' join-method-card--active' : ''}`}
-                    onClick={() => { setContactMethod('email'); setContactDetail(''); }}
+                    onClick={() => { setContactMethod('email'); setContactDetail(''); track('contact-method-select', { method: 'email' }); }}
                   >
                     <span className="join-method-icon">✉️</span>
                     <span className="join-method-name">{t('form.email')}</span>

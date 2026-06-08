@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PublicProduct, ProductVariant, submitProductOrder } from '../../api/portalApi';
 import { COUNTRIES } from '../../utils/countries';
+import { track } from '../../utils/analytics';
 import '../../styles/shop.css';
 
 export interface ShopTheme {
@@ -102,6 +103,7 @@ const ShopSection: React.FC<ShopSectionProps> = ({ products, loading, theme, emp
   const selectProduct = (product: PublicProduct | null) => {
     setActive(product);
     onActiveChange?.(product);
+    if (product) track('product-open', { product: product.name, category: product.category });
   };
 
   // URL → state: open the deep-linked product once it's available.
@@ -256,6 +258,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, shipNote, onClose,
       document.execCommand('copy');
       document.body.removeChild(el);
     }
+    track('product-share', { product: product.name });
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -276,6 +279,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, shipNote, onClose,
         message: message.trim(),
         website,
       });
+      track('order-submit', { product: product.name, contactMethod, qty });
       onOrdered();
       setStep('done');
     } catch (err) {
@@ -367,7 +371,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, shipNote, onClose,
                             key={v.label}
                             type="button"
                             className={`shop-variant${variant?.label === v.label ? ' shop-variant--active' : ''}`}
-                            onClick={() => setVariant(v)}
+                            onClick={() => { setVariant(v); track('product-variant-select', { product: product.name, variant: v.label }); }}
                           >
                             {v.label} · {formatPrice(v.price, product.currency)}
                           </button>
@@ -387,7 +391,7 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, shipNote, onClose,
                     type="button"
                     className="shop-order-btn"
                     disabled={out}
-                    onClick={() => setStep('form')}
+                    onClick={() => { setStep('form'); track('product-to-form', { product: product.name }); }}
                   >
                     {out ? t('shopUi.outOfStock') : `${t('shopUi.orderNow')} · ${formatPrice(total, product.currency)}`}
                   </button>
@@ -422,14 +426,14 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, shipNote, onClose,
                       <button
                         type="button"
                         className={`shop-variant${contactMethod === 'email' ? ' shop-variant--active' : ''}`}
-                        onClick={() => setContactMethod('email')}
+                        onClick={() => { setContactMethod('email'); track('order-contact-method', { product: product.name, method: 'email' }); }}
                       >
                         {t('shopUi.contactEmail')}
                       </button>
                       <button
                         type="button"
                         className={`shop-variant${contactMethod === 'whatsapp' ? ' shop-variant--active' : ''}`}
-                        onClick={() => setContactMethod('whatsapp')}
+                        onClick={() => { setContactMethod('whatsapp'); track('order-contact-method', { product: product.name, method: 'whatsapp' }); }}
                       >
                         {t('shopUi.contactWhatsapp')}
                       </button>
