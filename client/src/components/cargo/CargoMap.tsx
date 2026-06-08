@@ -5,79 +5,124 @@ import type { Cargo } from '../../api/portalApi';
 import type { DashboardTheme } from '../../theme';
 import { buildCargoRoute, getPositionAtProgress } from '../../utils/routeBuilder';
 
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
-const AVATAR_URLS: Record<string, string> = {
-  popeye: '/assets/popeyesmall.png',
-  olive: '/assets/olive1.jpeg',
-  curto: '/assets/cortomaltese.png',
+// Matches WorldMap.tsx CARGO_COLORS exactly
+const CARGO_COLORS: Record<string, string> = {
+  sea:  '#38bdf8',
+  air:  '#a78bfa',
+  land: '#fb923c',
 };
 
-// Free dark vector tile style — no API key required
-const MAP_STYLE = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
-
-const JOURNEY_DURATION_MS = 42000; // 42-second full-route animation
-
 const SHIPPING_LABELS: Record<string, string> = {
-  sea: '🚢 Sea freight',
-  air: '✈️ Air freight',
+  sea:  '🚢 Sea freight',
+  air:  '✈️ Air freight',
   land: '🚛 Land freight',
 };
 
-// ---------------------------------------------------------------------------
-// Component
+const MAP_STYLE = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
+const JOURNEY_DURATION_MS = 42000;
+
+function cargoRealProgress(cargo: Cargo): number {
+  const startSrc = cargo.purchaseDate || cargo.createdAt;
+  const start = startSrc ? new Date(startSrc).getTime() : 0;
+  const end   = new Date(cargo.estimatedTimeOfArrival).getTime();
+  const now   = Date.now();
+  if (!(start > 0) || !(end > start)) return 0;
+  return Math.max(0, Math.min(1, (now - start) / (end - start)));
+}
+
+// Makes a globe-style cargo marker element — same look as WorldMap.tsx
+function makeCargoMarkerEl(shippingType: string, arrived: boolean, selected: boolean): HTMLDivElement {
+  const color   = CARGO_COLORS[shippingType] ?? CARGO_COLORS['sea']!;
+  const emoji   = shippingType === 'air' ? '✈️' : shippingType === 'land' ? '🚛' : '🚢';
+  const size    = selected ? 38 : 30;
+  const border  = selected ? 2.5 : 1.5;
+  const fontSize = selected ? 17 : 13;
+
+  const wrap = document.createElement('div');
+  wrap.style.cssText = `width:${size}px;height:${size}px;cursor:pointer;position:relative;`;
+
+  const inner = document.createElement('div');
+  inner.style.cssText = `
+    width:${size}px;height:${size}px;border-radius:50%;
+    background:rgba(8,10,18,0.88);
+    border:${border}px solid ${color};
+    display:flex;align-items:center;justify-content:center;
+    font-size:${fontSize}px;line-height:1;
+    box-shadow:0 0 ${selected ? 14 : 8}px ${color}${selected ? '88' : '44'},0 3px 10px rgba(0,0,0,0.75);
+    transition:transform 0.15s,box-shadow 0.15s;
+  `;
+  inner.textContent = emoji;
+  wrap.appendChild(inner);
+
+  if (!arrived) {
+    const ring = document.createElement('div');
+    ring.style.cssText = `
+      position:absolute;top:-4px;left:-4px;
+      width:${size + 8}px;height:${size + 8}px;
+      border-radius:50%;border:2px solid ${color};
+      animation:worldMapPulse 2.8s ease-out infinite;opacity:0.4;
+      pointer-events:none;
+    `;
+    wrap.appendChild(ring);
+  }
+
+  return wrap;
+}
+
 // ---------------------------------------------------------------------------
 
 interface CargoMapProps {
-  cargo: Cargo;
-  avatar?: string;
+  cargos: Cargo[];
+  selectedCargoId: string;
+  onSelectCargo: (id: string) => void;
   theme: DashboardTheme;
 }
 
-const CargoMap: React.FC<CargoMapProps> = ({ cargo, avatar, theme }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<maplibregl.Map | null>(null);
-  const markerRef = useRef<maplibregl.Marker | null>(null);
-  const rafRef = useRef<number | null>(null);
-  const pausedAtRef = useRef<number>(0);
+const CargoMap: React.FC<CargoMapProps> = ({ cargos, selectedCargoId, onSelectCargo, theme }) => {
+  const containerRef  = useRef<HTMLDivElement>(null);
+  const mapRef        = useRef<maplibregl.Map | null>(null);
+  const markersRef    = useRef<Map<string, maplibregl.Marker>>(new Map());
+  const rafRef        = useRef<number | null>(null);
+  const pausedAtRef   = useRef<number>(0);
 
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [mapReady, setMapReady] = useState(false);
-  const [mapError, setMapError] = useState(false);
+  const [isPlaying, setIsPlaying]   = useState(false);
+  const [progress,  setProgress]    = useState(0);
+  const [mapReady,  setMapReady]    = useState(false);
+  const [mapError,  setMapError]    = useState(false);
 
-  const shippingType = cargo.shippingType ?? 'sea';
-
-  const route = useMemo(
-    () => buildCargoRoute(cargo.purchaseLocation, cargo.shippingDestination, shippingType),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [cargo._id, shippingType]
+  const selectedCargo = useMemo(
+    () => cargos.find((c) => c._id === selectedCargoId) ?? cargos[0] ?? null,
+    [cargos, selectedCargoId],
   );
 
-  // Real-world journey progress based on purchase date → ETA → today
+  const shippingType = selectedCargo?.shippingType ?? 'sea';
+  const accentColor  = CARGO_COLORS[shippingType] ?? theme.accent;
+
+  const selectedRoute = useMemo(
+    () => selectedCargo
+      ? buildCargoRoute(selectedCargo.purchaseLocation, selectedCargo.shippingDestination, selectedCargo.shippingType ?? 'sea')
+      : null,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [selectedCargo?._id, shippingType],
+  );
+
   const computeRealProgress = useCallback((): number => {
-    const startSrc = cargo.purchaseDate || cargo.createdAt;
-    const start = startSrc ? new Date(startSrc).getTime() : 0;
-    const end = new Date(cargo.estimatedTimeOfArrival).getTime();
-    const now = Date.now();
-    if (!(start > 0) || !(end > start)) return 0;
-    return Math.max(0, Math.min(1, (now - start) / (end - start)));
-  }, [cargo.purchaseDate, cargo.createdAt, cargo.estimatedTimeOfArrival]);
+    if (!selectedCargo) return 0;
+    return cargoRealProgress(selectedCargo);
+  }, [selectedCargo]);
 
   // ------------------------------------------------------------------
-  // Map initialisation (runs once)
+  // Map init — run once
   // ------------------------------------------------------------------
   useEffect(() => {
-    if (!containerRef.current || mapRef.current) return;
+    if (!containerRef.current || mapRef.current || !selectedRoute) return;
 
     let map: maplibregl.Map;
     try {
       map = new maplibregl.Map({
         container: containerRef.current,
         style: MAP_STYLE,
-        center: route[0],
+        center: selectedRoute[0],
         zoom: 2,
         attributionControl: false,
         fadeDuration: 0,
@@ -88,102 +133,9 @@ const CargoMap: React.FC<CargoMapProps> = ({ cargo, avatar, theme }) => {
     }
 
     map.addControl(new maplibregl.AttributionControl({ compact: true }), 'bottom-right');
-
     map.on('error', () => setMapError(true));
 
     map.on('load', () => {
-      // --- Route source ---
-      map.addSource('cargo-route', {
-        type: 'geojson',
-        data: {
-          type: 'Feature',
-          properties: {},
-          geometry: { type: 'LineString', coordinates: route },
-        },
-      });
-
-      // Ghost line (full path, faint)
-      map.addLayer({
-        id: 'route-ghost',
-        type: 'line',
-        source: 'cargo-route',
-        paint: {
-          'line-color': 'rgba(255,255,255,0.1)',
-          'line-width': 2,
-        },
-      });
-
-      // Dashed accent line
-      map.addLayer({
-        id: 'route-dashes',
-        type: 'line',
-        source: 'cargo-route',
-        paint: {
-          'line-color': theme.accent,
-          'line-width': 2.5,
-          'line-dasharray': [3, 5],
-          'line-opacity': 0.8,
-        },
-      });
-
-      // Origin marker
-      const originEl = document.createElement('div');
-      originEl.className = 'cargo-map-dot cargo-map-dot--origin';
-      originEl.style.cssText = `
-        width:12px;height:12px;border-radius:50%;
-        background:${theme.accent};
-        border:2px solid rgba(0,0,0,0.5);
-        box-shadow:0 0 0 3px ${theme.accent}44;
-      `;
-      new maplibregl.Marker({ element: originEl, anchor: 'center' })
-        .setLngLat(route[0] as [number, number])
-        .setPopup(
-          new maplibregl.Popup({ closeButton: false, className: 'cargo-popup' })
-            .setText(`Origin: ${cargo.purchaseLocation}`)
-        )
-        .addTo(map);
-
-      // Destination marker
-      const destEl = document.createElement('div');
-      destEl.className = 'cargo-map-dot cargo-map-dot--dest';
-      destEl.style.cssText = `
-        width:14px;height:14px;border-radius:50%;
-        background:#ef4444;
-        border:2px solid rgba(0,0,0,0.5);
-        box-shadow:0 0 0 3px #ef444444;
-      `;
-      new maplibregl.Marker({ element: destEl, anchor: 'center' })
-        .setLngLat(route[route.length - 1] as [number, number])
-        .setPopup(
-          new maplibregl.Popup({ closeButton: false, className: 'cargo-popup' })
-            .setText(`Destination: ${cargo.shippingDestination}`)
-        )
-        .addTo(map);
-
-      // Avatar marker
-      const avatarEl = document.createElement('div');
-      const avatarSrc = AVATAR_URLS[avatar ?? 'popeye'] ?? AVATAR_URLS['popeye']!;
-      avatarEl.style.cssText = `
-        width:38px;height:38px;border-radius:50%;
-        background-image:url(${avatarSrc});
-        background-size:cover;background-position:center;
-        border:2.5px solid ${theme.accent};
-        box-shadow:0 2px 12px rgba(0,0,0,0.7),0 0 0 2px rgba(0,0,0,0.3);
-        cursor:pointer;
-        transition:transform 0.15s;
-      `;
-
-      const marker = new maplibregl.Marker({ element: avatarEl, anchor: 'center' })
-        .setLngLat(route[0] as [number, number])
-        .addTo(map);
-
-      markerRef.current = marker;
-
-      // Fit bounds to full route
-      const bounds = new maplibregl.LngLatBounds();
-      route.forEach((c) => bounds.extend(c as [number, number]));
-      map.fitBounds(bounds, { padding: 60, duration: 900, maxZoom: 8 });
-
       setMapReady(true);
     });
 
@@ -193,57 +145,175 @@ const CargoMap: React.FC<CargoMapProps> = ({ cargo, avatar, theme }) => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       map.remove();
       mapRef.current = null;
+      markersRef.current.clear();
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ------------------------------------------------------------------
-  // React to cargo change — update route source + reset animation
+  // Sync all cargo routes + markers when map is ready or cargos change
   // ------------------------------------------------------------------
   useEffect(() => {
     const map = mapRef.current;
     if (!map || !mapReady) return;
 
-    const source = map.getSource('cargo-route') as maplibregl.GeoJSONSource | undefined;
-    source?.setData({
-      type: 'Feature',
-      properties: {},
-      geometry: { type: 'LineString', coordinates: route },
+    // Remove markers for cargos that no longer exist
+    for (const [id, marker] of markersRef.current) {
+      if (!cargos.find((c) => c._id === id)) {
+        marker.remove();
+        markersRef.current.delete(id);
+      }
+    }
+
+    // Add/update a route layer + cargo marker for every cargo
+    for (const cargo of cargos) {
+      const isSelected = cargo._id === selectedCargoId;
+      const type       = cargo.shippingType ?? 'sea';
+      const color      = CARGO_COLORS[type] ?? CARGO_COLORS['sea']!;
+      const route      = buildCargoRoute(cargo.purchaseLocation, cargo.shippingDestination, type);
+      const prog       = cargoRealProgress(cargo);
+      const pos        = getPositionAtProgress(route, prog);
+      const arrived    = prog >= 1;
+
+      // Route layers
+      const ghostId   = `route-ghost-${cargo._id}`;
+      const dashId    = `route-dash-${cargo._id}`;
+      const sourceId  = `route-${cargo._id}`;
+
+      const routeGeoJSON = {
+        type: 'Feature' as const,
+        properties: {},
+        geometry: { type: 'LineString' as const, coordinates: route },
+      };
+
+      if (map.getSource(sourceId)) {
+        (map.getSource(sourceId) as maplibregl.GeoJSONSource).setData(routeGeoJSON);
+      } else {
+        map.addSource(sourceId, { type: 'geojson', data: routeGeoJSON });
+        map.addLayer({
+          id: ghostId, type: 'line', source: sourceId,
+          paint: { 'line-color': isSelected ? 'rgba(255,255,255,0.12)' : 'rgba(255,255,255,0.05)', 'line-width': isSelected ? 2 : 1 },
+        });
+        map.addLayer({
+          id: dashId, type: 'line', source: sourceId,
+          paint: {
+            'line-color': color,
+            'line-width': isSelected ? 2.5 : 1.2,
+            'line-dasharray': [3, 5],
+            'line-opacity': isSelected ? 0.85 : 0.35,
+          },
+        });
+      }
+
+      // Update line style when selection changes
+      if (map.getLayer(ghostId)) {
+        map.setPaintProperty(ghostId, 'line-opacity', isSelected ? 1 : 0.4);
+        map.setPaintProperty(ghostId, 'line-width', isSelected ? 2 : 1);
+      }
+      if (map.getLayer(dashId)) {
+        map.setPaintProperty(dashId, 'line-width', isSelected ? 2.5 : 1.2);
+        map.setPaintProperty(dashId, 'line-opacity', isSelected ? 0.85 : 0.35);
+      }
+
+      // Cargo marker
+      const existing = markersRef.current.get(cargo._id);
+      if (existing) {
+        existing.remove();
+      }
+
+      const el = makeCargoMarkerEl(type, arrived, isSelected);
+
+      // Hover effects
+      const inner = el.firstChild as HTMLDivElement;
+      el.addEventListener('mouseenter', () => {
+        inner.style.transform = 'scale(1.18)';
+        inner.style.boxShadow = `0 0 18px ${color}99,0 4px 14px rgba(0,0,0,0.9)`;
+      });
+      el.addEventListener('mouseleave', () => {
+        inner.style.transform = 'scale(1)';
+        inner.style.boxShadow = `0 0 ${isSelected ? 14 : 8}px ${color}${isSelected ? '88' : '44'},0 3px 10px rgba(0,0,0,0.75)`;
+      });
+      el.addEventListener('click', () => onSelectCargo(cargo._id));
+
+      const eta = new Date(cargo.estimatedTimeOfArrival).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+      const popup = new maplibregl.Popup({ closeButton: false, offset: 18, className: 'world-map-popup' })
+        .setHTML(
+          `<strong>${cargo.productBeingShipped}</strong>` +
+          `<br/><span style="color:#94a3b8">${cargo.purchaseLocation} → ${cargo.shippingDestination}</span>` +
+          `<br/><span style="color:${color}">${arrived ? '✓ Arrived' : `${Math.round(prog * 100)}% · ETA ${eta}`}</span>`
+        );
+
+      const marker = new maplibregl.Marker({ element: el, anchor: 'center' })
+        .setLngLat(pos as [number, number])
+        .setPopup(popup)
+        .addTo(map);
+
+      markersRef.current.set(cargo._id, marker);
+    }
+
+    // Origin + destination dots for selected cargo
+    ['origin-dot', 'dest-dot'].forEach((id) => {
+      const existing = markersRef.current.get(id);
+      if (existing) { existing.remove(); markersRef.current.delete(id); }
     });
 
-    // Place avatar at its real-world estimated position (purchase date → ETA → today)
-    const realProgress = computeRealProgress();
-    const realPos = getPositionAtProgress(route, realProgress);
-    markerRef.current?.setLngLat(realPos as [number, number]);
+    if (selectedRoute && selectedCargo) {
+      const originEl = document.createElement('div');
+      originEl.style.cssText = `
+        width:11px;height:11px;border-radius:50%;
+        background:${accentColor};border:2px solid rgba(0,0,0,0.5);
+        box-shadow:0 0 0 3px ${accentColor}44;
+      `;
+      const originMarker = new maplibregl.Marker({ element: originEl, anchor: 'center' })
+        .setLngLat(selectedRoute[0] as [number, number])
+        .setPopup(new maplibregl.Popup({ closeButton: false, className: 'cargo-popup' }).setText(`Origin: ${selectedCargo.purchaseLocation}`))
+        .addTo(map);
+      markersRef.current.set('origin-dot', originMarker);
 
-    if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    setIsPlaying(false);
-    setProgress(realProgress);
-    pausedAtRef.current = realProgress;
+      const destEl = document.createElement('div');
+      destEl.style.cssText = `
+        width:13px;height:13px;border-radius:50%;
+        background:#ef4444;border:2px solid rgba(0,0,0,0.5);
+        box-shadow:0 0 0 3px #ef444444;
+      `;
+      const destMarker = new maplibregl.Marker({ element: destEl, anchor: 'center' })
+        .setLngLat(selectedRoute[selectedRoute.length - 1] as [number, number])
+        .setPopup(new maplibregl.Popup({ closeButton: false, className: 'cargo-popup' }).setText(`Destination: ${selectedCargo.shippingDestination}`))
+        .addTo(map);
+      markersRef.current.set('dest-dot', destMarker);
+    }
 
-    const bounds = new maplibregl.LngLatBounds();
-    route.forEach((c) => bounds.extend(c as [number, number]));
-    map.fitBounds(bounds, { padding: 60, duration: 700, maxZoom: 8 });
+    // Fit to selected route
+    if (selectedRoute) {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      setIsPlaying(false);
+      const realProg = computeRealProgress();
+      setProgress(realProg);
+      pausedAtRef.current = realProg;
+
+      const bounds = new maplibregl.LngLatBounds();
+      selectedRoute.forEach((c) => bounds.extend(c as [number, number]));
+      map.fitBounds(bounds, { padding: 60, duration: 700, maxZoom: 8 });
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cargo._id, mapReady]);
+  }, [cargos, selectedCargoId, mapReady]);
 
   // ------------------------------------------------------------------
-  // Animation controls
+  // Animation controls (animate the selected cargo marker)
   // ------------------------------------------------------------------
   const startJourney = useCallback(() => {
-    if (isPlaying) return;
+    if (isPlaying || !selectedRoute) return;
     setIsPlaying(true);
 
-    // If at end, restart from beginning
     const startProgress = pausedAtRef.current >= 1 ? 0 : pausedAtRef.current;
     if (startProgress === 0) setProgress(0);
 
     const startTime = performance.now() - startProgress * JOURNEY_DURATION_MS;
 
     const tick = (now: number) => {
-      const t = Math.min((now - startTime) / JOURNEY_DURATION_MS, 1);
-      const pos = getPositionAtProgress(route, t);
-      markerRef.current?.setLngLat(pos as [number, number]);
+      const t   = Math.min((now - startTime) / JOURNEY_DURATION_MS, 1);
+      const pos = getPositionAtProgress(selectedRoute, t);
+      markersRef.current.get(selectedCargoId)?.setLngLat(pos as [number, number]);
       setProgress(t);
       pausedAtRef.current = t;
 
@@ -255,7 +325,7 @@ const CargoMap: React.FC<CargoMapProps> = ({ cargo, avatar, theme }) => {
     };
 
     rafRef.current = requestAnimationFrame(tick);
-  }, [isPlaying, route]);
+  }, [isPlaying, selectedRoute, selectedCargoId]);
 
   const pauseJourney = useCallback(() => {
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
@@ -263,42 +333,31 @@ const CargoMap: React.FC<CargoMapProps> = ({ cargo, avatar, theme }) => {
   }, []);
 
   const resetJourney = useCallback(() => {
+    if (!selectedRoute) return;
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
-    markerRef.current?.setLngLat(route[0] as [number, number]);
+    markersRef.current.get(selectedCargoId)?.setLngLat(selectedRoute[0] as [number, number]);
     setIsPlaying(false);
     setProgress(0);
     pausedAtRef.current = 0;
-  }, [route]);
+  }, [selectedRoute, selectedCargoId]);
 
   const jumpToCurrentLocation = useCallback(() => {
-    const realProgress = computeRealProgress();
-    const pos = getPositionAtProgress(route, realProgress);
+    if (!selectedRoute) return;
+    const realProg = computeRealProgress();
+    const pos      = getPositionAtProgress(selectedRoute, realProg);
 
-    // Stop any animation and jump avatar to real-world position
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
     setIsPlaying(false);
-    setProgress(realProgress);
-    pausedAtRef.current = realProgress;
-    markerRef.current?.setLngLat(pos as [number, number]);
+    setProgress(realProg);
+    pausedAtRef.current = realProg;
+    markersRef.current.get(selectedCargoId)?.setLngLat(pos as [number, number]);
 
-    // Fly the map to that position
-    mapRef.current?.flyTo({
-      center: pos as [number, number],
-      zoom: 4,
-      duration: 1200,
-      essential: true,
-    });
-  }, [computeRealProgress, route]);
+    mapRef.current?.flyTo({ center: pos as [number, number], zoom: 4, duration: 1200, essential: true });
+  }, [computeRealProgress, selectedRoute, selectedCargoId]);
 
   // ------------------------------------------------------------------
   // Render
   // ------------------------------------------------------------------
-  const statusLabel = isPlaying
-    ? 'Journey in progress...'
-    : progress >= 1
-    ? '✓ Arrived!'
-    : 'Ready to depart';
-
   if (mapError) {
     return (
       <div className="cargo-map-error">
@@ -307,13 +366,20 @@ const CargoMap: React.FC<CargoMapProps> = ({ cargo, avatar, theme }) => {
     );
   }
 
+  if (!selectedCargo) return null;
+
+  const statusLabel = isPlaying
+    ? 'Journey in progress...'
+    : progress >= 1
+    ? '✓ Arrived!'
+    : 'Ready to depart';
+
   return (
     <div className="cargo-map-wrap">
-      {/* Header bar */}
       <div className="cargo-map-header">
         <div className="cargo-map-header-left">
           <span className="cargo-map-route-text">
-            {cargo.purchaseLocation} → {cargo.shippingDestination}
+            {selectedCargo.purchaseLocation} → {selectedCargo.shippingDestination}
           </span>
           <span className="cargo-map-type-badge">
             {SHIPPING_LABELS[shippingType] ?? SHIPPING_LABELS['sea']}
@@ -325,7 +391,7 @@ const CargoMap: React.FC<CargoMapProps> = ({ cargo, avatar, theme }) => {
             <button
               type="button"
               className="cargo-map-btn cargo-map-btn--play"
-              style={{ background: theme.accent, color: theme.background }}
+              style={{ background: accentColor, color: theme.background }}
               onClick={startJourney}
             >
               {progress >= 1 ? '↺ Replay' : '▶ Play journey'}
@@ -335,7 +401,7 @@ const CargoMap: React.FC<CargoMapProps> = ({ cargo, avatar, theme }) => {
             <button
               type="button"
               className="cargo-map-btn cargo-map-btn--outline"
-              style={{ borderColor: theme.accent, color: theme.accent }}
+              style={{ borderColor: accentColor, color: accentColor }}
               onClick={pauseJourney}
             >
               ⏸ Pause
@@ -365,27 +431,24 @@ const CargoMap: React.FC<CargoMapProps> = ({ cargo, avatar, theme }) => {
         </div>
       </div>
 
-      {/* Map canvas */}
       <div ref={containerRef} className="cargo-map-canvas" />
 
-      {/* Progress bar */}
       <div className="cargo-map-progress-track">
         <div
           className="cargo-map-progress-fill"
-          style={{ width: `${progress * 100}%`, background: theme.accent }}
+          style={{ width: `${progress * 100}%`, background: accentColor }}
         />
       </div>
 
-      {/* Footer */}
       <div className="cargo-map-footer">
-        <span className="cargo-map-footer-origin">{cargo.purchaseLocation}</span>
+        <span className="cargo-map-footer-origin">{selectedCargo.purchaseLocation}</span>
         <span
           className="cargo-map-footer-status"
-          style={{ color: isPlaying ? theme.accent : theme.secondaryText }}
+          style={{ color: isPlaying ? accentColor : theme.secondaryText }}
         >
           {statusLabel}
         </span>
-        <span className="cargo-map-footer-dest">{cargo.shippingDestination}</span>
+        <span className="cargo-map-footer-dest">{selectedCargo.shippingDestination}</span>
       </div>
     </div>
   );

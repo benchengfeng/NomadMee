@@ -393,8 +393,9 @@ const InvestorHome: React.FC = () => {
 
         {/* MapLibre map with journey animation */}
         <CargoMap
-          cargo={selectedCargo}
-          avatar={data?.investor.avatar}
+          cargos={data?.cargos ?? []}
+          selectedCargoId={selectedCargo._id}
+          onSelectCargo={(id) => dispatch(setSelectedCargoId(id))}
           theme={theme}
         />
 
