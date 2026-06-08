@@ -335,6 +335,26 @@ const LandingPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* ── Mobile-only floating theme strip ── */}
+      <div className="landing-theme-strip-mobile">
+        <span className="landing-theme-strip-emoji">{palette.emoji}</span>
+        {landingThemes.map((th, i) => (
+          <button
+            key={th.name}
+            type="button"
+            className={`landing-theme-swatch${i === selectedTheme ? ' landing-theme-swatch--active' : ''}`}
+            onClick={() => switchTheme(i)}
+            aria-label={th.name}
+            style={{
+              background: `conic-gradient(${th.background} 0deg 180deg, ${th.accent} 180deg 360deg)`,
+              boxShadow: i === selectedTheme
+                ? `0 0 0 2px #fff, 0 0 0 4px ${th.accent}88`
+                : 'none',
+            }}
+          />
+        ))}
+      </div>
     </div>
   );
 };

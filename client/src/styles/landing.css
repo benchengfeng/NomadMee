@@ -538,7 +538,12 @@
   }
 
   .landing-theme-swatches {
-    display: none; /* hide theme swatches on mobile — too cramped */
+    display: none; /* hidden on mobile — strip below handles it */
+  }
+
+  /* Scrollable content gets bottom padding so the strip doesn't overlap */
+  .landing-content--scroll {
+    padding-bottom: 68px;
   }
 
   .landing-cta-btn {
@@ -614,4 +619,43 @@
 @keyframes shimmer {
   0%   { background-position: 200% 0; }
   100% { background-position: -200% 0; }
+}
+
+/* ── Mobile floating theme strip ── */
+.landing-theme-strip-mobile {
+  display: none; /* desktop: hidden — swatches live in the nav */
+}
+
+@media (max-width: 768px) {
+  .landing-theme-strip-mobile {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: fixed;
+    bottom: 18px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 50;
+    padding: 8px 16px;
+    border-radius: 999px;
+    background: var(--lt-nav-bg, rgba(10,12,20,0.94));
+    border: 1px solid var(--lt-nav-border, rgba(255,255,255,0.1));
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    box-shadow: 0 6px 28px rgba(0,0,0,0.45), 0 1px 4px rgba(0,0,0,0.3);
+    transition: background 0.45s ease, border-color 0.45s ease;
+  }
+
+  .landing-theme-strip-emoji {
+    font-size: 1rem;
+    line-height: 1;
+    margin-right: 2px;
+    flex-shrink: 0;
+  }
+
+  /* Swatches inside the strip are slightly smaller */
+  .landing-theme-strip-mobile .landing-theme-swatch {
+    width: 16px;
+    height: 16px;
+  }
 }
