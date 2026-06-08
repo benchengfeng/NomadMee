@@ -140,12 +140,13 @@ const CargoMap: React.FC<CargoMapProps> = ({ cargos, selectedCargoId, onSelectCa
     });
 
     mapRef.current = map;
+    const markers = markersRef.current;
 
     return () => {
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       map.remove();
       mapRef.current = null;
-      markersRef.current.clear();
+      markers.clear();
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
