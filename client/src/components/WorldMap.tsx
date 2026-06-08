@@ -7,19 +7,45 @@ import { findCountryCoords } from '../utils/countries';
 
 const MAP_STYLE = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
 
-
+// Per-category accent colours
+const CLR_INVESTOR  = '#38bdf8'; // cyan
+const CLR_INVEST    = '#a78bfa'; // purple
+const CLR_BOUTIQUE  = '#f59e0b'; // amber
 const CARGO_COLORS: Record<string, string> = {
   sea: '#38bdf8',
   air: '#a78bfa',
   land: '#fb923c',
 };
 
+// Pixel offsets from country centre — keeps categories separated at every zoom
+const OFF_INVESTOR: [number, number]  = [0,   -20];
+const OFF_INVESTMENT: [number, number] = [-32,  22];
+const OFF_BOUTIQUE: [number, number]  = [32,   22];
+
 function cargoProgress(cargo: PublicMapCargo): number {
   const start = new Date(cargo.purchaseDate || cargo.createdAt).getTime();
-  const end = new Date(cargo.estimatedTimeOfArrival).getTime();
-  const now = Date.now();
+  const end   = new Date(cargo.estimatedTimeOfArrival).getTime();
+  const now   = Date.now();
   if (end <= start) return 1;
   return Math.max(0, Math.min(1, (now - start) / (end - start)));
+}
+
+const esc = (s: string) =>
+  s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
+
+// Shared tooltip container style
+function makeTooltip(): HTMLDivElement {
+  const t = document.createElement('div');
+  t.style.cssText = `
+    position:absolute;bottom:calc(100% + 12px);left:50%;
+    transform:translateX(-50%);
+    background:rgba(10,12,20,0.97);
+    border:1px solid rgba(255,255,255,0.12);
+    border-radius:12px;padding:9px 13px;white-space:nowrap;
+    pointer-events:none;opacity:0;transition:opacity 0.18s;
+    box-shadow:0 8px 24px rgba(0,0,0,0.7);z-index:200;
+  `;
+  return t;
 }
 
 interface WorldMapProps {
@@ -27,16 +53,16 @@ interface WorldMapProps {
   onDataLoaded?: (data: PublicMapData) => void;
 }
 
-const WorldMap: React.FC<WorldMapProps> = ({ accentColor = '#38bdf8', onDataLoaded }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<maplibregl.Map | null>(null);
-  const [mapError, setMapError] = useState(false);
-  const [mapReady, setMapReady] = useState(false);
-  const [dataLoaded, setDataLoaded] = useState(false);
-  const [investorCount, setInvestorCount] = useState(0);
-  const [cargoCount, setCargoCount] = useState(0);
+const WorldMap: React.FC<WorldMapProps> = ({ onDataLoaded }) => {
+  const containerRef  = useRef<HTMLDivElement>(null);
+  const mapRef        = useRef<maplibregl.Map | null>(null);
+  const [mapError,        setMapError]        = useState(false);
+  const [mapReady,        setMapReady]        = useState(false);
+  const [dataLoaded,      setDataLoaded]      = useState(false);
+  const [investorCount,   setInvestorCount]   = useState(0);
+  const [cargoCount,      setCargoCount]      = useState(0);
   const [investmentCount, setInvestmentCount] = useState(0);
-  const [boutiqueCount, setBoutiqueCount] = useState(0);
+  const [boutiqueCount,   setBoutiqueCount]   = useState(0);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -63,109 +89,115 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor = '#38bdf8', onDataLoad
     map.on('error', () => setMapError(true));
 
     map.on('load', async () => {
-      let investors: PublicMapInvestor[] = [];
-      let cargos: PublicMapCargo[] = [];
+      let investors:   PublicMapInvestor[]   = [];
+      let cargos:      PublicMapCargo[]      = [];
       let investments: PublicMapInvestment[] = [];
-      let boutiques: PublicMapBoutique[] = [];
+      let boutiques:   PublicMapBoutique[]   = [];
 
       try {
         const data = await getPublicMapData();
-        investors = data.investors;
-        cargos = data.cargos;
+        investors   = data.investors;
+        cargos      = data.cargos;
         investments = data.investments ?? [];
-        boutiques = data.boutiques ?? [];
+        boutiques   = data.boutiques  ?? [];
         onDataLoaded?.(data);
       } catch {
         // Map still shows even if data fetch fails
       }
       setDataLoaded(true);
 
-      // ---- Investor markers (clustered by country) ----
-      // Group all investors sharing a country into a single cluster marker so
-      // they never overlap into a blur when zoomed out.
-      const groups = new Map<string, PublicMapInvestor[]>();
-      for (const inv of investors) {
-        if (!findCountryCoords(inv.location)) continue;
-        const key = inv.location.trim().toLowerCase();
-        const arr = groups.get(key);
-        if (arr) arr.push(inv);
-        else groups.set(key, [inv]);
+      // ── Helper: group an array by a string key ──────────────────────────────
+      function groupByCountry<T extends { location: string }>(items: T[]): Map<string, T[]> {
+        const map = new Map<string, T[]>();
+        for (const item of items) {
+          if (!item.location || !findCountryCoords(item.location)) continue;
+          const key = item.location.trim().toLowerCase();
+          const arr = map.get(key);
+          if (arr) arr.push(item);
+          else map.set(key, [item]);
+        }
+        return map;
       }
 
-      const esc = (s: string) =>
-        s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
+      // ── Helper: shared wrapper + inner + hover wiring ──────────────────────
+      function makeMarkerShell(size = 44): { wrapper: HTMLDivElement; inner: HTMLDivElement } {
+        const wrapper = document.createElement('div');
+        wrapper.style.cssText = `cursor:pointer;width:${size}px;height:${size}px;`;
+        const inner = document.createElement('div');
+        inner.style.cssText = `position:relative;width:${size}px;height:${size}px;transition:transform 0.16s ease;`;
+        wrapper.appendChild(inner);
+        return { wrapper, inner };
+      }
 
+      // ── Helper: count badge ────────────────────────────────────────────────
+      function makeBadge(count: number, color: string): HTMLDivElement {
+        const badge = document.createElement('div');
+        badge.style.cssText = `
+          position:absolute;top:-5px;right:-7px;z-index:20;
+          min-width:20px;height:20px;padding:0 5px;border-radius:999px;
+          background:${color};color:#0a0c14;
+          font-size:0.68rem;font-weight:800;line-height:20px;text-align:center;
+          box-shadow:0 0 0 2px #0a0c14,0 2px 8px rgba(0,0,0,0.6);
+        `;
+        badge.textContent = count > 99 ? '99+' : String(count);
+        return badge;
+      }
+
+      // ── Helper: cluster popup ──────────────────────────────────────────────
+      function makeClusterPopup(location: string, label: string, color: string, rows: string): maplibregl.Popup {
+        return new maplibregl.Popup({
+          closeButton: true,
+          offset: 22,
+          className: 'world-map-popup world-map-cluster-popup',
+          maxWidth: '270px',
+        }).setHTML(
+          `<div style="font-weight:800;color:#f1f5f9;font-size:0.86rem;margin-bottom:2px;">📍 ${esc(location)}</div>` +
+          `<div style="color:${color};font-size:0.72rem;font-weight:700;margin-bottom:8px;">${label}</div>` +
+          `<div style="max-height:220px;overflow-y:auto;margin:0 -4px;">${rows}</div>`
+        );
+      }
+
+      // ════════════════════════════════════════════════════════════════════════
+      // INVESTORS — circles, cyan, offset top-centre
+      // ════════════════════════════════════════════════════════════════════════
+      const investorGroups = groupByCountry(investors);
       let visibleInvestors = 0;
-      for (const [, group] of groups) {
+
+      for (const [, group] of investorGroups) {
         const coords = findCountryCoords(group[0]!.location)!;
-        const count = group.length;
+        const count  = group.length;
         visibleInvestors += count;
 
-        // Marker root — MapLibre owns its position/transform (never set position here).
-        const wrapper = document.createElement('div');
-        wrapper.style.cssText = 'cursor:pointer;width:40px;height:40px;';
-
-        // Inner element holds all visuals + hover scaling.
-        const inner = document.createElement('div');
-        inner.style.cssText = `
-          position:relative;width:40px;height:40px;
-          transition:transform 0.16s ease;
-        `;
+        const { wrapper, inner } = makeMarkerShell(44);
 
         if (count === 1) {
-          // ── Solo investor — clean single avatar ──
           const av = document.createElement('div');
           av.style.cssText = `
-            width:36px;height:36px;margin:2px;border-radius:50%;
+            width:38px;height:38px;margin:3px;border-radius:50%;
             background-image:url(${group[0]!.avatarImageUrl || '/logo192.png'});
             background-size:cover;background-position:center;
-            border:2.5px solid ${accentColor};
-            box-shadow:0 0 0 3px ${accentColor}44,0 4px 14px rgba(0,0,0,0.8);
+            border:2.5px solid ${CLR_INVESTOR};
+            box-shadow:0 0 0 3px ${CLR_INVESTOR}44,0 4px 14px rgba(0,0,0,0.8);
           `;
           inner.appendChild(av);
         } else {
-          // ── Cluster — stacked "deck" of up to 3 avatars + count badge ──
-          const shown = group.slice(0, 3);
-          shown.forEach((inv, i) => {
+          group.slice(0, 3).forEach((inv, i) => {
             const card = document.createElement('div');
-            const offset = i * 5;
             card.style.cssText = `
-              position:absolute;
-              top:${4 - i}px;left:${offset}px;
+              position:absolute;top:${5 - i * 2}px;left:${i * 7}px;
               width:32px;height:32px;border-radius:50%;
               background-image:url(${inv.avatarImageUrl || '/logo192.png'});
               background-size:cover;background-position:center;
               border:2px solid #0a0c14;
-              box-shadow:0 0 0 1.5px ${accentColor}88, 0 3px 10px rgba(0,0,0,0.7);
+              box-shadow:0 0 0 1.5px ${CLR_INVESTOR}88,0 3px 10px rgba(0,0,0,0.7);
               z-index:${10 - i};
             `;
             inner.appendChild(card);
           });
-          // Count badge
-          const badge = document.createElement('div');
-          badge.style.cssText = `
-            position:absolute;top:-4px;right:-6px;z-index:20;
-            min-width:20px;height:20px;padding:0 5px;border-radius:999px;
-            background:${accentColor};color:#0a0c14;
-            font-size:0.68rem;font-weight:800;line-height:20px;text-align:center;
-            box-shadow:0 0 0 2px #0a0c14,0 2px 8px rgba(0,0,0,0.6);
-          `;
-          badge.textContent = count > 99 ? '99+' : String(count);
-          inner.appendChild(badge);
+          inner.appendChild(makeBadge(count, CLR_INVESTOR));
         }
-        wrapper.appendChild(inner);
 
-        // ── Hover tooltip ──
-        const tooltip = document.createElement('div');
-        tooltip.style.cssText = `
-          position:absolute;bottom:calc(100% + 12px);left:50%;
-          transform:translateX(-50%);
-          background:rgba(10,12,20,0.97);
-          border:1px solid rgba(255,255,255,0.12);
-          border-radius:12px;padding:9px 13px;white-space:nowrap;
-          pointer-events:none;opacity:0;transition:opacity 0.18s;
-          box-shadow:0 8px 24px rgba(0,0,0,0.7);z-index:200;
-        `;
+        const tooltip = makeTooltip();
         if (count === 1) {
           const ic = group[0]!.investmentCount ?? 0;
           tooltip.innerHTML =
@@ -173,100 +205,310 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor = '#38bdf8', onDataLoad
             `<div style="color:#64748b;font-size:0.72rem;">📍 ${esc(group[0]!.location)} · 💼 ${ic} investment${ic !== 1 ? 's' : ''}</div>`;
         } else {
           tooltip.innerHTML =
-            `<div style="font-weight:800;color:${accentColor};font-size:0.82rem;margin-bottom:2px;">${count} investors</div>` +
-            `<div style="color:#64748b;font-size:0.72rem;">📍 ${esc(group[0]!.location)} · click to view</div>`;
+            `<div style="font-weight:800;color:${CLR_INVESTOR};font-size:0.82rem;margin-bottom:2px;">${count} investors</div>` +
+            `<div style="color:#64748b;font-size:0.72rem;">📍 ${esc(group[0]!.location)} · click to expand</div>`;
         }
         wrapper.appendChild(tooltip);
 
-        wrapper.addEventListener('mouseenter', () => {
-          inner.style.transform = 'scale(1.16)';
-          tooltip.style.opacity = '1';
-        });
-        wrapper.addEventListener('mouseleave', () => {
-          inner.style.transform = 'scale(1)';
-          tooltip.style.opacity = '0';
-        });
+        wrapper.addEventListener('mouseenter', () => { inner.style.transform = 'scale(1.16)'; tooltip.style.opacity = '1'; });
+        wrapper.addEventListener('mouseleave', () => { inner.style.transform = 'scale(1)';    tooltip.style.opacity = '0'; });
 
-        const marker = new maplibregl.Marker({ element: wrapper, anchor: 'center' })
+        const marker = new maplibregl.Marker({ element: wrapper, anchor: 'center', offset: OFF_INVESTOR })
           .setLngLat(coords as [number, number]);
 
-        // ── Click → expandable popup listing every investor in the country ──
         if (count > 1) {
           const rows = group.map((inv) => {
             const ic = inv.investmentCount ?? 0;
             return (
               `<div style="display:flex;align-items:center;gap:10px;padding:7px 4px;border-bottom:1px solid rgba(255,255,255,0.06);">` +
-                `<img src="${inv.avatarImageUrl || '/logo192.png'}" style="width:30px;height:30px;border-radius:50%;object-fit:cover;border:1.5px solid ${accentColor};flex-shrink:0;" />` +
+                `<img src="${inv.avatarImageUrl || '/logo192.png'}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;border:1.5px solid ${CLR_INVESTOR};flex-shrink:0;" />` +
                 `<div style="min-width:0;">` +
-                  `<div style="color:#f1f5f9;font-size:0.78rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(inv.name)}</div>` +
-                  `<div style="color:#64748b;font-size:0.66rem;">💼 ${ic} investment${ic !== 1 ? 's' : ''}</div>` +
+                  `<div style="color:#f1f5f9;font-size:0.8rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(inv.name)}</div>` +
+                  `<div style="color:#64748b;font-size:0.67rem;">💼 ${ic} investment${ic !== 1 ? 's' : ''}</div>` +
                 `</div>` +
               `</div>`
             );
           }).join('');
-          const popup = new maplibregl.Popup({ closeButton: true, offset: 22, className: 'world-map-popup world-map-cluster-popup', maxWidth: '260px' })
-            .setHTML(
-              `<div style="font-weight:800;color:#f1f5f9;font-size:0.86rem;margin-bottom:2px;">📍 ${esc(group[0]!.location)}</div>` +
-              `<div style="color:${accentColor};font-size:0.72rem;font-weight:700;margin-bottom:8px;">${count} investors</div>` +
-              `<div style="max-height:200px;overflow-y:auto;margin:0 -4px;">${rows}</div>`
-            );
-          marker.setPopup(popup);
+          marker.setPopup(makeClusterPopup(group[0]!.location, `${count} investors`, CLR_INVESTOR, rows));
+        } else {
+          const ic = group[0]!.investmentCount ?? 0;
+          marker.setPopup(
+            new maplibregl.Popup({ closeButton: false, offset: 14, className: 'world-map-popup' }).setHTML(
+              `<strong>${esc(group[0]!.name)}</strong>` +
+              `<br/><span>📍 ${esc(group[0]!.location)}</span>` +
+              `<br/><span style="color:${CLR_INVESTOR}">💼 ${ic} investment${ic !== 1 ? 's' : ''}</span>`
+            )
+          );
         }
 
         marker.addTo(map);
       }
       setInvestorCount(visibleInvestors);
 
-      // ---- Cargo markers ----
+      // ════════════════════════════════════════════════════════════════════════
+      // INVESTMENTS — rotated-diamond shape, purple, offset bottom-left
+      // ════════════════════════════════════════════════════════════════════════
+      const investGroups = groupByCountry(investments);
+      let visibleInvestments = 0;
+
+      for (const [, group] of investGroups) {
+        const coords = findCountryCoords(group[0]!.location)!;
+        const count  = group.length;
+        visibleInvestments += count;
+
+        const { wrapper, inner } = makeMarkerShell(44);
+
+        const makeDiamond = (size: number, borderColor: string, zIdx: number, top: number, left: number) => {
+          const d = document.createElement('div');
+          d.style.cssText = `
+            position:${zIdx === 0 ? 'relative' : 'absolute'};
+            top:${top}px;left:${left}px;
+            width:${size}px;height:${size}px;
+            background:rgba(8,10,18,0.92);
+            border:2px solid ${borderColor};
+            border-radius:5px;
+            transform:rotate(45deg);
+            box-shadow:0 0 0 2px ${CLR_INVEST}22,0 4px 12px rgba(0,0,0,0.8);
+            z-index:${zIdx === 0 ? 'auto' : 10 - zIdx};
+            display:flex;align-items:center;justify-content:center;
+          `;
+          const icon = document.createElement('div');
+          icon.style.cssText = `transform:rotate(-45deg);font-size:${Math.round(size * 0.48)}px;line-height:1;`;
+          icon.textContent = '💼';
+          d.appendChild(icon);
+          return d;
+        };
+
+        if (count === 1) {
+          const d = makeDiamond(30, CLR_INVEST, 0, 7, 7);
+          d.style.position = 'absolute';
+          d.style.top  = '7px';
+          d.style.left = '7px';
+          inner.appendChild(d);
+          // Pulsing ring
+          const ring = document.createElement('div');
+          ring.style.cssText = `
+            position:absolute;top:4px;left:4px;width:36px;height:36px;
+            border:2px solid ${CLR_INVEST};border-radius:6px;
+            transform:rotate(45deg);
+            animation:worldMapPulse 2.5s ease-out infinite;opacity:0.45;
+          `;
+          inner.appendChild(ring);
+        } else {
+          group.slice(0, 3).forEach((_, i) => {
+            const d = makeDiamond(26, i === 0 ? CLR_INVEST : `${CLR_INVEST}77`, i, 6 - i * 2, i * 6);
+            d.style.position = 'absolute';
+            d.style.top  = `${6 - i * 2}px`;
+            d.style.left = `${i * 6}px`;
+            inner.appendChild(d);
+          });
+          inner.appendChild(makeBadge(count, CLR_INVEST));
+        }
+
+        const tooltip = makeTooltip();
+        if (count === 1) {
+          const inv = group[0]!;
+          tooltip.innerHTML =
+            `<div style="font-weight:800;color:#f1f5f9;font-size:0.82rem;margin-bottom:3px;">💼 ${esc(inv.title)}</div>` +
+            `<div style="color:#64748b;font-size:0.72rem;">📍 ${esc(inv.location)} · ${inv.status.replace('_', ' ')}</div>`;
+        } else {
+          tooltip.innerHTML =
+            `<div style="font-weight:800;color:${CLR_INVEST};font-size:0.82rem;margin-bottom:2px;">${count} investments</div>` +
+            `<div style="color:#64748b;font-size:0.72rem;">📍 ${esc(group[0]!.location)} · click to expand</div>`;
+        }
+        wrapper.appendChild(tooltip);
+
+        wrapper.addEventListener('mouseenter', () => { inner.style.transform = 'scale(1.16)'; tooltip.style.opacity = '1'; });
+        wrapper.addEventListener('mouseleave', () => { inner.style.transform = 'scale(1)';    tooltip.style.opacity = '0'; });
+
+        const marker = new maplibregl.Marker({ element: wrapper, anchor: 'center', offset: OFF_INVESTMENT })
+          .setLngLat(coords as [number, number]);
+
+        if (count === 1) {
+          const inv = group[0]!;
+          marker.setPopup(
+            new maplibregl.Popup({ closeButton: false, offset: 14, className: 'world-map-popup' }).setHTML(
+              `<strong>💼 ${esc(inv.title)}</strong>` +
+              `<br/><span>📍 ${esc(inv.location)}</span>` +
+              `<br/><span style="color:${CLR_INVEST}">` +
+              `${inv.cargoCount} cargo${inv.cargoCount !== 1 ? 's' : ''} · ${inv.investorCount} investor${inv.investorCount !== 1 ? 's' : ''} · ${inv.status.replace('_', ' ')}` +
+              `</span>`
+            )
+          );
+        } else {
+          const rows = group.map((inv) =>
+            `<div style="display:flex;align-items:center;gap:10px;padding:7px 4px;border-bottom:1px solid rgba(255,255,255,0.06);">` +
+              `<div style="width:30px;height:30px;flex-shrink:0;display:flex;align-items:center;justify-content:center;">` +
+                `<div style="width:22px;height:22px;background:rgba(8,10,18,0.9);border:1.5px solid ${CLR_INVEST};border-radius:4px;transform:rotate(45deg);display:flex;align-items:center;justify-content:center;">` +
+                  `<span style="transform:rotate(-45deg);font-size:10px;">💼</span>` +
+                `</div>` +
+              `</div>` +
+              `<div style="min-width:0;">` +
+                `<div style="color:#f1f5f9;font-size:0.8rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(inv.title)}</div>` +
+                `<div style="color:#64748b;font-size:0.67rem;">${inv.cargoCount} cargo${inv.cargoCount !== 1 ? 's' : ''} · ${inv.status.replace('_', ' ')}</div>` +
+              `</div>` +
+            `</div>`
+          ).join('');
+          marker.setPopup(makeClusterPopup(group[0]!.location, `${count} investments`, CLR_INVEST, rows));
+        }
+
+        marker.addTo(map);
+      }
+      setInvestmentCount(visibleInvestments);
+
+      // ════════════════════════════════════════════════════════════════════════
+      // BOUTIQUES — rounded-square logos, amber, offset bottom-right
+      // ════════════════════════════════════════════════════════════════════════
+      const boutiqueGroups = groupByCountry(boutiques);
+      let visibleBoutiques = 0;
+
+      for (const [, group] of boutiqueGroups) {
+        const coords = findCountryCoords(group[0]!.location)!;
+        const count  = group.length;
+        visibleBoutiques += count;
+
+        const { wrapper, inner } = makeMarkerShell(46);
+
+        const logoStyle = (b: PublicMapBoutique) =>
+          b.logoUrl
+            ? `background-image:url(${b.logoUrl});background-size:cover;background-position:center;`
+            : `background:#1e2535;`;
+
+        if (count === 1) {
+          const av = document.createElement('div');
+          av.style.cssText = `
+            width:40px;height:40px;margin:3px;border-radius:10px;
+            ${logoStyle(group[0]!)}
+            border:2.5px solid ${CLR_BOUTIQUE};
+            box-shadow:0 0 0 3px ${CLR_BOUTIQUE}44,0 4px 14px rgba(0,0,0,0.8);
+            display:flex;align-items:center;justify-content:center;font-size:20px;
+          `;
+          if (!group[0]!.logoUrl) av.textContent = '🏪';
+          inner.appendChild(av);
+        } else {
+          group.slice(0, 3).forEach((b, i) => {
+            const card = document.createElement('div');
+            card.style.cssText = `
+              position:absolute;top:${5 - i * 2}px;left:${i * 7}px;
+              width:32px;height:32px;border-radius:8px;
+              ${logoStyle(b)}
+              border:2px solid #0a0c14;
+              box-shadow:0 0 0 1.5px ${CLR_BOUTIQUE}88,0 3px 10px rgba(0,0,0,0.7);
+              z-index:${10 - i};
+              display:flex;align-items:center;justify-content:center;font-size:15px;
+            `;
+            if (!b.logoUrl) card.textContent = '🏪';
+            inner.appendChild(card);
+          });
+          inner.appendChild(makeBadge(count, CLR_BOUTIQUE));
+        }
+
+        const tooltip = makeTooltip();
+        if (count === 1) {
+          tooltip.innerHTML =
+            `<div style="font-weight:800;color:#f1f5f9;font-size:0.82rem;margin-bottom:3px;">🏪 ${esc(group[0]!.name)}</div>` +
+            `<div style="color:#64748b;font-size:0.72rem;">📍 ${esc(group[0]!.location)}</div>`;
+        } else {
+          tooltip.innerHTML =
+            `<div style="font-weight:800;color:${CLR_BOUTIQUE};font-size:0.82rem;margin-bottom:2px;">${count} boutiques</div>` +
+            `<div style="color:#64748b;font-size:0.72rem;">📍 ${esc(group[0]!.location)} · click to expand</div>`;
+        }
+        wrapper.appendChild(tooltip);
+
+        wrapper.addEventListener('mouseenter', () => { inner.style.transform = 'scale(1.16)'; tooltip.style.opacity = '1'; });
+        wrapper.addEventListener('mouseleave', () => { inner.style.transform = 'scale(1)';    tooltip.style.opacity = '0'; });
+
+        const marker = new maplibregl.Marker({ element: wrapper, anchor: 'center', offset: OFF_BOUTIQUE })
+          .setLngLat(coords as [number, number]);
+
+        if (count === 1) {
+          marker.setPopup(
+            new maplibregl.Popup({ closeButton: false, offset: 14, className: 'world-map-popup' }).setHTML(
+              `<strong>🏪 ${esc(group[0]!.name)}</strong>` +
+              `<br/><span>📍 ${esc(group[0]!.location)}</span>` +
+              (group[0]!.description ? `<br/><span style="color:#94a3b8">${esc(group[0]!.description)}</span>` : '')
+            )
+          );
+        } else {
+          const rows = group.map((b) =>
+            `<div style="display:flex;align-items:center;gap:10px;padding:7px 4px;border-bottom:1px solid rgba(255,255,255,0.06);">` +
+              (b.logoUrl
+                ? `<img src="${b.logoUrl}" style="width:32px;height:32px;border-radius:7px;object-fit:cover;border:1.5px solid ${CLR_BOUTIQUE};flex-shrink:0;" />`
+                : `<div style="width:32px;height:32px;border-radius:7px;background:#1e2535;border:1.5px solid ${CLR_BOUTIQUE};flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:15px;">🏪</div>`
+              ) +
+              `<div style="min-width:0;">` +
+                `<div style="color:#f1f5f9;font-size:0.8rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(b.name)}</div>` +
+                (b.description ? `<div style="color:#64748b;font-size:0.67rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(b.description)}</div>` : '') +
+              `</div>` +
+            `</div>`
+          ).join('');
+          marker.setPopup(makeClusterPopup(group[0]!.location, `${count} boutiques`, CLR_BOUTIQUE, rows));
+        }
+
+        marker.addTo(map);
+      }
+      setBoutiqueCount(visibleBoutiques);
+
+      // ════════════════════════════════════════════════════════════════════════
+      // CARGOS — animated pill with transport emoji, positioned along route
+      // ════════════════════════════════════════════════════════════════════════
       let visibleCargos = 0;
       for (const cargo of cargos) {
         const shippingType = cargo.shippingType ?? 'sea';
-        const route = buildCargoRoute(cargo.purchaseLocation, cargo.shippingDestination, shippingType);
+        const route    = buildCargoRoute(cargo.purchaseLocation, cargo.shippingDestination, shippingType);
         const progress = cargoProgress(cargo);
-        const pos = getPositionAtProgress(route, progress);
-        const color = CARGO_COLORS[shippingType] ?? CARGO_COLORS['sea']!;
-        const arrived = progress >= 1;
-
+        const pos      = getPositionAtProgress(route, progress);
+        const color    = CARGO_COLORS[shippingType] ?? CARGO_COLORS['sea']!;
+        const arrived  = progress >= 1;
         visibleCargos++;
 
-        // Cargo icon marker (ship / plane / truck).
-        // ROOT element is owned entirely by MapLibre (position + transform).
-        // All visuals + hover scaling live on an INNER element so we never
-        // overwrite MapLibre's positioning transform.
         const emojiIcon = shippingType === 'air' ? '✈️' : shippingType === 'land' ? '🚛' : '🚢';
-        const pulseEl = document.createElement('div');
-        pulseEl.style.cssText = `width:32px;height:32px;cursor:pointer;`;
+
+        const pulseEl   = document.createElement('div');
+        pulseEl.style.cssText = `width:34px;height:34px;cursor:pointer;`;
+
         const cargoInner = document.createElement('div');
         cargoInner.style.cssText = `
-          width:32px;height:32px;border-radius:50%;
+          width:34px;height:34px;border-radius:50%;
           background:rgba(8,10,18,0.88);
           border:2px solid ${color};
           display:flex;align-items:center;justify-content:center;
-          font-size:15px;line-height:1;
-          box-shadow:0 0 10px ${color}55, 0 3px 10px rgba(0,0,0,0.75);
-          transition:transform 0.15s, box-shadow 0.15s;
+          font-size:16px;line-height:1;
+          box-shadow:0 0 10px ${color}55,0 3px 10px rgba(0,0,0,0.75);
+          transition:transform 0.15s,box-shadow 0.15s;
         `;
         cargoInner.textContent = emojiIcon;
         pulseEl.appendChild(cargoInner);
 
-        const icon = shippingType === 'air' ? '✈' : shippingType === 'land' ? '🚛' : '🚢';
-        const eta = new Date(cargo.estimatedTimeOfArrival).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+        if (!arrived) {
+          const ring = document.createElement('div');
+          ring.style.cssText = `
+            position:absolute;top:-3px;left:-3px;width:40px;height:40px;
+            border-radius:50%;border:2px solid ${color};
+            animation:worldMapPulse 2.8s ease-out infinite;opacity:0.4;
+          `;
+          pulseEl.style.position = 'relative';
+          pulseEl.appendChild(ring);
+        }
+
+        const icon      = shippingType === 'air' ? '✈' : shippingType === 'land' ? '🚛' : '🚢';
+        const eta       = new Date(cargo.estimatedTimeOfArrival).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
         const statusText = arrived
-          ? 'Arrived'
-          : `${Math.round(progress * 100)}% — ETA ${eta}`;
+          ? '<span style="color:#4ade80">✓ Arrived</span>'
+          : `<span style="color:${color}">${Math.round(progress * 100)}% — ETA ${eta}</span>`;
 
         const popup = new maplibregl.Popup({
           closeButton: false,
-          offset: 14,
+          offset: 16,
           className: 'world-map-popup',
         }).setHTML(
-          `<strong>${icon} ${cargo.productBeingShipped}</strong><br/>` +
-          `<span>${cargo.purchaseLocation} → ${cargo.shippingDestination}</span><br/>` +
-          `<span style="color:${color}">${statusText}</span>`
+          `<strong>${icon} ${esc(cargo.productBeingShipped)}</strong>` +
+          `<br/><span style="color:#94a3b8">${esc(cargo.purchaseLocation)} → ${esc(cargo.shippingDestination)}</span>` +
+          `<br/>${statusText}`
         );
 
-        pulseEl.addEventListener('mouseenter', () => { cargoInner.style.transform = 'scale(1.2)'; cargoInner.style.boxShadow = `0 0 16px ${color}88, 0 4px 14px rgba(0,0,0,0.9)`; });
-        pulseEl.addEventListener('mouseleave', () => { cargoInner.style.transform = 'scale(1)'; cargoInner.style.boxShadow = `0 0 10px ${color}55, 0 3px 10px rgba(0,0,0,0.75)`; });
+        pulseEl.addEventListener('mouseenter', () => { cargoInner.style.transform = 'scale(1.22)'; cargoInner.style.boxShadow = `0 0 18px ${color}99,0 4px 14px rgba(0,0,0,0.9)`; });
+        pulseEl.addEventListener('mouseleave', () => { cargoInner.style.transform = 'scale(1)';    cargoInner.style.boxShadow = `0 0 10px ${color}55,0 3px 10px rgba(0,0,0,0.75)`; });
 
         new maplibregl.Marker({ element: pulseEl, anchor: 'center' })
           .setLngLat(pos as [number, number])
@@ -274,205 +516,9 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor = '#38bdf8', onDataLoad
           .addTo(map);
       }
       setCargoCount(visibleCargos);
-
-      // ---- Investment markers ----
-      let visibleInvestments = 0;
-      for (const inv of investments) {
-        if (!inv.location) continue;
-        const coords = findCountryCoords(inv.location);
-        if (!coords) continue;
-        visibleInvestments++;
-
-        const invColor = '#38bdf8';
-
-        // Pulsing dot — same visual style as cargo was before.
-        // No position:relative — MapLibre's .maplibregl-marker sets
-        // position:absolute, which also serves as the ring's containing block.
-        const invEl = document.createElement('div');
-        invEl.style.cssText = `
-          width:22px;height:22px;
-          display:flex;align-items:center;justify-content:center;
-          cursor:pointer;
-        `;
-
-        const invRing = document.createElement('div');
-        invRing.style.cssText = `
-          position:absolute;width:22px;height:22px;border-radius:50%;
-          border:2px solid ${invColor};
-          animation:worldMapPulse 2.2s ease-out infinite;
-          opacity:0.55;
-        `;
-
-        const invDot = document.createElement('div');
-        invDot.style.cssText = `
-          width:10px;height:10px;border-radius:50%;
-          background:${invColor};
-          box-shadow:0 0 8px ${invColor}99;
-        `;
-
-        invEl.appendChild(invRing);
-        invEl.appendChild(invDot);
-
-        const eta = inv.status.replace('_', ' ');
-        const invPopup = new maplibregl.Popup({
-          closeButton: false,
-          offset: 14,
-          className: 'world-map-popup',
-        }).setHTML(
-          `<strong>💼 ${inv.title}</strong><br/>` +
-          `<span>📍 ${inv.location}</span><br/>` +
-          `<span style="color:${invColor}">` +
-          `${inv.cargoCount} cargo${inv.cargoCount !== 1 ? 's' : ''} · ${inv.investorCount} investor${inv.investorCount !== 1 ? 's' : ''} · ${eta}` +
-          `</span>`
-        );
-
-        new maplibregl.Marker({ element: invEl, anchor: 'center' })
-          .setLngLat(coords as [number, number])
-          .setPopup(invPopup)
-          .addTo(map);
-      }
-      setInvestmentCount(visibleInvestments);
-
-      // ---- Boutique markers (clustered by country, same pattern as investors) ----
-      const boutiqueColor = '#f59e0b';
-      const boutiqueGroups = new Map<string, PublicMapBoutique[]>();
-      for (const b of boutiques) {
-        if (!b.location || !findCountryCoords(b.location)) continue;
-        const key = b.location.trim().toLowerCase();
-        const arr = boutiqueGroups.get(key);
-        if (arr) arr.push(b);
-        else boutiqueGroups.set(key, [b]);
-      }
-
-      let visibleBoutiques = 0;
-      for (const [, group] of boutiqueGroups) {
-        const coords = findCountryCoords(group[0]!.location)!;
-        const count = group.length;
-        visibleBoutiques += count;
-
-        // Offset from investor markers at same country (shift slightly SE)
-        const lng = (coords[0] as number) + 0.9;
-        const lat = (coords[1] as number) - 0.9;
-
-        const wrapper = document.createElement('div');
-        wrapper.style.cssText = 'cursor:pointer;width:44px;height:44px;';
-
-        const inner = document.createElement('div');
-        inner.style.cssText = `position:relative;width:44px;height:44px;transition:transform 0.16s ease;`;
-
-        const logoStyle = (b: PublicMapBoutique, extra: string) =>
-          b.logoUrl
-            ? `background-image:url(${b.logoUrl});background-size:cover;background-position:center;${extra}`
-            : `background:#1e2535;${extra}`;
-
-        if (count === 1) {
-          // ── Solo boutique — single rounded-square avatar ──
-          const av = document.createElement('div');
-          av.style.cssText = `
-            width:40px;height:40px;margin:2px;border-radius:10px;
-            ${logoStyle(group[0]!, '')}
-            border:2.5px solid ${boutiqueColor};
-            box-shadow:0 0 0 3px ${boutiqueColor}44,0 4px 14px rgba(0,0,0,0.8);
-            display:flex;align-items:center;justify-content:center;font-size:18px;
-          `;
-          if (!group[0]!.logoUrl) av.textContent = '🏪';
-          inner.appendChild(av);
-        } else {
-          // ── Cluster — stacked deck of up to 3 logos + count badge ──
-          group.slice(0, 3).forEach((b, i) => {
-            const card = document.createElement('div');
-            card.style.cssText = `
-              position:absolute;
-              top:${4 - i}px;left:${i * 5}px;
-              width:32px;height:32px;border-radius:8px;
-              ${logoStyle(b, '')}
-              border:2px solid #0a0c14;
-              box-shadow:0 0 0 1.5px ${boutiqueColor}88, 0 3px 10px rgba(0,0,0,0.7);
-              z-index:${10 - i};
-              display:flex;align-items:center;justify-content:center;font-size:14px;
-            `;
-            if (!b.logoUrl) card.textContent = '🏪';
-            inner.appendChild(card);
-          });
-          const badge = document.createElement('div');
-          badge.style.cssText = `
-            position:absolute;top:-4px;right:-6px;z-index:20;
-            min-width:20px;height:20px;padding:0 5px;border-radius:999px;
-            background:${boutiqueColor};color:#0a0c14;
-            font-size:0.68rem;font-weight:800;line-height:20px;text-align:center;
-            box-shadow:0 0 0 2px #0a0c14,0 2px 8px rgba(0,0,0,0.6);
-          `;
-          badge.textContent = count > 99 ? '99+' : String(count);
-          inner.appendChild(badge);
-        }
-        wrapper.appendChild(inner);
-
-        // Hover tooltip
-        const tooltip = document.createElement('div');
-        tooltip.style.cssText = `
-          position:absolute;bottom:calc(100% + 12px);left:50%;
-          transform:translateX(-50%);
-          background:rgba(10,12,20,0.97);
-          border:1px solid rgba(255,255,255,0.12);
-          border-radius:12px;padding:9px 13px;white-space:nowrap;
-          pointer-events:none;opacity:0;transition:opacity 0.18s;
-          box-shadow:0 8px 24px rgba(0,0,0,0.7);z-index:200;
-        `;
-        if (count === 1) {
-          tooltip.innerHTML =
-            `<div style="font-weight:800;color:#f1f5f9;font-size:0.82rem;margin-bottom:3px;">🏪 ${esc(group[0]!.name)}</div>` +
-            `<div style="color:#64748b;font-size:0.72rem;">📍 ${esc(group[0]!.location)}</div>`;
-        } else {
-          tooltip.innerHTML =
-            `<div style="font-weight:800;color:${boutiqueColor};font-size:0.82rem;margin-bottom:2px;">${count} boutiques</div>` +
-            `<div style="color:#64748b;font-size:0.72rem;">📍 ${esc(group[0]!.location)} · click to view</div>`;
-        }
-        wrapper.appendChild(tooltip);
-
-        wrapper.addEventListener('mouseenter', () => { inner.style.transform = 'scale(1.16)'; tooltip.style.opacity = '1'; });
-        wrapper.addEventListener('mouseleave', () => { inner.style.transform = 'scale(1)'; tooltip.style.opacity = '0'; });
-
-        // Popup
-        const marker = new maplibregl.Marker({ element: wrapper, anchor: 'center' })
-          .setLngLat([lng, lat] as [number, number]);
-
-        if (count === 1) {
-          const popup = new maplibregl.Popup({ closeButton: false, offset: 14, className: 'world-map-popup' })
-            .setHTML(
-              `<strong>🏪 ${esc(group[0]!.name)}</strong><br/>` +
-              `<span>📍 ${esc(group[0]!.location)}</span>` +
-              (group[0]!.description ? `<br/><span style="color:#94a3b8">${esc(group[0]!.description)}</span>` : '')
-            );
-          marker.setPopup(popup);
-        } else {
-          const rows = group.map((b) =>
-            `<div style="display:flex;align-items:center;gap:10px;padding:7px 4px;border-bottom:1px solid rgba(255,255,255,0.06);">` +
-              (b.logoUrl
-                ? `<img src="${b.logoUrl}" style="width:30px;height:30px;border-radius:6px;object-fit:cover;border:1.5px solid ${boutiqueColor};flex-shrink:0;" />`
-                : `<div style="width:30px;height:30px;border-radius:6px;background:#1e2535;border:1.5px solid ${boutiqueColor};flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;">🏪</div>`
-              ) +
-              `<div style="min-width:0;">` +
-                `<div style="color:#f1f5f9;font-size:0.78rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(b.name)}</div>` +
-                (b.description ? `<div style="color:#64748b;font-size:0.66rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(b.description)}</div>` : '') +
-              `</div>` +
-            `</div>`
-          ).join('');
-          const popup = new maplibregl.Popup({ closeButton: true, offset: 22, className: 'world-map-popup world-map-cluster-popup', maxWidth: '260px' })
-            .setHTML(
-              `<div style="font-weight:800;color:#f1f5f9;font-size:0.86rem;margin-bottom:2px;">📍 ${esc(group[0]!.location)}</div>` +
-              `<div style="color:${boutiqueColor};font-size:0.72rem;font-weight:700;margin-bottom:8px;">${count} boutiques</div>` +
-              `<div style="max-height:200px;overflow-y:auto;margin:0 -4px;">${rows}</div>`
-            );
-          marker.setPopup(popup);
-        }
-
-        marker.addTo(map);
-      }
-      setBoutiqueCount(visibleBoutiques);
     });
 
     map.once('idle', () => setMapReady(true));
-
     mapRef.current = map;
 
     return () => {
@@ -490,132 +536,76 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor = '#38bdf8', onDataLoad
     );
   }
 
+  const hasData = investorCount > 0 || cargoCount > 0 || investmentCount > 0 || boutiqueCount > 0;
+
   return (
     <div style={{ position: 'relative', flex: 1, minHeight: 0 }}>
-      {/* Pulse keyframe injected once */}
       <style>{`
         @keyframes worldMapPulse {
           0%   { transform: scale(1);   opacity: 0.6; }
-          70%  { transform: scale(2.2); opacity: 0; }
+          70%  { transform: scale(2.4); opacity: 0; }
           100% { transform: scale(1);   opacity: 0; }
         }
-        @keyframes globeSpin {
-          from { transform: rotate(0deg); }
-          to   { transform: rotate(360deg); }
-        }
         .world-map-popup .maplibregl-popup-content {
-          background: rgba(15,18,28,0.96);
+          background: rgba(13,16,26,0.97);
           border: 1px solid rgba(255,255,255,0.1);
-          border-radius: 10px;
+          border-radius: 11px;
           padding: 10px 14px;
           color: #e2e8f0;
           font-size: 0.8rem;
-          line-height: 1.5;
-          box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+          line-height: 1.55;
+          box-shadow: 0 8px 28px rgba(0,0,0,0.65);
         }
-        .world-map-popup .maplibregl-popup-content strong { color: #fff; display: block; margin-bottom: 2px; }
-        .world-map-popup .maplibregl-popup-tip { border-top-color: rgba(15,18,28,0.96) !important; }
+        .world-map-popup .maplibregl-popup-content strong { color: #fff; display: block; margin-bottom: 3px; }
+        .world-map-popup .maplibregl-popup-tip { border-top-color: rgba(13,16,26,0.97) !important; }
         .maplibregl-ctrl-bottom-right { bottom: 28px !important; right: 10px !important; }
-        .world-map-cluster-popup .maplibregl-popup-content { padding: 12px 14px; }
-        .world-map-cluster-popup .maplibregl-popup-content > div:last-child::-webkit-scrollbar { width: 5px; }
-        .world-map-cluster-popup .maplibregl-popup-content > div:last-child::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.18); border-radius: 99px; }
-        .world-map-cluster-popup .maplibregl-popup-close-button { color: #94a3b8; font-size: 18px; padding: 2px 7px; }
+        .world-map-cluster-popup .maplibregl-popup-content { padding: 13px 15px; }
+        .world-map-cluster-popup .maplibregl-popup-content > div:last-child::-webkit-scrollbar { width: 4px; }
+        .world-map-cluster-popup .maplibregl-popup-content > div:last-child::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 99px; }
+        .world-map-cluster-popup .maplibregl-popup-close-button { color: #94a3b8; font-size: 18px; padding: 2px 7px; border-radius: 6px; }
         .world-map-cluster-popup .maplibregl-popup-close-button:hover { background: rgba(255,255,255,0.08); color: #fff; }
       `}</style>
-      {/* Map canvas — fades in once tiles are ready */}
+
+      {/* Map canvas */}
       <div ref={containerRef} style={{ position: 'absolute', inset: 0, opacity: mapReady ? 1 : 0, transition: 'opacity 0.7s ease' }} />
-      {/* Loading / empty overlay */}
+
+      {/* Loading overlay */}
       {!mapReady && (
-        <div style={{
-          position: 'absolute', inset: 0,
-          display: 'flex', flexDirection: 'column',
-          alignItems: 'center', justifyContent: 'center',
-          background: '#0a0c14', gap: 16, zIndex: 1,
-        }}>
-          <img
-            src="/logo192.png"
-            alt=""
-            style={{ width: 72, height: 72, borderRadius: '50%', objectFit: 'cover', opacity: 0.7 }}
-          />
-          <p style={{ color: '#475569', fontSize: '0.82rem', margin: 0 }}>Loading investor map…</p>
+        <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#0a0c14', gap: 16, zIndex: 1 }}>
+          <img src="/logo192.png" alt="" style={{ width: 72, height: 72, borderRadius: '50%', objectFit: 'cover', opacity: 0.7 }} />
+          <p style={{ color: '#475569', fontSize: '0.82rem', margin: 0 }}>Loading map…</p>
         </div>
       )}
-      {/* Empty state — after load, no investors */}
-      {mapReady && dataLoaded && investorCount === 0 && (
-        <div style={{
-          position: 'absolute', inset: 0,
-          display: 'flex', flexDirection: 'column',
-          alignItems: 'center', justifyContent: 'center',
-          pointerEvents: 'none', gap: 10,
-        }}>
-          <img
-            src="/logo192.png"
-            alt=""
-            style={{ width: 56, height: 56, borderRadius: '50%', objectFit: 'cover', opacity: 0.35 }}
-          />
-          <p style={{ color: '#334155', fontSize: '0.78rem', margin: 0 }}>No investors on the map yet</p>
+
+      {/* Empty state */}
+      {mapReady && dataLoaded && !hasData && (
+        <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', gap: 10 }}>
+          <img src="/logo192.png" alt="" style={{ width: 56, height: 56, borderRadius: '50%', objectFit: 'cover', opacity: 0.35 }} />
+          <p style={{ color: '#334155', fontSize: '0.78rem', margin: 0 }}>Nothing on the map yet</p>
         </div>
       )}
-      {/* Stats overlay */}
-      {(investorCount > 0 || cargoCount > 0 || investmentCount > 0 || boutiqueCount > 0) && (
-        <div style={{
-          position: 'absolute',
-          bottom: 14,
-          left: 14,
-          display: 'flex',
-          gap: 8,
-          pointerEvents: 'none',
-        }}>
+
+      {/* Legend / stats bar */}
+      {hasData && (
+        <div style={{ position: 'absolute', bottom: 14, left: 14, display: 'flex', flexWrap: 'wrap', gap: 6, pointerEvents: 'none', maxWidth: 'calc(100% - 80px)' }}>
           {investorCount > 0 && (
-            <span style={{
-              background: 'rgba(15,18,28,0.88)',
-              border: `1px solid ${accentColor}44`,
-              borderRadius: 999,
-              padding: '4px 12px',
-              fontSize: '0.72rem',
-              color: accentColor,
-              fontWeight: 700,
-            }}>
-              {investorCount} investor{investorCount !== 1 ? 's' : ''} live
-            </span>
-          )}
-          {cargoCount > 0 && (
-            <span style={{
-              background: 'rgba(15,18,28,0.88)',
-              border: '1px solid rgba(255,255,255,0.12)',
-              borderRadius: 999,
-              padding: '4px 12px',
-              fontSize: '0.72rem',
-              color: '#94a3b8',
-              fontWeight: 600,
-            }}>
-              {cargoCount} cargo{cargoCount !== 1 ? 's' : ''} in transit
+            <span style={{ background: 'rgba(13,16,26,0.88)', border: `1px solid ${CLR_INVESTOR}44`, borderRadius: 999, padding: '4px 12px', fontSize: '0.7rem', color: CLR_INVESTOR, fontWeight: 700 }}>
+              ● {investorCount} investor{investorCount !== 1 ? 's' : ''}
             </span>
           )}
           {investmentCount > 0 && (
-            <span style={{
-              background: 'rgba(15,18,28,0.88)',
-              border: '1px solid rgba(251,191,36,0.25)',
-              borderRadius: 999,
-              padding: '4px 12px',
-              fontSize: '0.72rem',
-              color: '#fbbf24',
-              fontWeight: 600,
-            }}>
-              {investmentCount} investment{investmentCount !== 1 ? 's' : ''}
+            <span style={{ background: 'rgba(13,16,26,0.88)', border: `1px solid ${CLR_INVEST}44`, borderRadius: 999, padding: '4px 12px', fontSize: '0.7rem', color: CLR_INVEST, fontWeight: 700 }}>
+              ◆ {investmentCount} investment{investmentCount !== 1 ? 's' : ''}
             </span>
           )}
           {boutiqueCount > 0 && (
-            <span style={{
-              background: 'rgba(15,18,28,0.88)',
-              border: '1px solid rgba(245,158,11,0.35)',
-              borderRadius: 999,
-              padding: '4px 12px',
-              fontSize: '0.72rem',
-              color: '#f59e0b',
-              fontWeight: 600,
-            }}>
-              {boutiqueCount} boutique{boutiqueCount !== 1 ? 's' : ''}
+            <span style={{ background: 'rgba(13,16,26,0.88)', border: `1px solid ${CLR_BOUTIQUE}44`, borderRadius: 999, padding: '4px 12px', fontSize: '0.7rem', color: CLR_BOUTIQUE, fontWeight: 700 }}>
+              ▪ {boutiqueCount} boutique{boutiqueCount !== 1 ? 's' : ''}
+            </span>
+          )}
+          {cargoCount > 0 && (
+            <span style={{ background: 'rgba(13,16,26,0.88)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 999, padding: '4px 12px', fontSize: '0.7rem', color: '#94a3b8', fontWeight: 600 }}>
+              ✈ {cargoCount} cargo{cargoCount !== 1 ? 's' : ''} in transit
             </span>
           )}
         </div>
