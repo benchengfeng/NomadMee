@@ -10,7 +10,7 @@ const MAP_STYLE = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.j
 
 // Per-category accent colours
 const CLR_INVESTOR  = '#38bdf8'; // cyan
-const CLR_INVEST    = '#a78bfa'; // purple
+const CLR_INVEST    = '#e879f9'; // fuchsia — distinct from cargo air purple
 const CLR_BOUTIQUE  = '#f59e0b'; // amber
 const CARGO_COLORS: Record<string, string> = {
   sea: '#38bdf8',
@@ -287,15 +287,6 @@ const WorldMap: React.FC<WorldMapProps> = ({ onDataLoaded }) => {
           d.style.top  = '7px';
           d.style.left = '7px';
           inner.appendChild(d);
-          // Pulsing ring
-          const ring = document.createElement('div');
-          ring.style.cssText = `
-            position:absolute;top:4px;left:4px;width:36px;height:36px;
-            border:2px solid ${CLR_INVEST};border-radius:6px;
-            transform:rotate(45deg);
-            animation:worldMapPulse 2.5s ease-out infinite;opacity:0.45;
-          `;
-          inner.appendChild(ring);
         } else {
           group.slice(0, 3).forEach((_, i) => {
             const d = makeDiamond(26, i === 0 ? CLR_INVEST : `${CLR_INVEST}77`, i, 6 - i * 2, i * 6);

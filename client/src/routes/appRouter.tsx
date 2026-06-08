@@ -1,14 +1,6 @@
 import React, { useEffect } from "react";
 import { BrowserRouter as Router, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { track } from "../utils/analytics";
-
-const PageTracker: React.FC = () => {
-  const location = useLocation();
-  useEffect(() => {
-    track('page-view', { path: location.pathname });
-  }, [location.pathname]);
-  return null;
-};
 import AppHotDeals from "../components/home/appHotDeals";
 import AppHome from "../views/home";
 import PrivacyPolicy from "../components/common/privacy-policy";
@@ -25,6 +17,14 @@ import ContactUs from "../views/contactUs";
 import ShopPage from "../views/shopPage";
 import NotFound from "../views/notFound";
 import { getAdminToken, getSessionToken } from "../utils/auth";
+
+const PageTracker: React.FC = () => {
+  const location = useLocation();
+  useEffect(() => {
+    track('page-view', { path: location.pathname });
+  }, [location.pathname]);
+  return null;
+};
 
 const InvestorProtectedRoute: React.FC<{ children: JSX.Element }> = ({ children }) => {
   const token = getSessionToken();
