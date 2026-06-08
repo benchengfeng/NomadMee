@@ -79,7 +79,7 @@ const JoinInvestment: React.FC = () => {
     <div className="join-shell" style={{ '--join-accent': accent } as React.CSSProperties}>
       {/* Nav */}
       <nav className="join-nav">
-        <Link to="/" className="join-back-btn">← {t('back')}</Link>
+        <Link to="/" className="join-back-btn" onClick={() => track('nav-click', { label: 'back-home', from: 'join' })}>← {t('back')}</Link>
         <span className="join-nav-brand" style={{ color: accent }}>
           <img src="/logo192.png" className="brand-logo" alt="" />
           NomadMe
@@ -102,7 +102,7 @@ const JoinInvestment: React.FC = () => {
             <br />
             <button
               type="button"
-              onClick={() => navigate('/')}
+              onClick={() => { track('nav-click', { label: 'back-home', from: 'join-success' }); navigate('/'); }}
               style={{
                 padding: '12px 28px',
                 borderRadius: 12,
@@ -125,7 +125,7 @@ const JoinInvestment: React.FC = () => {
       ) : !investment ? (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, flexDirection: 'column', gap: 16 }}>
           <p style={{ color: '#475569' }}>{t('notFound')}</p>
-          <Link to="/" className="join-back-btn">← {t('backHome')}</Link>
+          <Link to="/" className="join-back-btn" onClick={() => track('nav-click', { label: 'back-home', from: 'join-not-found' })}>← {t('backHome')}</Link>
         </div>
       ) : (
         <div className="join-body">

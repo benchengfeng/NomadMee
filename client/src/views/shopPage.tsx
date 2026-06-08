@@ -38,13 +38,13 @@ const ShopPage: React.FC = () => {
   return (
     <div className="shop-page">
       <nav className="shop-page-nav">
-        <Link to="/" className="shop-page-brand" style={{ color: ACCENT }}>
+        <Link to="/" className="shop-page-brand" style={{ color: ACCENT }} onClick={() => track('nav-click', { label: 'brand', from: 'shop' })}>
           <img src="/logo192.png" className="shop-page-logo" alt="" />
           NomadMe
         </Link>
         <div className="shop-page-nav-right">
           <LanguageSwitcher variant="ghost" accentColor={ACCENT} />
-          <Link to="/" className="shop-page-back">{t('shop.backToSite', 'Back to site')}</Link>
+          <Link to="/" className="shop-page-back" onClick={() => track('nav-click', { label: 'back-to-site', from: 'shop' })}>{t('shop.backToSite', 'Back to site')}</Link>
         </div>
       </nav>
 
@@ -96,7 +96,7 @@ const ShopPage: React.FC = () => {
 
       <footer className="shop-page-footer">
         <span>© {new Date().getFullYear()} NomadMe</span>
-        <Link to="/login" className="shop-page-footer-link">{t('cta.login')}</Link>
+        <Link to="/login" className="shop-page-footer-link" onClick={() => track('nav-click', { label: 'login', from: 'shop-footer' })}>{t('cta.login')}</Link>
       </footer>
     </div>
   );

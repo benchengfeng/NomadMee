@@ -50,7 +50,7 @@ const ContactUs: React.FC = () => {
   return (
     <div className="join-shell" style={{ '--join-accent': accent } as React.CSSProperties}>
       <nav className="join-nav">
-        <Link to="/" className="join-back-btn">← {t('back')}</Link>
+        <Link to="/" className="join-back-btn" onClick={() => track('nav-click', { label: 'back-home', from: 'contact-us' })}>← {t('back')}</Link>
         <span className="join-nav-brand" style={{ color: accent }}>
           <img src="/logo192.png" className="brand-logo" alt="" />
           NomadMe
@@ -69,7 +69,7 @@ const ContactUs: React.FC = () => {
             <br />
             <button
               type="button"
-              onClick={() => navigate('/')}
+              onClick={() => { track('nav-click', { label: 'back-home', from: 'contact-us-success' }); navigate('/'); }}
               style={{
                 padding: '12px 28px',
                 borderRadius: 12,

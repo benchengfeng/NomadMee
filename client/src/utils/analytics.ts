@@ -62,11 +62,15 @@ export type AnalyticsEvent =
   | 'bundle-to-form'
   | 'bundle-order-submit'
   | 'bundle-contact-method'
+  // ── Gallery ──
+  | 'gallery-item-open'
+  | 'gallery-scroll'
   // ── Contact ──
   | 'contact-us-click'
   | 'contact-us-submit'
   | 'contact-method-select'
   // ── Navigation ──
+  | 'nav-click'
   | 'page-view';
 
 /** Inject the Umami script once, on app boot. No-op if unconfigured. */

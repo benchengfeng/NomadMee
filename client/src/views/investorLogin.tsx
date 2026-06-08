@@ -44,7 +44,7 @@ const InvestorLogin: React.FC = () => {
 			<p className="investor-login-brand">{t('common:brand')}</p>
 
 			<section className="investor-login-card">
-				<Link to="/" className="auth-back-link">← {t('common:nav.backHome')}</Link>
+				<Link to="/" className="auth-back-link" onClick={() => track('nav-click', { label: 'back-home', from: 'login' })}>← {t('common:nav.backHome')}</Link>
 				<h2>{t('login.title')}</h2>
 				<p className="investor-login-subtitle">{t('login.subtitle')}</p>
 

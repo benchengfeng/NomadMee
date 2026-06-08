@@ -1,4 +1,5 @@
 import React, { useRef, useState } from 'react';
+import { track } from '../../utils/analytics';
 
 type MediaKind = 'image' | 'video' | 'youtube';
 
@@ -26,13 +27,30 @@ interface ShopGalleryProps {
 const ShopGallery: React.FC<ShopGalleryProps> = ({ urls, label }) => {
   const stripRef = useRef<HTMLDivElement>(null);
   const [lightbox, setLightbox] = useState<string | null>(null);
+  const lastScrollFire = useRef(0);
 
   const media = (urls || []).filter(Boolean);
   if (media.length === 0) return null;
 
+  const galleryLabel = label ?? 'Showcase';
+
   const scrollBy = (dir: 1 | -1) => {
     const el = stripRef.current;
     if (el) el.scrollBy({ left: dir * Math.min(el.clientWidth * 0.8, 600), behavior: 'smooth' });
+    track('gallery-scroll', { direction: dir === 1 ? 'right' : 'left', method: 'arrow', gallery: galleryLabel });
+  };
+
+  const handleStripScroll = () => {
+    const now = Date.now();
+    if (now - lastScrollFire.current > 1200) {
+      lastScrollFire.current = now;
+      track('gallery-scroll', { method: 'drag', gallery: galleryLabel });
+    }
+  };
+
+  const openLightbox = (url: string, kind: MediaKind, index: number) => {
+    setLightbox(url);
+    track('gallery-item-open', { kind, index, gallery: galleryLabel });
   };
 
   return (
@@ -47,7 +65,7 @@ const ShopGallery: React.FC<ShopGalleryProps> = ({ urls, label }) => {
         )}
       </div>
 
-      <div className="shop-gallery-strip" ref={stripRef}>
+      <div className="shop-gallery-strip" ref={stripRef} onScroll={handleStripScroll}>
         {media.map((url, i) => {
           const kind = mediaKind(url);
           const yt = kind === 'youtube' ? youTubeId(url) : null;
@@ -59,7 +77,7 @@ const ShopGallery: React.FC<ShopGalleryProps> = ({ urls, label }) => {
               type="button"
               className="shop-gallery-tile"
               style={{ animationDelay: `${Math.min(i, 8) * 60}ms` }}
-              onClick={() => setLightbox(url)}
+              onClick={() => openLightbox(url, kind, i)}
             >
               {kind === 'video' ? (
                 <video src={url} muted loop autoPlay playsInline preload="metadata" />
