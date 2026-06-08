@@ -32,6 +32,8 @@ const LandingPage: React.FC = () => {
   const { t } = useTranslation('landing');
   const [section, setSection] = useState<LandingSection>('globe');
   const [selectedTheme, setSelectedTheme] = useState(0);
+  const [toastKey, setToastKey] = useState(0);
+  const [showToast, setShowToast] = useState(false);
   const [investments, setInvestments] = useState<PublicInvestment[]>([]);
   const [loadingInvestments, setLoadingInvestments] = useState(false);
   const [investmentsError, setInvestmentsError] = useState(false);
@@ -46,6 +48,37 @@ const LandingPage: React.FC = () => {
 
   const idx = Math.min(Math.max(selectedTheme, 0), landingThemes.length - 1);
   const palette = landingThemes[idx] as (typeof landingThemes)[number];
+
+  const switchTheme = (i: number) => {
+    setSelectedTheme(i);
+    setToastKey((k) => k + 1);
+    setShowToast(true);
+    track('theme-change', { theme: landingThemes[i]?.name });
+    const timer = setTimeout(() => setShowToast(false), 2000);
+    return () => clearTimeout(timer);
+  };
+
+  // CSS custom properties applied to the shell — every element inherits from these
+  const themeVars = {
+    '--lt-bg':           palette.background,
+    '--lt-surface':      palette.surface,
+    '--lt-accent':       palette.accent,
+    '--lt-accent-soft':  palette.accentSoft,
+    '--lt-accent-dim':   palette.accent + '50',
+    '--lt-accent-ultra': palette.accent + '18',
+    '--lt-border':       palette.border,
+    '--lt-text':         palette.text,
+    '--lt-muted':        palette.textMuted,
+    '--lt-highlight':    palette.highlight,
+    '--lt-nav-bg':       palette.navBg,
+    '--lt-nav-border':   palette.navBorder,
+    '--lt-nav-link':     palette.navLinkColor,
+    '--lt-card-bg':      palette.cardBg,
+    '--lt-card-border':  palette.cardBorder,
+    '--lt-tag-bg':       palette.tagBg,
+    '--lt-tag-text':     palette.tagText,
+    '--lt-glow':         palette.glow,
+  } as React.CSSProperties;
 
   useEffect(() => {
     if (section === 'investments' && investments.length === 0) {
@@ -72,7 +105,19 @@ const LandingPage: React.FC = () => {
   }, [section]);
 
   return (
-    <div className="landing-shell">
+    <div className="landing-shell" style={themeVars}>
+
+      {/* ── Atmospheric ambient overlay — unique per theme ── */}
+      <div className="landing-ambient" style={{ background: palette.ambient }} />
+
+      {/* ── Theme name toast ── */}
+      {showToast && (
+        <div className="landing-theme-toast" key={toastKey}>
+          <span className="landing-theme-toast-emoji">{palette.emoji}</span>
+          {palette.name}
+        </div>
+      )}
+
       {/* ── Nav bar ── */}
       <nav className="landing-nav">
         <span className="landing-brand" style={{ color: palette.accent }}>
@@ -96,18 +141,20 @@ const LandingPage: React.FC = () => {
 
         <div className="landing-nav-right">
           <LanguageSwitcher variant="ghost" accentColor={palette.accent} />
-          <div className="landing-theme-dots">
-            {landingThemes.map((t, i) => (
+          <div className="landing-theme-swatches">
+            {landingThemes.map((th, i) => (
               <button
-                key={t.name}
+                key={th.name}
                 type="button"
-                className="landing-theme-dot"
-                onClick={() => setSelectedTheme(i)}
-                aria-label={t.name}
+                className={`landing-theme-swatch${i === selectedTheme ? ' landing-theme-swatch--active' : ''}`}
+                onClick={() => switchTheme(i)}
+                aria-label={th.name}
+                title={`${th.emoji} ${th.name}`}
                 style={{
-                  background: t.accent,
-                  border: `2px solid ${i === selectedTheme ? '#fff' : 'transparent'}`,
-                  boxShadow: i === selectedTheme ? `0 0 0 2px ${t.accent}55` : 'none',
+                  background: `conic-gradient(${th.background} 0deg 180deg, ${th.accent} 180deg 360deg)`,
+                  boxShadow: i === selectedTheme
+                    ? `0 0 0 2px #fff, 0 0 0 4px ${th.accent}88`
+                    : 'none',
                 }}
               />
             ))}
@@ -174,8 +221,6 @@ const LandingPage: React.FC = () => {
                     <div
                       key={inv._id}
                       className="investment-card"
-                      onMouseEnter={(e) => (e.currentTarget.style.borderColor = `${palette.accent}55`)}
-                      onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)')}
                     >
                       {inv.coverImageUrl && (
                         <img src={inv.coverImageUrl} alt="" className="investment-card-cover" />
@@ -208,9 +253,6 @@ const LandingPage: React.FC = () => {
                         type="button"
                         className="investment-card-join"
                         onClick={() => { track('join-click', { investmentId: inv._id }); navigate(`/join/${inv._id}`); }}
-                        style={{ border: `1px solid ${palette.accent}55`, color: palette.accent }}
-                        onMouseEnter={(e) => { e.currentTarget.style.background = `${palette.accent}18`; }}
-                        onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
                       >
                         {t('card.join')}
                       </button>
