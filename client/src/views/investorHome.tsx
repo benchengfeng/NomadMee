@@ -88,6 +88,7 @@ const InvestorHome: React.FC = () => {
   const [shopGalleries, setShopGalleries] = useState<ShopGalleries>({ earth: [], hands: [] });
   const [productsLoaded, setProductsLoaded] = useState(false);
   const [loadingProducts, setLoadingProducts] = useState(false);
+  const [productsError, setProductsError] = useState(false);
 
   // Settings panel state
   const [settingsName, setSettingsName] = useState('');
@@ -183,9 +184,10 @@ const InvestorHome: React.FC = () => {
     if (activePanel === 'shop' && !productsLoaded) {
       track('shop-open');
       setLoadingProducts(true);
+      setProductsError(false);
       getInvestorProducts()
         .then((r) => { setProducts(r.products); setShopGalleries(r.galleries); setBundles(r.bundles ?? []); setProductsLoaded(true); })
-        .catch(() => {})
+        .catch(() => setProductsError(true))
         .finally(() => setLoadingProducts(false));
     }
   }, [activePanel, productsLoaded]);
@@ -433,30 +435,44 @@ const InvestorHome: React.FC = () => {
   const renderShop = () => {
     return (
       <div className="shop-investor-panel" style={{ color: theme.text }}>
-        <ShopSections
-          products={products}
-          bundles={bundles}
-          loading={loadingProducts}
-          galleries={shopGalleries}
-          shipNote={t('shop.shipNote')}
-          labels={{
-            earthTitle: t('shop.earthTitle'),
-            earthSub: t('shop.earthSub'),
-            handsTitle: t('shop.handsTitle'),
-            handsSub: t('shop.handsSub'),
-            empty: t('shop.none'),
-            gallery: t('shop.gallery'),
-          }}
-          theme={{
-            accent: theme.accent,
-            card: theme.surface,
-            text: theme.text,
-            muted: theme.secondaryText,
-            border: 'rgba(255,255,255,0.08)',
-            modalBg: theme.background,
-          }}
-          onOrdered={(p) => track('order-submit', { product: p.name })}
-        />
+        {productsError && (
+          <div style={{ textAlign: 'center', padding: '40px 0' }}>
+            <p style={{ color: theme.secondaryText, fontSize: '0.9rem', marginBottom: 12 }}>{t('shopUi.loadError')}</p>
+            <button
+              type="button"
+              onClick={() => { setProductsError(false); setProductsLoaded(false); }}
+              style={{ padding: '8px 20px', borderRadius: 8, border: `1px solid ${theme.accent}55`, background: 'transparent', color: theme.accent, cursor: 'pointer', fontWeight: 700, fontSize: '0.84rem' }}
+            >
+              {t('shopUi.retry')}
+            </button>
+          </div>
+        )}
+        {!productsError && (
+          <ShopSections
+            products={products}
+            bundles={bundles}
+            loading={loadingProducts}
+            galleries={shopGalleries}
+            shipNote={t('shop.shipNote')}
+            labels={{
+              earthTitle: t('shop.earthTitle'),
+              earthSub: t('shop.earthSub'),
+              handsTitle: t('shop.handsTitle'),
+              handsSub: t('shop.handsSub'),
+              empty: t('shop.none'),
+              gallery: t('shop.gallery'),
+            }}
+            theme={{
+              accent: theme.accent,
+              card: theme.surface,
+              text: theme.text,
+              muted: theme.secondaryText,
+              border: 'rgba(255,255,255,0.08)',
+              modalBg: theme.background,
+            }}
+            onOrdered={(p) => track('order-submit', { product: p.name })}
+          />
+        )}
       </div>
     );
   };

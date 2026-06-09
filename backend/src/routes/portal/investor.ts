@@ -119,37 +119,41 @@ router.get('/investor/home', async (req: Request, res: Response): Promise<void> 
   const investorId = await requireInvestor(req, res);
   if (!investorId) return;
 
-  const investor = await InvestorModel.findById(investorId).lean();
+  try {
+    const investor = await InvestorModel.findById(investorId).lean();
 
-  if (!investor) {
-    res.status(401).json({ message: 'Invalid investor token.' });
-    return;
+    if (!investor) {
+      res.status(401).json({ message: 'Invalid investor token.' });
+      return;
+    }
+
+    const assignedInvestments = await InvestmentModel.find({ assignedInvestorIds: investor._id, hidden: { $ne: true } }).lean();
+    const cargoIds = Array.from(new Set(assignedInvestments.flatMap((investment) => investment.cargoIds || [])));
+    const cargos = await CargoModel.find({ _id: { $in: cargoIds }, hidden: { $ne: true } }).sort({ createdAt: -1 }).lean();
+
+    res.status(200).json({
+      investor: {
+        name: investor.name,
+        displayName: investor.displayName || investor.name,
+        username: investor.username,
+        investmentAmount: investor.investmentAmount,
+        profitPercentageOnInvestment: investor.profitPercentageOnInvestment,
+        estimatedROI: investor.estimatedROI,
+        currency: investor.currency || 'USD',
+        preferredCurrency: investor.preferredCurrency || investor.currency || 'USD',
+        avatar: investor.avatar,
+        kycCompleted: investor.kycCompleted === true,
+      },
+      cargos,
+      investments: assignedInvestments.map((inv) => ({
+        _id: inv._id,
+        title: inv.title,
+        currentStatus: inv.currentStatus || '',
+      })),
+    });
+  } catch {
+    res.status(500).json({ message: 'Failed to load dashboard.' });
   }
-
-  const assignedInvestments = await InvestmentModel.find({ assignedInvestorIds: investor._id, hidden: { $ne: true } }).lean();
-  const cargoIds = Array.from(new Set(assignedInvestments.flatMap((investment) => investment.cargoIds || [])));
-  const cargos = await CargoModel.find({ _id: { $in: cargoIds }, hidden: { $ne: true } }).sort({ createdAt: -1 }).lean();
-
-  res.status(200).json({
-    investor: {
-      name: investor.name,
-      displayName: investor.displayName || investor.name,
-      username: investor.username,
-      investmentAmount: investor.investmentAmount,
-      profitPercentageOnInvestment: investor.profitPercentageOnInvestment,
-      estimatedROI: investor.estimatedROI,
-      currency: investor.currency || 'USD',
-      preferredCurrency: investor.preferredCurrency || investor.currency || 'USD',
-      avatar: investor.avatar,
-      kycCompleted: investor.kycCompleted === true,
-    },
-    cargos,
-    investments: assignedInvestments.map((inv) => ({
-      _id: inv._id,
-      title: inv.title,
-      currentStatus: inv.currentStatus || '',
-    })),
-  });
 });
 
 router.post('/investor/kyc', async (req: Request, res: Response): Promise<void> => {
