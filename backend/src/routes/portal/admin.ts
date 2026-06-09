@@ -9,7 +9,7 @@ import {
   loginLimiter,
   capStr,
   ADMIN_USERNAME,
-  ADMIN_PASSWORD,
+  ADMIN_PASSWORD_HASH,
   BCRYPT_ROUNDS,
   SESSION_24_HOURS,
 } from './middleware';
@@ -46,12 +46,14 @@ const router = Router();
 router.post('/admin/login', loginLimiter, async (req: Request, res: Response): Promise<void> => {
   const { username, password } = req.body as { username?: string; password?: string };
 
-  if (!ADMIN_PASSWORD) {
+  const hash = await ADMIN_PASSWORD_HASH;
+  if (!hash) {
     res.status(503).json({ message: 'Admin access is not configured.' });
     return;
   }
 
-  if (username !== ADMIN_USERNAME || password !== ADMIN_PASSWORD) {
+  const passwordOk = typeof password === 'string' && await bcrypt.compare(password, hash);
+  if (username !== ADMIN_USERNAME || !passwordOk) {
     res.status(401).json({ message: 'Invalid admin credentials.' });
     return;
   }

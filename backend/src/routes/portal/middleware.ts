@@ -3,6 +3,7 @@ import { Readable } from 'stream';
 import multer from 'multer';
 import { v2 as cloudinary } from 'cloudinary';
 import rateLimit from 'express-rate-limit';
+import bcrypt from 'bcrypt';
 import { SessionModel } from '../../models/Session';
 import type { ProductVariant } from '../../models/Product';
 import { SiteContentModel } from '../../models/SiteContent';
@@ -41,15 +42,19 @@ export function uploadToCloudinary(buffer: Buffer, originalname: string): Promis
 
 import { logger } from '../../utils/logger';
 
+export const BCRYPT_ROUNDS = 12;
 export const ADMIN_USERNAME = (process.env.ADMIN_USERNAME || 'admin').trim();
-// No insecure default — admin login is disabled until ADMIN_PASSWORD is configured.
-export const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '';
+const _adminPasswordRaw = (process.env.ADMIN_PASSWORD || '').trim();
 
-if (!ADMIN_PASSWORD) {
+if (!_adminPasswordRaw) {
   logger.warn('ADMIN_PASSWORD is not set — admin login is DISABLED until it is configured.');
 }
 
-export const BCRYPT_ROUNDS = 12;
+// Hash once at startup so login comparisons are timing-safe (bcrypt prevents
+// timing attacks; plain === comparison leaks password length via timing).
+export const ADMIN_PASSWORD_HASH: Promise<string> = _adminPasswordRaw
+  ? bcrypt.hash(_adminPasswordRaw, BCRYPT_ROUNDS)
+  : Promise.resolve('');
 export const SESSION_7_DAYS = 7 * 24 * 60 * 60 * 1000;
 export const SESSION_24_HOURS = 24 * 60 * 60 * 1000;
 

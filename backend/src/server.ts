@@ -4,7 +4,6 @@ import { logger } from './utils/logger';
 import cors from 'cors';
 import helmet from 'helmet';
 import bodyParser from 'body-parser';
-import sendEmailRoutes from './routes/sendEmail';
 import statusRoutes from './routes/status';
 import portalRoutes from './routes/portal';
 import { connectMongo } from './config/mongoose';
@@ -39,7 +38,6 @@ app.use(cors(corsOptions));
 app.use(bodyParser.json());
 
 // Routes
-app.use('/api/sendEmail', sendEmailRoutes);
 app.use('/api/status', statusRoutes);
 app.use('/api/portal', portalRoutes);
 
