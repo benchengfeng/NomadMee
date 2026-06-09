@@ -17,6 +17,7 @@ import { InvestmentModel } from '../../models/Investment';
 import { CargoModel } from '../../models/Cargo';
 import { SessionModel } from '../../models/Session';
 import { ProductModel } from '../../models/Product';
+import { BundleModel } from '../../models/Bundle';
 
 const router = Router();
 
@@ -215,11 +216,32 @@ router.get('/investor/products', async (req: Request, res: Response): Promise<vo
   const investorId = await requireInvestor(req, res);
   if (!investorId) return;
   try {
-    const [products, galleries] = await Promise.all([
-      ProductModel.find({ active: true }).sort({ createdAt: -1 }).lean(),
+    const [products, galleries, rawBundles] = await Promise.all([
+      ProductModel.find({ active: true }).sort({ position: 1, createdAt: -1 }).lean(),
       loadShopGalleries(),
+      BundleModel.find({ active: true }).sort({ position: 1, createdAt: -1 }).lean(),
     ]);
-    res.status(200).json({ products: products.map((p) => mapPublicProduct(p as never)), galleries });
+
+    const allIds = rawBundles.flatMap((b) => b.productIds);
+    const nameMap = new Map<string, string>();
+    if (allIds.length > 0) {
+      const prods = await ProductModel.find({ _id: { $in: allIds } }).select('name').lean();
+      for (const p of prods) nameMap.set(p._id.toString(), p.name as string);
+    }
+
+    const bundles = rawBundles.map((b) => ({
+      _id: b._id.toString(),
+      name: b.name,
+      imageUrl: b.imageUrl,
+      description: b.description,
+      price: b.price,
+      currency: b.currency,
+      position: b.position,
+      section: b.section ?? 'food',
+      includedProducts: b.productIds.map((id) => ({ _id: id, name: nameMap.get(id) ?? '?' })),
+    }));
+
+    res.status(200).json({ products: products.map((p) => mapPublicProduct(p as never)), galleries, bundles });
   } catch {
     res.status(500).json({ message: 'Failed to load products.' });
   }
