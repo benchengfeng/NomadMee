@@ -1,6 +1,28 @@
-import React from 'react';
-import { BackTop } from 'antd';
+import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+
+function ScrollToTop() {
+  const [visible, setVisible] = useState(false);
+  const { t } = useTranslation();
+
+  useEffect(() => {
+    const onScroll = () => setVisible(window.scrollY > 300);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  if (!visible) return null;
+
+  return (
+    <button
+      className="goTop"
+      aria-label={t('footer.backToTop')}
+      onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+    >
+      <i className="fas fa-arrow-circle-up"></i>
+    </button>
+  );
+}
 
 function AppFooter() {
   const { t } = useTranslation();
@@ -29,9 +51,7 @@ function AppFooter() {
         <div className="copyright">
           {t('footer.copyright', { year: new Date().getFullYear(), company: 'CF' })}
         </div>
-        <BackTop>
-          <div className="goTop" aria-label={t('footer.backToTop')}><i className="fas fa-arrow-circle-up"></i></div>
-        </BackTop>
+        <ScrollToTop />
       </div>
     </div>
   );

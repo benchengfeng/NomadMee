@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import express from 'express';
+import express, { NextFunction, Request, Response } from 'express';
 import { logger } from './utils/logger';
 import cors from 'cors';
 import helmet from 'helmet';
@@ -35,7 +35,7 @@ const corsOptions: cors.CorsOptions = {
 app.use(cors(corsOptions));
 
 // Middleware for parsing requests
-app.use(bodyParser.json());
+app.use(bodyParser.json({ limit: '64kb' }));
 
 // Routes
 app.use('/api/status', statusRoutes);
@@ -49,6 +49,13 @@ async function startServer(): Promise<void> {
     logger.info('Server started', { port });
   });
 }
+
+// Catch-all error handler — prevents unhandled route errors from hanging requests
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
+  logger.error('Unhandled route error', { error: String(err) });
+  if (!res.headersSent) res.status(500).json({ message: 'Internal server error.' });
+});
 
 void startServer().catch((error) => {
   logger.error('Failed to start server', { error: String(error) });
