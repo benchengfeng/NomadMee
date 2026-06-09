@@ -849,7 +849,7 @@ const InvestorHome: React.FC = () => {
           <div className="sidebar-section">
             <h2>{t('sidebar.theme')}</h2>
             <p style={{ margin: '-8px 0 10px', fontSize: '0.72rem', color: theme.secondaryText, opacity: 0.7 }}>
-              {dashboardThemes[activeTheme]?.name}
+              {dashboardThemes[activeTheme]?.emoji} {dashboardThemes[activeTheme]?.name}
             </p>
             <div className="theme-picker">
               {dashboardThemes.map((themeOption, index) => (
@@ -857,11 +857,11 @@ const InvestorHome: React.FC = () => {
                   key={index}
                   type="button"
                   aria-label={themeOption.name}
-                  title={themeOption.name}
+                  title={`${themeOption.emoji} ${themeOption.name}`}
                   className={`theme-chip${activeTheme === index ? ' theme-chip-active' : ''}`}
                   style={{
-                    background: themeOption.accent,
-                    boxShadow: activeTheme === index ? `0 0 0 3px ${themeOption.panelGlow}, 0 0 0 1px ${themeOption.accent}` : 'none',
+                    background: `conic-gradient(${themeOption.background} 0deg 180deg, ${themeOption.accent} 180deg 360deg)`,
+                    boxShadow: activeTheme === index ? `0 0 0 2px #fff, 0 0 0 4px ${themeOption.accent}88` : 'none',
                   }}
                   onClick={() => handleThemeChange(index)}
                 />

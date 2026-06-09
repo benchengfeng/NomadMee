@@ -1,5 +1,8 @@
+import { landingThemes } from './utils/landingThemes';
+
 export type DashboardTheme = {
   name: string;
+  emoji: string;
   background: string;
   surface: string;
   accent: string;
@@ -9,125 +12,14 @@ export type DashboardTheme = {
   panelGlow: string;
 };
 
-export const dashboardThemes: DashboardTheme[] = [
-  {
-    name: 'Pirates Bay',
-    background: '#06131F',
-    surface: '#0F2434',
-    accent: '#4ED3C9',
-    accentSoft: '#1E7F8B',
-    text: '#F3F7FB',
-    secondaryText: '#B8D9EA',
-    panelGlow: 'rgba(78,211,201,0.14)',
-  },
-  {
-    name: 'Dolphins Crew',
-    background: '#050D1A',
-    surface: '#091928',
-    accent: '#00CFFF',
-    accentSoft: '#0086B3',
-    text: '#E8F6FF',
-    secondaryText: '#7ABCD8',
-    panelGlow: 'rgba(0,207,255,0.13)',
-  },
-  {
-    name: 'Coral Reef',
-    background: '#120F1C',
-    surface: '#221830',
-    accent: '#FF7EB3',
-    accentSoft: '#C0558A',
-    text: '#FDF8FB',
-    secondaryText: '#D9C9E3',
-    panelGlow: 'rgba(255,126,179,0.16)',
-  },
-  {
-    name: 'Circus Agent',
-    background: '#130808',
-    surface: '#221010',
-    accent: '#FF4040',
-    accentSoft: '#A82020',
-    text: '#FFF5F5',
-    secondaryText: '#D4AAAA',
-    panelGlow: 'rgba(255,64,64,0.14)',
-  },
-  {
-    name: 'Sahara Gold',
-    background: '#100E06',
-    surface: '#1C1A0A',
-    accent: '#F2C94C',
-    accentSoft: '#927A28',
-    text: '#FAF8EE',
-    secondaryText: '#C8C4A0',
-    panelGlow: 'rgba(242,201,76,0.14)',
-  },
-  {
-    name: 'Spice Route',
-    background: '#130A04',
-    surface: '#1F1208',
-    accent: '#FF8C42',
-    accentSoft: '#C45A18',
-    text: '#FFF5EC',
-    secondaryText: '#D4A882',
-    panelGlow: 'rgba(255,140,66,0.14)',
-  },
-  {
-    name: 'Jungle Trail',
-    background: '#071410',
-    surface: '#0D2018',
-    accent: '#5EE88A',
-    accentSoft: '#2E8A50',
-    text: '#F0FAF4',
-    secondaryText: '#96CEAE',
-    panelGlow: 'rgba(94,232,138,0.13)',
-  },
-  {
-    name: 'Cosmic Voyage',
-    background: '#0D0814',
-    surface: '#170F26',
-    accent: '#BB86FC',
-    accentSoft: '#7A48C0',
-    text: '#F5F0FF',
-    secondaryText: '#C0A8EE',
-    panelGlow: 'rgba(187,134,252,0.15)',
-  },
-  {
-    name: 'Sunny Beach',
-    background: '#FFF8ED',
-    surface: '#FFEFD4',
-    accent: '#E07A10',
-    accentSoft: '#B05C08',
-    text: '#1A1008',
-    secondaryText: '#7A5030',
-    panelGlow: 'rgba(224,122,16,0.12)',
-  },
-  {
-    name: 'Cherry Blossom',
-    background: '#FFF0F6',
-    surface: '#FFE2EE',
-    accent: '#D4347A',
-    accentSoft: '#9E1A58',
-    text: '#28081A',
-    secondaryText: '#904060',
-    panelGlow: 'rgba(212,52,122,0.12)',
-  },
-  {
-    name: 'Midnight Corsair',
-    background: '#03040A',
-    surface: '#080C18',
-    accent: '#C8D8F0',
-    accentSoft: '#6080B0',
-    text: '#E8EEF8',
-    secondaryText: '#6880A8',
-    panelGlow: 'rgba(200,216,240,0.08)',
-  },
-  {
-    name: 'Obsidian Vault',
-    background: '#020202',
-    surface: '#0A0A0A',
-    accent: '#D4AF6A',
-    accentSoft: '#7A5E28',
-    text: '#F0EDE8',
-    secondaryText: '#6A5E4A',
-    panelGlow: 'rgba(212,175,106,0.10)',
-  },
-];
+export const dashboardThemes: DashboardTheme[] = landingThemes.map((t) => ({
+  name:          t.name,
+  emoji:         t.emoji,
+  background:    t.background,
+  surface:       t.surface,
+  accent:        t.accent,
+  accentSoft:    t.accentSoft,
+  text:          t.text,
+  secondaryText: t.textMuted,
+  panelGlow:     t.glow,
+}));
