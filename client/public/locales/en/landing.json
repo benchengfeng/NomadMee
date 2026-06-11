@@ -5,6 +5,10 @@
     "whoAreWe": "Who Are We?",
     "shop": "Shop"
   },
+  "globe": {
+    "taglineEyebrow": "Invest · Source · Track",
+    "taglineHeadline": "Real cargo. Real goods. Real returns — tracked across the globe."
+  },
   "cta": {
     "login": "Login →"
   },
@@ -54,7 +58,7 @@
   "shopUi": {
     "all": "All",
     "outOfStock": "Out of stock",
-    "orderNow": "Order Now",
+    "orderNow": "Enquire",
     "fromSource": "🌍 From the source",
     "chooseSizeLabel": "Choose a size",
     "quantityLabel": "Quantity",
@@ -65,6 +69,9 @@
     "successLine1Anon": "Your request for {{product}} is in.",
     "successLine2": "We'll contact you on {{method}} at {{contact}} within 24 hours to confirm your order and share payment details. Shipping fees included — we ship worldwide. 🌍",
     "done": "Done",
+    "nextStep1": "Request received",
+    "nextStep2": "We contact you within 24 h",
+    "nextStep3": "Confirm & arrange delivery",
     "backToProduct": "← Back to product",
     "total": "Total:",
     "labelFullName": "Full name",

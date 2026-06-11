@@ -5,6 +5,10 @@
     "whoAreWe": "Qui sommes-nous ?",
     "shop": "Boutique"
   },
+  "globe": {
+    "taglineEyebrow": "Investir · Sourcer · Suivre",
+    "taglineHeadline": "Des marchandises réelles. Des retours réels — tracés à travers le globe."
+  },
   "cta": {
     "login": "Connexion →"
   },
@@ -54,7 +58,7 @@
   "shopUi": {
     "all": "Tout",
     "outOfStock": "Rupture de stock",
-    "orderNow": "Commander",
+    "orderNow": "S'enquérir",
     "fromSource": "🌍 À la source",
     "chooseSizeLabel": "Choisir une taille",
     "quantityLabel": "Quantité",
@@ -65,6 +69,9 @@
     "successLine1Anon": "Votre demande pour {{product}} est enregistrée.",
     "successLine2": "Nous vous contacterons via {{method}} à {{contact}} dans les 24 heures pour confirmer votre commande et le mode de paiement. Frais de livraison inclus — nous livrons partout dans le monde. 🌍",
     "done": "Terminer",
+    "nextStep1": "Demande reçue",
+    "nextStep2": "Nous vous contactons sous 24 h",
+    "nextStep3": "Confirmer et organiser la livraison",
     "backToProduct": "← Retour au produit",
     "total": "Total :",
     "labelFullName": "Nom complet",

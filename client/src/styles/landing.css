@@ -659,3 +659,51 @@
     height: 16px;
   }
 }
+
+/* ── Globe hero overlay ── */
+.landing-content--globe {
+  position: relative;
+}
+
+.landing-hero-overlay {
+  position: absolute;
+  bottom: 72px;
+  left: 40px;
+  z-index: 10;
+  pointer-events: none;
+  max-width: 400px;
+  padding: 18px 22px;
+  background: rgba(0, 0, 0, 0.58);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
+}
+
+.landing-hero-eyebrow {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--hero-accent, #38bdf8);
+  margin: 0 0 6px;
+  opacity: 0.9;
+}
+
+.landing-hero-headline {
+  font-size: clamp(1rem, 2vw, 1.35rem);
+  font-weight: 800;
+  color: #f1f5f9;
+  margin: 0;
+  line-height: 1.3;
+}
+
+@media (max-width: 768px) {
+  .landing-hero-overlay {
+    bottom: 20px;
+    left: 16px;
+    right: 16px;
+    max-width: none;
+  }
+}

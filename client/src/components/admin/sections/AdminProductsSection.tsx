@@ -57,6 +57,7 @@ const SECTION_FIELDS: Record<ProductSectionKey, {
 const emptyForm = {
   name: '',
   description: '',
+  origin: '',
   originStory: '',
   price: '',
   currency: 'EUR',
@@ -124,6 +125,7 @@ const AdminProductsSection: React.FC<Props> = ({ showToast }) => {
   const payload = (): ProductInput => ({
     name: form.name.trim(),
     description: form.description.trim(),
+    origin: form.origin.trim(),
     originStory: form.originStory.trim(),
     price: Number(form.price),
     currency: form.currency,
@@ -160,6 +162,7 @@ const AdminProductsSection: React.FC<Props> = ({ showToast }) => {
     setForm({
       name: p.name,
       description: p.description ?? '',
+      origin: (p as any).origin ?? '',
       originStory: p.originStory ?? '',
       price: p.price.toString(),
       currency: p.currency,
@@ -216,6 +219,9 @@ const AdminProductsSection: React.FC<Props> = ({ showToast }) => {
 
           <label>Product name</label>
           <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+
+          <label>Origin <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 400 }}>(shown on card — e.g. "Yunnan Province · Handcrafted")</span></label>
+          <input value={form.origin} onChange={(e) => setForm({ ...form, origin: e.target.value })} placeholder="Province, region or craft descriptor…" />
 
           <label>Description</label>
           <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder={SECTION_FIELDS[form.section].descriptionPlaceholder} />

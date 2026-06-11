@@ -10,6 +10,7 @@ export type ProductSection = 'food' | 'artisanal';
 export type ProductDocument = {
   name: string;
   description: string;
+  origin: string;
   originStory: string;
   price: number;
   currency: string;
@@ -38,6 +39,7 @@ const ProductSchema = new Schema<ProductDocument>(
   {
     name: { type: String, required: true, trim: true },
     description: { type: String, default: '', trim: true },
+    origin: { type: String, default: '', trim: true },
     originStory: { type: String, default: '', trim: true },
     price: { type: Number, required: true, min: 0 },
     currency: { type: String, required: true, trim: true, default: 'USD' },

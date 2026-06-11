@@ -99,7 +99,20 @@ const JoinInvestment: React.FC = () => {
             <div className="join-success-rdv">
               {t('success.rdv', { date: new Date(rdvDate).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) })}
             </div>
-            <br />
+            <div className="join-next-steps">
+              <p className="join-next-title">{t('success.nextTitle')}</p>
+              {[
+                { icon: '📋', label: t('success.next1') },
+                { icon: '📞', label: t('success.next2') },
+                { icon: '🚀', label: t('success.next3') },
+              ].map((s, i) => (
+                <div key={i} className="join-next-step">
+                  <span className="join-next-step-num">{i + 1}</span>
+                  <span className="join-next-step-icon">{s.icon}</span>
+                  <span className="join-next-step-label">{s.label}</span>
+                </div>
+              ))}
+            </div>
             <button
               type="button"
               onClick={() => { track('nav-click', { label: 'back-home', from: 'join-success' }); navigate('/'); }}

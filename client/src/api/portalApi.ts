@@ -152,6 +152,7 @@ export type Product = {
   _id: string;
   name: string;
   description: string;
+  origin: string;
   originStory: string;
   price: number;
   currency: string;
@@ -174,6 +175,7 @@ export type PublicProduct = Omit<Product, 'active' | 'createdAt' | 'updatedAt'>;
 export type ProductInput = {
   name: string;
   description: string;
+  origin: string;
   originStory: string;
   price: number;
   currency: string;

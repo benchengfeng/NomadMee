@@ -8,7 +8,11 @@
     "title": "Demande reçue !",
     "subWhatsapp": "Notre équipe vous contactera via WhatsApp avant votre rendez-vous.",
     "subEmail": "Notre équipe vous contactera par e-mail avant votre rendez-vous.",
-    "rdv": "📅 RDV prévu le {{date}}"
+    "rdv": "📅 RDV prévu le {{date}}",
+    "nextTitle": "Et maintenant ?",
+    "next1": "Notre équipe examine votre demande",
+    "next2": "Nous vous contactons à la date choisie",
+    "next3": "Investissement confirmé — vous êtes dedans"
   },
   "info": {
     "eyebrow": "Vous postulez pour",

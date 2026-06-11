@@ -8,7 +8,11 @@
     "title": "Request received!",
     "subWhatsapp": "Our team will reach out to you via WhatsApp before your scheduled meeting.",
     "subEmail": "Our team will reach out to you via email before your scheduled meeting.",
-    "rdv": "📅 RDV scheduled for {{date}}"
+    "rdv": "📅 RDV scheduled for {{date}}",
+    "nextTitle": "What happens next",
+    "next1": "Our team reviews your application",
+    "next2": "We contact you on your chosen date",
+    "next3": "Investment confirmed — you're in"
   },
   "info": {
     "eyebrow": "You're applying for",

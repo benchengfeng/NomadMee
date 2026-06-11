@@ -174,7 +174,15 @@ const LandingPage: React.FC = () => {
       <div className={`landing-content ${section === 'globe' ? 'landing-content--globe' : 'landing-content--scroll'}`}>
 
         {/* Globe */}
-        {section === 'globe' && <WorldMap accentColor={palette.accent} />}
+        {section === 'globe' && (
+          <>
+            <WorldMap accentColor={palette.accent} />
+            <div className="landing-hero-overlay" style={{ '--hero-accent': palette.accent } as React.CSSProperties}>
+              <p className="landing-hero-eyebrow">{t('globe.taglineEyebrow')}</p>
+              <h1 className="landing-hero-headline">{t('globe.taglineHeadline')}</h1>
+            </div>
+          </>
+        )}
 
         {/* Investments */}
         {section === 'investments' && (

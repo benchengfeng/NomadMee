@@ -180,6 +180,7 @@ const ShopSection: React.FC<ShopSectionProps> = ({ products, loading, theme, emp
                 </div>
                 <div className="shop-card-body">
                   <h3 className="shop-card-name">{p.name}</h3>
+                  {(p as any).origin && <p className="shop-card-origin">📍 {(p as any).origin}</p>}
                   <p className="shop-card-desc">{p.description}</p>
                   <div className="shop-card-footer">
                     <span className="shop-card-price">
@@ -308,6 +309,18 @@ const ProductModal: React.FC<ProductModalProps> = ({ product, shipNote, onClose,
                 contact: contactDetail,
               })}
             </p>
+            <div className="shop-next-steps">
+              {[
+                { icon: '✅', label: t('shopUi.nextStep1') },
+                { icon: '📞', label: t('shopUi.nextStep2') },
+                { icon: '📦', label: t('shopUi.nextStep3') },
+              ].map((s, i) => (
+                <div key={i} className="shop-next-step">
+                  <span className="shop-next-step-icon">{s.icon}</span>
+                  <span className="shop-next-step-label">{s.label}</span>
+                </div>
+              ))}
+            </div>
             <button type="button" className="shop-order-btn" style={{ marginTop: 22, width: '100%', maxWidth: 240 }} onClick={onClose}>
               {t('shopUi.done')}
             </button>
