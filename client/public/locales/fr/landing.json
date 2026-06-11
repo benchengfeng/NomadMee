@@ -7,7 +7,13 @@
   },
   "globe": {
     "taglineEyebrow": "Investir · Sourcer · Suivre",
-    "taglineHeadline": "Des marchandises réelles. Des retours réels — tracés à travers le globe."
+    "taglineHeadline": "Des marchandises réelles. Des retours réels — tracés à travers le globe.",
+    "trustStats": [
+      { "value": "2021", "label": "Fondé en" },
+      { "value": "12+", "label": "Cargaisons actives" },
+      { "value": "7+", "label": "Pays" },
+      { "value": "100%", "label": "Traçable" }
+    ]
   },
   "cta": {
     "login": "Connexion →"
@@ -30,10 +36,11 @@
     "handsTitle": "Des Mains",
     "handsSub": "Des instruments faits main par des artisans, pas des usines",
     "gallery": "Galerie",
-    "bundlesTitle": "Lots",
-    "bundlesSub": "Des sélections prêtes à commander — tout ce qu'il vous faut.",
+    "bundlesTitle": "Collections",
+    "bundlesSub": "Des coffrets cadeaux — tout ce qu'il vous faut, prêt à commander.",
+    "bundleTag": "✨ Collection",
     "bundleIncludes": "Ce qui est inclus",
-    "orderBundle": "Commander le lot"
+    "orderBundle": "Commander la collection"
   },
   "status": {
     "active": "Actif",
@@ -58,7 +65,7 @@
   "shopUi": {
     "all": "Tout",
     "outOfStock": "Rupture de stock",
-    "orderNow": "S'enquérir",
+    "orderNow": "Commander",
     "fromSource": "🌍 À la source",
     "chooseSizeLabel": "Choisir une taille",
     "quantityLabel": "Quantité",

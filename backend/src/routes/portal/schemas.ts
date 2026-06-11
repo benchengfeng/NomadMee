@@ -89,6 +89,7 @@ const VariantItem = z.object({
 export const ProductBody = z.object({
   name:          z.string().trim(),
   description:   z.string().trim().default(''),
+  origin:        z.string().trim().default(''),
   originStory:   z.string().trim().default(''),
   price:         NonNeg('price'),
   currency:      Currency,

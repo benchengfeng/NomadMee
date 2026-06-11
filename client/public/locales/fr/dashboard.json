@@ -35,13 +35,15 @@
     "expectedPayout": "Gain attendu"
   },
   "cargos": {
-    "noneTitle": "Aucune cargaison assignée pour le moment.",
-    "noneBody": "Dès qu'une expédition vous est attribuée, elle apparaîtra ici avec l'itinéraire et le détail des coûts.",
+    "noneTitle": "Pas encore de cargaison — votre première expédition arrive.",
+    "noneBody": "Dès qu'une cargaison vous est assignée, elle apparaîtra ici avec l'itinéraire en direct, la chronologie et le détail des coûts.",
+    "exampleBadge": "Votre cargaison ressemblera à ça",
     "units": "unités",
     "total": "total",
     "eta": "ETA",
     "viewRoute": "Voir l'itinéraire →",
-    "live": "En direct"
+    "live": "En direct",
+    "narrative": "Votre cargaison {{type}} a quitté {{origin}} il y a {{days}} jours · {{pct}}% complété"
   },
   "map": {
     "selectPrompt": "Sélectionnez une cargaison dans l'onglet Cargaisons pour voir sa carte d'itinéraire en direct.",
@@ -83,7 +85,15 @@
     "quickAction": "Action rapide",
     "viewCargos": "Voir vos cargaisons →",
     "reminder": "Rappel",
-    "exploreRoute": "Explorer l'itinéraire →"
+    "exploreRoute": "Explorer l'itinéraire →",
+    "faqTitle": "Questions fréquentes",
+    "faqs": [
+      { "q": "Comment suivre ma cargaison ?", "a": "Allez dans l'onglet Cargaisons, puis appuyez sur 'Voir l'itinéraire' pour ouvrir la carte en direct." },
+      { "q": "Quand vais-je recevoir mon retour ?", "a": "Les retours sont traités après la vente de chaque cargaison. Votre gestionnaire vous enverra le détail du versement." },
+      { "q": "Comment changer ma devise d'affichage ?", "a": "Allez dans Paramètres et modifiez votre devise. Tous les montants du tableau de bord seront convertis automatiquement." },
+      { "q": "Que se passe-t-il si ma cargaison est retardée ?", "a": "Les retards peuvent survenir à cause des douanes ou de la logistique. Votre ETA sera mis à jour et votre gestionnaire vous tiendra informé." },
+      { "q": "Comment contacter mon gestionnaire de compte ?", "a": "Appuyez sur 'Contacter l'assistance' ci-dessus pour envoyer un e-mail pré-rempli à notre équipe. Nous répondons sous 24 heures." }
+    ]
   },
   "settings": {
     "title": "Paramètres du profil",
@@ -95,6 +105,9 @@
     "chooseAvatar": "Choisir un avatar",
     "secretAvatar": "Avatar secret",
     "revealSecret": "🔒 Révéler l'avatar secret",
+    "sectionAppearance": "Apparence",
+    "sectionSecurity": "Sécurité",
+    "sectionAccount": "Compte",
     "saving": "Enregistrement...",
     "saved": "✓ Enregistré !",
     "save": "Enregistrer",

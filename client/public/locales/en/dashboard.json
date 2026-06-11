@@ -35,13 +35,15 @@
     "expectedPayout": "Expected payout"
   },
   "cargos": {
-    "noneTitle": "No cargos assigned yet.",
-    "noneBody": "Once you have a shipment, it will appear here with route details and cost breakdown.",
+    "noneTitle": "No cargos yet — your first shipment is on the way.",
+    "noneBody": "Once a cargo is assigned to you, it will appear here with the live route, timeline, and full cost breakdown.",
+    "exampleBadge": "Your cargo will look like this",
     "units": "units",
     "total": "total",
     "eta": "ETA",
     "viewRoute": "View route →",
-    "live": "Live"
+    "live": "Live",
+    "narrative": "Your {{type}} cargo left {{origin}} {{days}} days ago · {{pct}}% complete"
   },
   "map": {
     "selectPrompt": "Select a cargo from the Cargos tab to see its live route map and journey animation.",
@@ -83,7 +85,15 @@
     "quickAction": "Quick action",
     "viewCargos": "View your cargos →",
     "reminder": "Reminder",
-    "exploreRoute": "Explore shipment route →"
+    "exploreRoute": "Explore shipment route →",
+    "faqTitle": "Frequently asked questions",
+    "faqs": [
+      { "q": "How do I track my cargo?", "a": "Go to the Cargos tab to see your shipments, then tap 'View route' to open the live map for any cargo." },
+      { "q": "When will I receive my return?", "a": "Returns are processed after each cargo sells. Your account manager will notify you with the payout breakdown." },
+      { "q": "How do I change my display currency?", "a": "Go to Settings and update your Display Currency. All amounts in the dashboard will convert automatically." },
+      { "q": "What happens if my cargo is delayed?", "a": "Delays can occur due to customs or logistics. Your ETA will update and your account manager will keep you informed." },
+      { "q": "How do I contact my account manager?", "a": "Tap 'Contact support' above to send a pre-filled email to our team. We respond within 24 hours." }
+    ]
   },
   "settings": {
     "title": "Profile settings",
@@ -95,6 +105,9 @@
     "chooseAvatar": "Choose avatar",
     "secretAvatar": "Secret avatar",
     "revealSecret": "🔒 Reveal secret avatar",
+    "sectionAppearance": "Appearance",
+    "sectionSecurity": "Security",
+    "sectionAccount": "Account",
     "saving": "Saving...",
     "saved": "✓ Saved!",
     "save": "Save changes",

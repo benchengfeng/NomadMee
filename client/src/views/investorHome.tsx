@@ -210,23 +210,30 @@ const InvestorHome: React.FC = () => {
     return (
       <div className="summary-panel">
         <div className="dashboard-section hero-card" style={{ background: theme.surface, color: theme.text, boxShadow: `0 24px 70px ${theme.panelGlow}` }}>
-          <div>
-            <p className="hero-label">{t('summary.companion')}</p>
-            <h2>{data.investor.displayName || data.investor.name}</h2>
-            <p className="hero-subtitle">{t('summary.welcomeAmounts', { currency: displayCurrency })}</p>
+          <div className="hero-card-main">
+            <p className="hero-label" style={{ color: theme.secondaryText }}>{t('summary.companion')}</p>
+            <div className="hero-invested-amount" style={{ color: theme.accent }}>
+              {formatCurrency(investedAmount, displayCurrency)}
+            </div>
+            <p className="hero-invested-sub" style={{ color: theme.secondaryText }}>
+              {t('summary.invested')} · {profitPct}% {t('summary.projectedProfit').toLowerCase()} · {data.cargos.length} {t('summary.activeCargos').toLowerCase()}
+            </p>
+            <p className="hero-investor-name" style={{ color: theme.text }}>
+              {data.investor.displayName || data.investor.name}
+            </p>
           </div>
-          <div className="hero-metric hero-metric--avatar" style={{ borderColor: theme.accent, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8, padding: '16px 20px' }}>
-            {avatarBadgeSrc && (
+          {avatarBadgeSrc && (
+            <div className="hero-card-avatar" style={{ borderColor: `${theme.accent}55` }}>
               <img
                 src={avatarBadgeSrc}
                 alt={data.investor.displayName || data.investor.name}
-                style={{ width: 56, height: 56, borderRadius: '50%', objectFit: 'cover', border: `2px solid ${theme.accent}`, boxShadow: `0 0 0 3px ${theme.accent}33` }}
+                style={{ width: 52, height: 52, borderRadius: '50%', objectFit: 'cover', border: `2px solid ${theme.accent}`, boxShadow: `0 0 0 3px ${theme.accent}33` }}
               />
-            )}
-            <span style={{ fontSize: '0.72rem', fontWeight: 700, color: theme.secondaryText, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-              @{data.investor.username}
-            </span>
-          </div>
+              <span style={{ fontSize: '0.68rem', fontWeight: 700, color: theme.secondaryText, textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: 4 }}>
+                @{data.investor.username}
+              </span>
+            </div>
+          )}
         </div>
 
         <div className="dashboard-grid-stats">
@@ -287,9 +294,20 @@ const InvestorHome: React.FC = () => {
           </div>
         )}
         {data.cargos.length === 0 ? (
-          <div className="empty-state" style={{ borderColor: theme.accent }}>
-            <p>{t('cargos.noneTitle')}</p>
-            <p>{t('cargos.noneBody')}</p>
+          <div className="cargo-empty-state">
+            <div className="cargo-empty-mock" style={{ background: theme.surface, border: `1px dashed ${theme.accent}55` }}>
+              <div className="cargo-empty-mock-title" style={{ background: `${theme.accent}22`, borderRadius: 6, width: '60%', height: 14 }} />
+              <div className="cargo-empty-mock-meta" style={{ background: `${theme.accent}12`, borderRadius: 6, width: '80%', height: 10 }} />
+              <div className="cargo-empty-mock-bar" style={{ background: `${theme.accent}12`, borderRadius: 6, height: 8 }}>
+                <div style={{ width: '38%', height: '100%', background: `${theme.accent}55`, borderRadius: 6 }} />
+              </div>
+              <div style={{ display: 'flex', gap: 8, marginTop: 4 }}>
+                <div style={{ background: `${theme.accent}22`, borderRadius: 8, height: 28, flex: 1 }} />
+              </div>
+              <span className="cargo-empty-mock-badge" style={{ color: theme.accent, borderColor: `${theme.accent}55` }}>{t('cargos.exampleBadge')}</span>
+            </div>
+            <p className="cargo-empty-title" style={{ color: theme.text }}>{t('cargos.noneTitle')}</p>
+            <p className="cargo-empty-body" style={{ color: theme.secondaryText }}>{t('cargos.noneBody')}</p>
           </div>
         ) : (
           <div className="cargo-list">
@@ -297,6 +315,15 @@ const InvestorHome: React.FC = () => {
               const totalCost = (cargo.purchasePrice || 0) + (cargo.shippingPrice || 0) + (cargo.otherExpenses || 0);
               const convertedTotal = convertCurrency(totalCost, cargo.currency, investorCurrency);
               const isSelected = selectedCargo?._id === cargo._id;
+
+              const createdMs = cargo.purchaseDate ? new Date(cargo.purchaseDate).getTime() : cargo.createdAt ? new Date(cargo.createdAt).getTime() : 0;
+              const etaMs = new Date(cargo.estimatedTimeOfArrival).getTime();
+              const nowMs = Date.now();
+              const progress = createdMs > 0 && etaMs > createdMs
+                ? Math.max(0, Math.min(1, (nowMs - createdMs) / (etaMs - createdMs)))
+                : 0;
+              const pct = Math.round(progress * 100);
+              const daysAgo = createdMs > 0 ? Math.floor((nowMs - createdMs) / (1000 * 60 * 60 * 24)) : null;
 
               return (
                 <div
@@ -321,31 +348,30 @@ const InvestorHome: React.FC = () => {
                     {cargo.shippingType === 'air' ? '✈️' : cargo.shippingType === 'land' ? '🚛' : '🚢'}{' '}
                     {cargo.purchaseLocation} → {cargo.shippingDestination}
                   </div>
+                  {daysAgo !== null && (
+                    <div className="cargo-card-narrative" style={{ color: isSelected ? theme.background : theme.secondaryText }}>
+                      {t('cargos.narrative', {
+                        type: cargo.shippingType ?? 'sea',
+                        origin: cargo.purchaseLocation,
+                        days: daysAgo,
+                        pct,
+                      })}
+                    </div>
+                  )}
                   <div className="cargo-card-footer">
                     {cargo.quantity} {t('cargos.units')} · {formatCurrency(convertedTotal, investorCurrency)} {t('cargos.total')} · {t('cargos.eta')} {formatDate(cargo.estimatedTimeOfArrival)}
                   </div>
-                  {(() => {
-                    const createdMs = cargo.purchaseDate ? new Date(cargo.purchaseDate).getTime() : cargo.createdAt ? new Date(cargo.createdAt).getTime() : 0;
-                    const etaMs = new Date(cargo.estimatedTimeOfArrival).getTime();
-                    const nowMs = Date.now();
-                    const progress = createdMs > 0 && etaMs > createdMs
-                      ? Math.max(0, Math.min(1, (nowMs - createdMs) / (etaMs - createdMs)))
-                      : 0;
-                    const pct = Math.round(progress * 100);
-                    return (
-                      <div className="cargo-journey-progress">
-                        <div className="cargo-journey-bar">
-                          <div
-                            className="cargo-journey-fill"
-                            style={{ width: `${pct}%`, background: isSelected ? theme.background : theme.accent }}
-                          />
-                        </div>
-                        <span className="cargo-journey-label" style={{ color: isSelected ? theme.background : theme.accent }}>
-                          {pct}%
-                        </span>
-                      </div>
-                    );
-                  })()}
+                  <div className="cargo-journey-progress">
+                    <div className="cargo-journey-bar">
+                      <div
+                        className="cargo-journey-fill"
+                        style={{ width: `${pct}%`, background: isSelected ? theme.background : theme.accent }}
+                      />
+                    </div>
+                    <span className="cargo-journey-label" style={{ color: isSelected ? theme.background : theme.accent }}>
+                      {pct}%
+                    </span>
+                  </div>
                   <div className="cargo-card-actions">
                     <button
                       type="button"
@@ -513,6 +539,15 @@ const InvestorHome: React.FC = () => {
             <p style={{ color: theme.text }}>{t('support.exploreRoute')}</p>
           </button>
         </div>
+        <div className="support-faq" style={{ background: theme.surface }}>
+          <p className="support-faq-title" style={{ color: theme.secondaryText }}>{t('support.faqTitle')}</p>
+          {(t('support.faqs', { returnObjects: true }) as Array<{ q: string; a: string }>).map((faq, i) => (
+            <details key={i} className="support-faq-item">
+              <summary className="support-faq-q" style={{ color: theme.text }}>{faq.q}</summary>
+              <p className="support-faq-a" style={{ color: theme.secondaryText }}>{faq.a}</p>
+            </details>
+          ))}
+        </div>
       </div>
     );
   };
@@ -572,6 +607,7 @@ const InvestorHome: React.FC = () => {
               {t('settings.subtitle')}
             </p>
 
+            <p className="settings-section-header" style={{ color: theme.accent }}>{t('settings.sectionAppearance')}</p>
             <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               {/* Display name */}
               <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
@@ -682,8 +718,9 @@ const InvestorHome: React.FC = () => {
               </button>
             </form>
 
-            {/* Password change */}
-            <form onSubmit={handlePasswordChange} style={{ marginTop: 28, paddingTop: 20, borderTop: `1px solid rgba(255,255,255,0.08)`, display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {/* Security */}
+            <p className="settings-section-header" style={{ color: theme.accent, marginTop: 28, paddingTop: 20, borderTop: `1px solid rgba(255,255,255,0.08)` }}>{t('settings.sectionSecurity')}</p>
+            <form onSubmit={handlePasswordChange} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
               <p style={{ margin: 0, fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em', color: theme.secondaryText }}>{t('settings.changePassword')}</p>
               {[
                 { label: t('settings.currentPassword'), value: pwCurrent, set: setPwCurrent, id: 'pw-current' },
@@ -721,8 +758,9 @@ const InvestorHome: React.FC = () => {
           </div>
         </div>
 
-        {/* Read-only account info */}
-        <div style={{ marginTop: 28, paddingTop: 20, borderTop: `1px solid rgba(255,255,255,0.08)`, display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12 }}>
+        {/* Account */}
+        <p className="settings-section-header" style={{ color: theme.accent, marginTop: 28, paddingTop: 20, borderTop: `1px solid rgba(255,255,255,0.08)` }}>{t('settings.sectionAccount')}</p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 12 }}>
           {[
             { label: t('account.username'), value: `@${data?.investor.username ?? '—'}` },
             { label: t('account.investment'), value: data ? formatCurrency(convertCurrency(data.investor.investmentAmount ?? 0, data.investor.currency, settingsCurrency || data.investor.preferredCurrency || 'USD'), settingsCurrency || data.investor.preferredCurrency || 'USD') : '—' },

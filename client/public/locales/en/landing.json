@@ -7,7 +7,13 @@
   },
   "globe": {
     "taglineEyebrow": "Invest · Source · Track",
-    "taglineHeadline": "Real cargo. Real goods. Real returns — tracked across the globe."
+    "taglineHeadline": "Real cargo. Real goods. Real returns — tracked across the globe.",
+    "trustStats": [
+      { "value": "2021", "label": "Est." },
+      { "value": "12+", "label": "Active cargos" },
+      { "value": "7+", "label": "Countries" },
+      { "value": "100%", "label": "Traceable" }
+    ]
   },
   "cta": {
     "login": "Login →"
@@ -30,10 +36,11 @@
     "handsTitle": "From the Hands",
     "handsSub": "Handcrafted instruments made by artisans, not factories",
     "gallery": "Gallery",
-    "bundlesTitle": "Bundles",
-    "bundlesSub": "Curated sets — everything you need, ready to order.",
+    "bundlesTitle": "Collections",
+    "bundlesSub": "Curated gift sets — everything you need, ready to order.",
+    "bundleTag": "✨ Collection",
     "bundleIncludes": "What's included",
-    "orderBundle": "Order Bundle"
+    "orderBundle": "Order Collection"
   },
   "status": {
     "active": "Active",
@@ -58,7 +65,7 @@
   "shopUi": {
     "all": "All",
     "outOfStock": "Out of stock",
-    "orderNow": "Enquire",
+    "orderNow": "Order Now",
     "fromSource": "🌍 From the source",
     "chooseSizeLabel": "Choose a size",
     "quantityLabel": "Quantity",

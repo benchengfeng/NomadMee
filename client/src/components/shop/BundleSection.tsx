@@ -37,7 +37,7 @@ const BundleSection: React.FC<BundleSectionProps> = ({ bundles, shipNote, inline
               ? <img src={b.imageUrl} alt={b.name} loading="lazy" />
               : <div className="shop-card-media-empty">📦</div>
             }
-            <span className="shop-card-cat">✨ Bundle</span>
+            <span className="shop-card-cat">{t('shop.bundleTag', '✨ Collection')}</span>
           </div>
           <div className="shop-card-body">
             <h3 className="shop-card-name">{b.name}</h3>
@@ -173,7 +173,7 @@ const BundleModal: React.FC<BundleModalProps> = ({ bundle, shipNote, onClose, on
             </div>
 
             <div className="shop-modal-body">
-              <span className="shop-modal-cat">✨ Bundle</span>
+              <span className="shop-modal-cat">{t('shop.bundleTag', '✨ Collection')}</span>
               <h2 className="shop-modal-name">{bundle.name}</h2>
 
               {step === 'detail' ? (

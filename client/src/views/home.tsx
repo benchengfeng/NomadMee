@@ -180,6 +180,14 @@ const LandingPage: React.FC = () => {
             <div className="landing-hero-overlay" style={{ '--hero-accent': palette.accent } as React.CSSProperties}>
               <p className="landing-hero-eyebrow">{t('globe.taglineEyebrow')}</p>
               <h1 className="landing-hero-headline">{t('globe.taglineHeadline')}</h1>
+              <div className="landing-trust-bar">
+                {(t('globe.trustStats', { returnObjects: true }) as Array<{ value: string; label: string }>).map((s, i) => (
+                  <div key={i} className="landing-trust-chip" style={{ borderColor: `${palette.accent}44` }}>
+                    <span className="landing-trust-value" style={{ color: palette.accent }}>{s.value}</span>
+                    <span className="landing-trust-label">{s.label}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </>
         )}
