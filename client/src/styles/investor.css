@@ -1809,3 +1809,30 @@ details[open] .support-faq-q::after {
   border-radius: 14px 14px 0 0;
   display: block;
 }
+
+/* ============================================================
+   DESKTOP/LAPTOP ≥ 769px — internal scroll
+   The shell is locked to height:100vh; overflow:hidden, so the
+   sidebar+content grid must be the scroll area. Without this,
+   tall panels (e.g. Shop) get clipped with no way to scroll.
+   (On mobile ≤768px the whole shell scrolls instead — untouched.)
+   ============================================================ */
+@media (min-width: 769px) {
+  .gamified-grid {
+    flex: 1 1 auto;          /* fill the height left under the topbar */
+    min-height: 0;           /* allow the grid to shrink so overflow engages */
+    overflow-y: auto;        /* THE scroll container on laptop/desktop */
+    overflow-x: hidden;
+    align-content: start;    /* keep rows top-aligned, don't stretch */
+    padding-right: 6px;      /* breathing room for the scrollbar */
+  }
+}
+
+/* Two-column layout — keep the sidebar pinned while content scrolls past it. */
+@media (min-width: 981px) {
+  .dashboard-sidebar {
+    position: sticky;
+    top: 0;
+    align-self: start;
+  }
+}
