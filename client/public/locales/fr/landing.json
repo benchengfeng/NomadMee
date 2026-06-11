@@ -62,6 +62,11 @@
     "partnersTitle": "Nos partenaires",
     "contactCta": "Nous contacter →"
   },
+  "how": {
+    "step1": "Parcourir et choisir",
+    "step2": "Soumettre votre demande",
+    "step3": "Nous vous contactons pour confirmer & livrer"
+  },
   "shopUi": {
     "all": "Tout",
     "outOfStock": "Rupture de stock",

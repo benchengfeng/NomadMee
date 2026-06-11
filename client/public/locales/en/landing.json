@@ -62,6 +62,11 @@
     "partnersTitle": "Our partners",
     "contactCta": "Get in touch →"
   },
+  "how": {
+    "step1": "Browse & pick your item",
+    "step2": "Submit your request",
+    "step3": "We reach out to confirm & ship"
+  },
   "shopUi": {
     "all": "All",
     "outOfStock": "Out of stock",

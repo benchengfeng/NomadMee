@@ -662,12 +662,28 @@
   color: rgba(255,255,255,0.75);
 }
 
+.cargo-card-details {
+  display: contents;
+}
+
 .cargo-card-narrative {
   font-size: 0.75rem;
   font-style: italic;
   opacity: 0.72;
   margin: 2px 0 4px;
   line-height: 1.4;
+}
+
+@media (max-width: 430px) {
+  .cargo-card-details {
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 6px;
+  }
+  .cargo-card-details--open {
+    display: flex;
+  }
 }
 
 .map-summary,
@@ -709,6 +725,41 @@
 .map-details strong,
 .support-actions p {
   font-size: 16px;
+}
+
+/* Deal-sheet card — replaces flat receipt grid */
+.map-deal-sheet {
+  border-radius: 24px;
+  padding: 20px 22px;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05);
+  font-variant-numeric: tabular-nums;
+}
+
+.map-deal-section-label {
+  font-size: 0.62rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  margin: 0 0 10px;
+}
+
+.map-deal-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  font-size: 0.84rem;
+}
+
+.map-deal-row:last-child,
+.map-deal-row--qty {
+  border-bottom: none;
+}
+
+.map-deal-row strong {
+  font-size: 0.9rem;
+  font-weight: 700;
 }
 
 .route-visual {
@@ -853,6 +904,35 @@ details[open] .support-faq-q::after {
   border: 1px dashed;
   background: rgba(255,255,255,0.06);
   color: rgba(255,255,255,0.8);
+}
+
+.shop-partner-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  border: 1px solid;
+  border-radius: 16px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.shop-partner-badge {
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  padding: 4px 10px;
+  border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.shop-partner-desc {
+  font-size: 0.78rem;
+  margin: 0;
+  line-height: 1.5;
+  opacity: 0.85;
 }
 
 .cargo-empty-state {

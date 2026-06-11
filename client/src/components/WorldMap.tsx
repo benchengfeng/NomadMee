@@ -575,9 +575,12 @@ const WorldMap: React.FC<WorldMapProps> = ({ onDataLoaded }) => {
 
       {/* Empty state */}
       {mapReady && dataLoaded && !hasData && (
-        <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', gap: 10 }}>
-          <img src="/logo192.png" alt="" style={{ width: 56, height: 56, borderRadius: '50%', objectFit: 'cover', opacity: 0.35 }} />
-          <p style={{ color: '#334155', fontSize: '0.78rem', margin: 0 }}>Nothing on the map yet</p>
+        <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none', gap: 14, padding: 24, textAlign: 'center' }}>
+          <div style={{ fontSize: '2.4rem', lineHeight: 1, opacity: 0.5 }}>🌍</div>
+          <p style={{ color: '#94a3b8', fontSize: '0.88rem', margin: 0, fontWeight: 700 }}>The globe wakes up when cargo moves</p>
+          <p style={{ color: '#475569', fontSize: '0.72rem', margin: 0, maxWidth: 240, lineHeight: 1.6 }}>
+            Investors, cargos, and boutiques appear here as they go live — check back once an investment round is active.
+          </p>
         </div>
       )}
 

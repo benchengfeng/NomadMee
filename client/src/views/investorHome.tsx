@@ -78,6 +78,7 @@ const InvestorHome: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'me' | 'globe'>('me');
   const [themePickerOpen, setThemePickerOpen] = useState(false);
+  const [expandedCargos, setExpandedCargos] = useState<Set<string>>(new Set());
 
   // Avatar data
   const [avatarOptions, setAvatarOptions] = useState<AvatarData[]>([]);
@@ -335,7 +336,15 @@ const InvestorHome: React.FC = () => {
                     background: isSelected ? theme.accent : theme.surface,
                     color: isSelected ? theme.background : theme.text,
                   }}
-                  onClick={() => { dispatch(setSelectedCargoId(cargo._id)); track('cargo-open', { cargo: cargo.productBeingShipped }); }}
+                  onClick={() => {
+                    dispatch(setSelectedCargoId(cargo._id));
+                    track('cargo-open', { cargo: cargo.productBeingShipped });
+                    setExpandedCargos((prev) => {
+                      const next = new Set(prev);
+                      if (next.has(cargo._id)) next.delete(cargo._id); else next.add(cargo._id);
+                      return next;
+                    });
+                  }}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') dispatch(setSelectedCargoId(cargo._id));
                   }}
@@ -348,19 +357,6 @@ const InvestorHome: React.FC = () => {
                     {cargo.shippingType === 'air' ? '✈️' : cargo.shippingType === 'land' ? '🚛' : '🚢'}{' '}
                     {cargo.purchaseLocation} → {cargo.shippingDestination}
                   </div>
-                  {daysAgo !== null && (
-                    <div className="cargo-card-narrative" style={{ color: isSelected ? theme.background : theme.secondaryText }}>
-                      {t('cargos.narrative', {
-                        type: cargo.shippingType ?? 'sea',
-                        origin: cargo.purchaseLocation,
-                        days: daysAgo,
-                        pct,
-                      })}
-                    </div>
-                  )}
-                  <div className="cargo-card-footer">
-                    {cargo.quantity} {t('cargos.units')} · {formatCurrency(convertedTotal, investorCurrency)} {t('cargos.total')} · {t('cargos.eta')} {formatDate(cargo.estimatedTimeOfArrival)}
-                  </div>
                   <div className="cargo-journey-progress">
                     <div className="cargo-journey-bar">
                       <div
@@ -371,6 +367,21 @@ const InvestorHome: React.FC = () => {
                     <span className="cargo-journey-label" style={{ color: isSelected ? theme.background : theme.accent }}>
                       {pct}%
                     </span>
+                  </div>
+                  <div className={`cargo-card-details${expandedCargos.has(cargo._id) ? ' cargo-card-details--open' : ''}`}>
+                    {daysAgo !== null && (
+                      <div className="cargo-card-narrative" style={{ color: isSelected ? theme.background : theme.secondaryText }}>
+                        {t('cargos.narrative', {
+                          type: cargo.shippingType ?? 'sea',
+                          origin: cargo.purchaseLocation,
+                          days: daysAgo,
+                          pct,
+                        })}
+                      </div>
+                    )}
+                    <div className="cargo-card-footer">
+                      {cargo.quantity} {t('cargos.units')} · {formatCurrency(convertedTotal, investorCurrency)} {t('cargos.total')} · {t('cargos.eta')} {formatDate(cargo.estimatedTimeOfArrival)}
+                    </div>
                   </div>
                   <div className="cargo-card-actions">
                     <button
@@ -429,31 +440,36 @@ const InvestorHome: React.FC = () => {
           theme={theme}
         />
 
-        {/* Cost breakdown */}
-        <div className="map-details" style={{ background: theme.surface }}>
-          <div>
-            <span>{t('map.purchasePrice')}</span>
-            <strong>{formatCurrency(convertCurrency(selectedCargo.purchasePrice, selectedCargo.currency, investorCurrency), investorCurrency)}</strong>
+        {/* Deal-sheet cost breakdown */}
+        <div className="map-deal-sheet" style={{ background: theme.surface }}>
+          <p className="map-deal-section-label" style={{ color: theme.accent }}>{t('map.sectionInvestment')}</p>
+          <div className="map-deal-row">
+            <span style={{ color: theme.secondaryText }}>{t('map.purchasePrice')}</span>
+            <strong style={{ color: theme.text }}>{formatCurrency(convertCurrency(selectedCargo.purchasePrice, selectedCargo.currency, investorCurrency), investorCurrency)}</strong>
           </div>
-          <div>
-            <span>{t('map.shippingCost')}</span>
-            <strong>{formatCurrency(convertCurrency(selectedCargo.shippingPrice, selectedCargo.currency, investorCurrency), investorCurrency)}</strong>
+          <div className="map-deal-row">
+            <span style={{ color: theme.secondaryText }}>{t('map.otherFees')}</span>
+            <strong style={{ color: theme.text }}>{formatCurrency(convertCurrency(selectedCargo.otherExpenses, selectedCargo.currency, investorCurrency), investorCurrency)}</strong>
           </div>
-          <div>
-            <span>{t('map.otherFees')}</span>
-            <strong>{formatCurrency(convertCurrency(selectedCargo.otherExpenses, selectedCargo.currency, investorCurrency), investorCurrency)}</strong>
+          <div className="map-deal-row map-deal-row--qty">
+            <span style={{ color: theme.secondaryText }}>{t('map.quantity')}</span>
+            <strong style={{ color: theme.text }}>{selectedCargo.quantity} {t('cargos.units')}</strong>
           </div>
-          <div>
-            <span>{t('map.eta')}</span>
-            <strong>{formatDate(selectedCargo.estimatedTimeOfArrival)}</strong>
+
+          <p className="map-deal-section-label" style={{ color: theme.accent, marginTop: 16 }}>{t('map.sectionLogistics')}</p>
+          <div className="map-deal-row">
+            <span style={{ color: theme.secondaryText }}>{t('map.shippingCost')}</span>
+            <strong style={{ color: theme.text }}>{formatCurrency(convertCurrency(selectedCargo.shippingPrice, selectedCargo.currency, investorCurrency), investorCurrency)}</strong>
           </div>
-          <div>
-            <span>{t('map.sellWindow')}</span>
-            <strong>{formatDate(selectedCargo.estimatedTimeOfSelling)}</strong>
+
+          <p className="map-deal-section-label" style={{ color: theme.accent, marginTop: 16 }}>{t('map.sectionTimeline')}</p>
+          <div className="map-deal-row">
+            <span style={{ color: theme.secondaryText }}>{t('map.eta')}</span>
+            <strong style={{ color: theme.text }}>{formatDate(selectedCargo.estimatedTimeOfArrival)}</strong>
           </div>
-          <div>
-            <span>{t('map.quantity')}</span>
-            <strong>{selectedCargo.quantity} {t('cargos.units')}</strong>
+          <div className="map-deal-row">
+            <span style={{ color: theme.secondaryText }}>{t('map.sellWindow')}</span>
+            <strong style={{ color: theme.text }}>{formatDate(selectedCargo.estimatedTimeOfSelling)}</strong>
           </div>
         </div>
       </div>
@@ -463,6 +479,14 @@ const InvestorHome: React.FC = () => {
   const renderShop = () => {
     return (
       <div className="shop-investor-panel" style={{ color: theme.text }}>
+        <div className="shop-partner-header" style={{ borderColor: `${theme.accent}33`, background: `${theme.accent}0d` }}>
+          <span className="shop-partner-badge" style={{ background: theme.accent, color: theme.background }}>
+            {t('shop.partnerBadge')}
+          </span>
+          <p className="shop-partner-desc" style={{ color: theme.secondaryText }}>
+            {t('shop.partnerDesc')}
+          </p>
+        </div>
         {productsError && (
           <div style={{ textAlign: 'center', padding: '40px 0' }}>
             <p style={{ color: theme.secondaryText, fontSize: '0.9rem', marginBottom: 12 }}>{t('shopUi.loadError')}</p>

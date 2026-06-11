@@ -53,7 +53,10 @@
     "otherFees": "Autres frais",
     "eta": "ETA",
     "sellWindow": "Fenêtre de vente",
-    "quantity": "Quantité"
+    "quantity": "Quantité",
+    "sectionInvestment": "Votre investissement",
+    "sectionLogistics": "Logistique",
+    "sectionTimeline": "Calendrier"
   },
   "story": {
     "intro": "Chaque cargaison ci-dessous est un chapitre de votre parcours d'investissement.",
@@ -146,6 +149,8 @@
     "earthSub": "Des produits bio sourcés directement auprès de petits producteurs d'Afrique de l'Ouest",
     "handsTitle": "Des Mains",
     "handsSub": "Des instruments faits main par des artisans, pas des usines",
-    "gallery": "Galerie"
+    "gallery": "Galerie",
+    "partnerBadge": "Accès Partenaire",
+    "partnerDesc": "En tant qu'investisseur, vous bénéficiez d'un accès anticipé aux produits avant leur mise en vente publique."
   }
 }

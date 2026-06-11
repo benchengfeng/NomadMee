@@ -93,8 +93,15 @@
   font-size: 1.3rem;
   font-weight: 800;
   color: #fff;
-  margin: 0 0 16px;
+  margin: 0 0 10px;
   line-height: 1.3;
+}
+
+.join-info-desc {
+  font-size: 0.84rem;
+  color: rgba(255, 255, 255, 0.65);
+  line-height: 1.6;
+  margin: 0 0 16px;
 }
 
 .join-info-rows {

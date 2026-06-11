@@ -1065,3 +1065,52 @@
   color: var(--shop-muted);
   line-height: 1.4;
 }
+
+/* ── How it works explainer ── */
+.shop-how-it-works {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+  padding: 18px 16px;
+  margin-bottom: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 16px;
+  flex-wrap: wrap;
+  row-gap: 10px;
+}
+
+.shop-how-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.shop-how-arrow {
+  color: rgba(255, 255, 255, 0.25);
+  font-size: 0.9rem;
+  margin: 0 10px;
+}
+
+.shop-how-emoji {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.shop-how-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--shop-muted);
+  white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+  .shop-how-it-works {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .shop-how-arrow { display: none; }
+  .shop-how-step { gap: 10px; }
+}

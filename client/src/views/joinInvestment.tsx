@@ -154,11 +154,21 @@ const JoinInvestment: React.FC = () => {
               </div>
             )}
 
+            {investment.description && (
+              <p className="join-info-desc">{investment.description}</p>
+            )}
+
             <div className="join-info-rows">
               <div className="join-info-row">
                 <span className="join-info-row-label">{t('info.minInvestment')}</span>
                 <span className="join-info-row-value">{investment.minimumInvestment.toLocaleString()} {investment.currency}</span>
               </div>
+              {investment.location && (
+                <div className="join-info-row">
+                  <span className="join-info-row-label">{t('info.region')}</span>
+                  <span className="join-info-row-value">📍 {investment.location}</span>
+                </div>
+              )}
               <div className="join-info-row">
                 <span className="join-info-row-label">{t('info.activeCargos')}</span>
                 <span className="join-info-row-value">{investment.cargoCount}</span>

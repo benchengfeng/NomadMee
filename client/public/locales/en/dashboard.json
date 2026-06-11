@@ -53,7 +53,10 @@
     "otherFees": "Other fees",
     "eta": "ETA",
     "sellWindow": "Sell window",
-    "quantity": "Quantity"
+    "quantity": "Quantity",
+    "sectionInvestment": "Your Investment",
+    "sectionLogistics": "Logistics",
+    "sectionTimeline": "Timeline"
   },
   "story": {
     "intro": "Each cargo below is a chapter in your investment journey.",
@@ -146,6 +149,8 @@
     "earthSub": "Organic staples sourced directly from small producers in West Africa",
     "handsTitle": "From the Hands",
     "handsSub": "Handcrafted instruments made by artisans, not factories",
-    "gallery": "Gallery"
+    "gallery": "Gallery",
+    "partnerBadge": "Partner Access",
+    "partnerDesc": "As an investor, you get early access to products before they go public."
   }
 }

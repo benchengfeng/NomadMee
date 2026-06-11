@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { getSessionToken } from '../utils/auth';
 import { landingThemes } from '../utils/landingThemes';
 import WorldMap from '../components/WorldMap';
 import StoryMediaGallery from '../components/cargo/StoryMediaGallery';
@@ -31,6 +32,11 @@ const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const { t } = useTranslation('landing');
   const [section, setSection] = useState<LandingSection>('globe');
+
+  // Logged-in investors go straight to their dashboard
+  useEffect(() => {
+    if (getSessionToken()) navigate('/home', { replace: true });
+  }, [navigate]);
   const [selectedTheme, setSelectedTheme] = useState(0);
   const [toastKey, setToastKey] = useState(0);
   const [showToast, setShowToast] = useState(false);
@@ -105,7 +111,7 @@ const LandingPage: React.FC = () => {
   }, [section]);
 
   return (
-    <div className="landing-shell" style={themeVars}>
+    <div className={`landing-shell${section !== 'globe' ? ' landing-shell--scroll' : ''}`} style={themeVars}>
 
       {/* ── Atmospheric ambient overlay — unique per theme ── */}
       <div className="landing-ambient" style={{ background: palette.ambient }} />

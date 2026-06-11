@@ -206,6 +206,7 @@ router.get('/public/investments', async (_req: Request, res: Response): Promise<
         cargoCount: inv.cargoIds?.length ?? 0,
         investorCount: inv.assignedInvestorIds?.length ?? 0,
         coverImageUrl: inv.coverImageUrl || '',
+        location: inv.location || '',
       })),
     });
   } catch {

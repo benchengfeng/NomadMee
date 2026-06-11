@@ -14,6 +14,13 @@
   transition: background 0.45s ease, color 0.3s ease;
 }
 
+/* When not on the globe, let the page scroll naturally on desktop */
+.landing-shell--scroll {
+  height: auto;
+  min-height: 100vh;
+  overflow: visible;
+}
+
 /* ── Atmospheric ambient layer ── */
 .landing-ambient {
   position: fixed;
@@ -177,8 +184,7 @@
 }
 
 .landing-content--scroll {
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
+  overflow-y: visible;
 }
 
 /* On mobile, allow shell to grow with the two-row nav */

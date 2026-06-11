@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { PublicProduct, PublicBundle, ShopGalleries } from '../../api/portalApi';
 import ShopSection, { ShopTheme, shopThemeVars } from './ShopSection';
 import ShopGallery from './ShopGallery';
@@ -48,9 +49,16 @@ interface ShopSectionsProps {
  * organic) and "From the Hands" (artisanal / instruments) — reusing the exact
  * same ShopSection grid & card design. Empty families are hidden entirely.
  */
+const HOW_STEPS = [
+  { emoji: '🛍️', key: 'how.step1' },
+  { emoji: '📋', key: 'how.step2' },
+  { emoji: '🚀', key: 'how.step3' },
+];
+
 const ShopSections: React.FC<ShopSectionsProps> = ({
   products, bundles = [], loading, theme, shipNote, labels, galleries, initialProductId, onActiveChange, onOrdered,
 }) => {
+  const { t } = useTranslation('landing');
   const rootStyle = useMemo(() => shopThemeVars(theme), [theme]);
 
   const families = useMemo(() => {
@@ -75,6 +83,15 @@ const ShopSections: React.FC<ShopSectionsProps> = ({
 
   return (
     <div className="shop-root" style={rootStyle}>
+      <div className="shop-how-it-works">
+        {HOW_STEPS.map((s, i) => (
+          <div key={i} className="shop-how-step">
+            {i > 0 && <span className="shop-how-arrow" aria-hidden="true">→</span>}
+            <span className="shop-how-emoji">{s.emoji}</span>
+            <span className="shop-how-label">{t(s.key)}</span>
+          </div>
+        ))}
+      </div>
       {families.map((f) => (
         <section key={f.key} className="shop-family">
           <h3 className="shop-family-title">{f.title}</h3>

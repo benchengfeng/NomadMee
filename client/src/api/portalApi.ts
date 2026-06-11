@@ -139,6 +139,7 @@ export type PublicInvestment = {
   cargoCount: number;
   investorCount: number;
   coverImageUrl?: string;
+  location?: string;
 };
 
 export type ProductVariant = {
