@@ -5,6 +5,21 @@
     "whoAreWe": "关于我们",
     "shop": "商店"
   },
+  "globe": {
+    "taglineEyebrow": "投资 · 采购 · 追踪",
+    "taglineHeadline": "真实货物。真实收益 — 全球实时追踪。",
+    "trustStats": [
+      { "value": "2021", "label": "成立于" },
+      { "value": "12+", "label": "进行中货物" },
+      { "value": "7+", "label": "覆盖国家" },
+      { "value": "100%", "label": "全程可溯" }
+    ]
+  },
+  "how": {
+    "step1": "浏览并选择商品",
+    "step2": "提交您的请求",
+    "step3": "我们联系您确认并安排发货"
+  },
   "cta": {
     "login": "登录 →"
   },
@@ -26,10 +41,11 @@
     "handsTitle": "源于匠心",
     "handsSub": "由手工艺人亲手制作的乐器，而非工厂量产",
     "gallery": "图库",
-    "bundlesTitle": "组合套装",
-    "bundlesSub": "精选套装 — 您所需的一切，随时可下单。",
+    "bundlesTitle": "精选礼盒",
+    "bundlesSub": "精心策划的礼品套装 — 您所需的一切，随时可下单。",
+    "bundleTag": "✨ 精选礼盒",
     "bundleIncludes": "套装内容",
-    "orderBundle": "订购套装"
+    "orderBundle": "订购礼盒"
   },
   "status": {
     "active": "进行中",
@@ -65,6 +81,9 @@
     "successLine1Anon": "您对 {{product}} 的订单已提交。",
     "successLine2": "我们将在 24 小时内通过 {{method}} 联系您（{{contact}}），确认订单及付款方式。运费已包含 — 支持全球配送。🌍",
     "done": "完成",
+    "nextStep1": "请求已收到",
+    "nextStep2": "我们将在24小时内联系您",
+    "nextStep3": "确认并安排配送",
     "backToProduct": "← 返回商品",
     "total": "合计：",
     "labelFullName": "全名",

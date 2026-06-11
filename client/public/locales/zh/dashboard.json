@@ -35,13 +35,15 @@
     "expectedPayout": "预期收益"
   },
   "cargos": {
-    "noneTitle": "尚未分配货物。",
-    "noneBody": "一旦您有货物，它将显示在此处，并附带路线详情和成本明细。",
+    "noneTitle": "暂无货物 — 您的第一批货物正在路上。",
+    "noneBody": "一旦有货物分配给您，它将显示在此处，包含实时路线、时间轴和完整成本明细。",
+    "exampleBadge": "您的货物将如此显示",
     "units": "件",
     "total": "总计",
     "eta": "预计到达",
     "viewRoute": "查看路线 →",
-    "live": "实时"
+    "live": "实时",
+    "narrative": "您的{{type}}货物 {{days}} 天前从 {{origin}} 出发 · 已完成 {{pct}}%"
   },
   "map": {
     "selectPrompt": "请从「货物」标签中选择一件货物，以查看其实时路线地图和旅程动画。",
@@ -51,7 +53,10 @@
     "otherFees": "其他费用",
     "eta": "预计到达",
     "sellWindow": "销售窗口",
-    "quantity": "数量"
+    "quantity": "数量",
+    "sectionInvestment": "您的投资",
+    "sectionLogistics": "物流",
+    "sectionTimeline": "时间轴"
   },
   "story": {
     "intro": "下方的每件货物都是您投资旅程中的一个篇章。",
@@ -83,7 +88,15 @@
     "quickAction": "快捷操作",
     "viewCargos": "查看您的货物 →",
     "reminder": "提醒",
-    "exploreRoute": "探索运输路线 →"
+    "exploreRoute": "探索运输路线 →",
+    "faqTitle": "常见问题",
+    "faqs": [
+      { "q": "如何追踪我的货物？", "a": "前往「货物」标签查看您的货物，点击「查看路线」可打开任意货物的实时地图。" },
+      { "q": "何时收到我的收益？", "a": "每批货物售出后处理收益。您的客户经理会通知您付款明细。" },
+      { "q": "如何更改显示货币？", "a": "前往「设置」更新显示货币，仪表板中所有金额将自动换算。" },
+      { "q": "货物延误怎么办？", "a": "延误可能由海关或物流原因引起。预计到达时间将更新，客户经理会及时告知您。" },
+      { "q": "如何联系我的客户经理？", "a": "点击上方「联系客服」发送预填邮件给我们的团队，我们在24小时内回复。" }
+    ]
   },
   "settings": {
     "title": "个人资料设置",
@@ -95,6 +108,9 @@
     "chooseAvatar": "选择头像",
     "secretAvatar": "隐藏头像",
     "revealSecret": "🔒 显示隐藏头像",
+    "sectionAppearance": "外观",
+    "sectionSecurity": "安全",
+    "sectionAccount": "账户",
     "saving": "保存中...",
     "saved": "✓ 已保存！",
     "save": "保存更改",
@@ -133,6 +149,8 @@
     "earthSub": "有机食材，直接采购自西非的小型生产者",
     "handsTitle": "源于匠心",
     "handsSub": "由手工艺人亲手制作的乐器，而非工厂量产",
-    "gallery": "图库"
+    "gallery": "图库",
+    "partnerBadge": "合作伙伴专属",
+    "partnerDesc": "作为投资者，您可以在产品公开上架前优先访问。"
   }
 }

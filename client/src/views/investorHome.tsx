@@ -565,7 +565,7 @@ const InvestorHome: React.FC = () => {
         </div>
         <div className="support-faq" style={{ background: theme.surface }}>
           <p className="support-faq-title" style={{ color: theme.secondaryText }}>{t('support.faqTitle')}</p>
-          {(t('support.faqs', { returnObjects: true }) as Array<{ q: string; a: string }>).map((faq, i) => (
+          {(Array.isArray(t('support.faqs', { returnObjects: true })) ? t('support.faqs', { returnObjects: true }) as Array<{ q: string; a: string }> : []).map((faq, i) => (
             <details key={i} className="support-faq-item">
               <summary className="support-faq-q" style={{ color: theme.text }}>{faq.q}</summary>
               <p className="support-faq-a" style={{ color: theme.secondaryText }}>{faq.a}</p>
