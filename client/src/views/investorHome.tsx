@@ -77,6 +77,7 @@ const InvestorHome: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<'me' | 'globe'>('me');
+  const [themePickerOpen, setThemePickerOpen] = useState(false);
 
   // Avatar data
   const [avatarOptions, setAvatarOptions] = useState<AvatarData[]>([]);
@@ -171,6 +172,7 @@ const InvestorHome: React.FC = () => {
   const handleThemeChange = (index: number) => {
     dispatch(setTheme(index));
     track('theme-change', { theme: dashboardThemes[index]?.name ?? index });
+    setThemePickerOpen(false);
   };
 
   // Track view mode switches and globe entry (covers all toggle entry points)
@@ -862,29 +864,6 @@ const InvestorHome: React.FC = () => {
             </div>
           </div>
 
-          <div className="sidebar-section">
-            <h2>{t('sidebar.theme')}</h2>
-            <p style={{ margin: '-8px 0 10px', fontSize: '0.72rem', color: theme.secondaryText, opacity: 0.7 }}>
-              {dashboardThemes[activeTheme]?.emoji} {dashboardThemes[activeTheme]?.name}
-            </p>
-            <div className="theme-picker">
-              {dashboardThemes.map((themeOption, index) => (
-                <button
-                  key={index}
-                  type="button"
-                  aria-label={themeOption.name}
-                  title={`${themeOption.emoji} ${themeOption.name}`}
-                  className={`theme-chip${activeTheme === index ? ' theme-chip-active' : ''}`}
-                  style={{
-                    background: `conic-gradient(${themeOption.background} 0deg 180deg, ${themeOption.accent} 180deg 360deg)`,
-                    boxShadow: activeTheme === index ? `0 0 0 2px #fff, 0 0 0 4px ${themeOption.accent}88` : 'none',
-                  }}
-                  onClick={() => handleThemeChange(index)}
-                />
-              ))}
-            </div>
-          </div>
-
           <div className="sidebar-note" style={{ borderColor: theme.accentSoft }}>
             <p>{t('sidebar.note')}</p>
           </div>
@@ -899,6 +878,37 @@ const InvestorHome: React.FC = () => {
           {activePanel === 'settings' && renderSettings()}
         </section>
       </div>}
+
+      {/* ── Floating theme toggle ── */}
+      <div className="theme-fab-wrap">
+        {themePickerOpen && (
+          <div className="theme-fab-panel" style={{ background: theme.surface, boxShadow: `0 8px 32px ${theme.panelGlow}` }}>
+            {dashboardThemes.map((themeOption, index) => (
+              <button
+                key={index}
+                type="button"
+                aria-label={themeOption.name}
+                title={`${themeOption.emoji} ${themeOption.name}`}
+                className={`theme-chip${activeTheme === index ? ' theme-chip-active' : ''}`}
+                style={{
+                  background: `conic-gradient(${themeOption.background} 0deg 180deg, ${themeOption.accent} 180deg 360deg)`,
+                  boxShadow: activeTheme === index ? `0 0 0 2px #fff, 0 0 0 4px ${themeOption.accent}88` : 'none',
+                }}
+                onClick={() => handleThemeChange(index)}
+              />
+            ))}
+          </div>
+        )}
+        <button
+          type="button"
+          className="theme-fab"
+          style={{ background: theme.surface, boxShadow: `0 4px 16px ${theme.panelGlow}`, border: `2px solid ${theme.accent}55` }}
+          aria-label="Toggle theme picker"
+          onClick={() => setThemePickerOpen((o) => !o)}
+        >
+          <span style={{ fontSize: 22 }}>{dashboardThemes[activeTheme]?.emoji}</span>
+        </button>
+      </div>
 
       {/* ── Mobile bottom navigation bar (hidden on desktop) ── */}
       <nav
