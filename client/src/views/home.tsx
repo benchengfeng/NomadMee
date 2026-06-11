@@ -38,6 +38,7 @@ const LandingPage: React.FC = () => {
     if (getSessionToken()) navigate('/home', { replace: true });
   }, [navigate]);
   const [selectedTheme, setSelectedTheme] = useState(0);
+  const [themePickerOpen, setThemePickerOpen] = useState(false);
   const [toastKey, setToastKey] = useState(0);
   const [showToast, setShowToast] = useState(false);
   const [investments, setInvestments] = useState<PublicInvestment[]>([]);
@@ -147,23 +148,36 @@ const LandingPage: React.FC = () => {
 
         <div className="landing-nav-right">
           <LanguageSwitcher variant="ghost" accentColor={palette.accent} />
-          <div className="landing-theme-swatches">
-            {landingThemes.map((th, i) => (
-              <button
-                key={th.name}
-                type="button"
-                className={`landing-theme-swatch${i === selectedTheme ? ' landing-theme-swatch--active' : ''}`}
-                onClick={() => switchTheme(i)}
-                aria-label={th.name}
-                title={`${th.emoji} ${th.name}`}
-                style={{
-                  background: `conic-gradient(${th.background} 0deg 180deg, ${th.accent} 180deg 360deg)`,
-                  boxShadow: i === selectedTheme
-                    ? `0 0 0 2px #fff, 0 0 0 4px ${th.accent}88`
-                    : 'none',
-                }}
-              />
-            ))}
+          <div className="landing-theme-fab-wrap">
+            {themePickerOpen && (
+              <div className="landing-theme-fab-panel" style={{ background: palette.surface, boxShadow: `0 8px 32px ${palette.glow}` }}>
+                {landingThemes.map((th, i) => (
+                  <button
+                    key={th.name}
+                    type="button"
+                    className={`landing-theme-swatch${i === selectedTheme ? ' landing-theme-swatch--active' : ''}`}
+                    onClick={() => { switchTheme(i); setThemePickerOpen(false); }}
+                    aria-label={th.name}
+                    title={`${th.emoji} ${th.name}`}
+                    style={{
+                      background: `conic-gradient(${th.background} 0deg 180deg, ${th.accent} 180deg 360deg)`,
+                      boxShadow: i === selectedTheme
+                        ? `0 0 0 2px #fff, 0 0 0 4px ${th.accent}88`
+                        : 'none',
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+            <button
+              type="button"
+              className="landing-theme-toggle"
+              onClick={() => setThemePickerOpen((o) => !o)}
+              aria-label="Toggle theme picker"
+              style={{ background: palette.surface, border: `2px solid ${palette.accent}55`, boxShadow: `0 2px 10px ${palette.glow}` }}
+            >
+              <span style={{ fontSize: 18 }}>{palette.emoji}</span>
+            </button>
           </div>
           <button
             type="button"
@@ -359,14 +373,21 @@ const LandingPage: React.FC = () => {
       </div>
 
       {/* ── Mobile-only floating theme strip ── */}
-      <div className="landing-theme-strip-mobile">
-        <span className="landing-theme-strip-emoji">{palette.emoji}</span>
-        {landingThemes.map((th, i) => (
+      <div className="landing-theme-strip-mobile" style={{ background: palette.navBg, borderColor: palette.navBorder }}>
+        <button
+          type="button"
+          className="landing-theme-strip-toggle"
+          onClick={() => setThemePickerOpen((o) => !o)}
+          aria-label="Toggle theme picker"
+        >
+          <span className="landing-theme-strip-emoji">{palette.emoji}</span>
+        </button>
+        {themePickerOpen && landingThemes.map((th, i) => (
           <button
             key={th.name}
             type="button"
             className={`landing-theme-swatch${i === selectedTheme ? ' landing-theme-swatch--active' : ''}`}
-            onClick={() => switchTheme(i)}
+            onClick={() => { switchTheme(i); setThemePickerOpen(false); }}
             aria-label={th.name}
             style={{
               background: `conic-gradient(${th.background} 0deg 180deg, ${th.accent} 180deg 360deg)`,
