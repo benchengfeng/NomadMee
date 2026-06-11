@@ -6,7 +6,7 @@ export const COUNTRIES: Country[] = [
   { name: 'Ghana', code: 'GH', coords: [-1.02, 7.95] },
   { name: 'Senegal', code: 'SN', coords: [-14.45, 14.72] },
   { name: 'Nigeria', code: 'NG', coords: [8.68, 9.08] },
-  { name: 'Mali', code: 'ML', coords: [-2.18, 12.65] },
+  { name: 'Mali', code: 'ML', coords: [-2.0, 18.0] },
   { name: 'Burkina Faso', code: 'BF', coords: [-1.56, 12.37] },
   { name: 'Guinea', code: 'GN', coords: [-11.31, 9.95] },
   { name: 'Guinea-Bissau', code: 'GW', coords: [-15.18, 11.80] },
