@@ -69,6 +69,9 @@ const emptyForm = {
   boutiqueId: '',
   variants: [] as Array<{ label: string; price: string }>,
   images: [] as string[],
+  priceMatrix: [] as Array<{ label: string; options: Array<{ label: string; price: string; currency: string }> }>,
+  customOrderAvailable: false,
+  customOrderNote: '',
 };
 
 const AdminProductsSection: React.FC<Props> = ({ showToast }) => {
@@ -130,6 +133,18 @@ const AdminProductsSection: React.FC<Props> = ({ showToast }) => {
     price: Number(form.price),
     currency: form.currency,
     variants: form.variants.filter((v) => v.label.trim()).map((v) => ({ label: v.label.trim(), price: Number(v.price) || 0 })),
+    priceMatrix: form.priceMatrix
+      .filter((r) => r.label.trim())
+      .map((r) => ({
+        label: r.label.trim(),
+        options: r.options.filter((o) => o.label.trim()).map((o) => ({
+          label: o.label.trim(),
+          price: Number(o.price) || 0,
+          currency: o.currency || 'USD',
+        })),
+      })),
+    customOrderAvailable: form.customOrderAvailable,
+    customOrderNote: form.customOrderNote.trim(),
     stock: Number(form.stock) || 0,
     coverImageUrl: form.coverImageUrl,
     images: form.images,
@@ -174,6 +189,12 @@ const AdminProductsSection: React.FC<Props> = ({ showToast }) => {
       boutiqueId: p.boutiqueId ?? '',
       variants: (p.variants ?? []).map((v) => ({ label: v.label, price: v.price.toString() })),
       images: p.images ?? [],
+      priceMatrix: (p.priceMatrix ?? []).map((r) => ({
+        label: r.label,
+        options: r.options.map((o) => ({ label: o.label, price: o.price.toString(), currency: o.currency })),
+      })),
+      customOrderAvailable: p.customOrderAvailable ?? false,
+      customOrderNote: p.customOrderNote ?? '',
     });
   };
 

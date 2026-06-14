@@ -86,21 +86,35 @@ const VariantItem = z.object({
   price: z.coerce.number().min(0).default(0),
 });
 
+const PriceMatrixOptionItem = z.object({
+  label:    z.string().trim(),
+  price:    z.coerce.number().min(0).default(0),
+  currency: z.string().trim().default('USD'),
+});
+
+const PriceMatrixRowItem = z.object({
+  label:   z.string().trim(),
+  options: z.array(PriceMatrixOptionItem).default([]).transform((opts) => opts.filter((o) => o.label)),
+});
+
 export const ProductBody = z.object({
-  name:          z.string().trim(),
-  description:   z.string().trim().default(''),
-  origin:        z.string().trim().default(''),
-  originStory:   z.string().trim().default(''),
-  price:         NonNeg('price'),
-  currency:      Currency,
-  variants:      z.array(VariantItem).default([]).transform((vs) => vs.filter((v) => v.label)),
-  stock:         z.coerce.number().min(0).default(0),
-  coverImageUrl: z.string().trim().default(''),
-  images:        z.array(z.string()).default([]).transform((arr) => arr.filter(Boolean).slice(0, 4)),
-  section:       z.enum(['food', 'artisanal']).default('food'),
-  category:      z.string().trim().default(''),
-  active:        z.boolean().default(true),
-  boutiqueId:    z.string().trim().default(''),
+  name:                 z.string().trim(),
+  description:          z.string().trim().default(''),
+  origin:               z.string().trim().default(''),
+  originStory:          z.string().trim().default(''),
+  price:                NonNeg('price'),
+  currency:             Currency,
+  variants:             z.array(VariantItem).default([]).transform((vs) => vs.filter((v) => v.label)),
+  priceMatrix:          z.array(PriceMatrixRowItem).default([]).transform((rows) => rows.filter((r) => r.label)),
+  customOrderAvailable: z.boolean().default(false),
+  customOrderNote:      z.string().trim().default(''),
+  stock:                z.coerce.number().min(0).default(0),
+  coverImageUrl:        z.string().trim().default(''),
+  images:               z.array(z.string()).default([]).transform((arr) => arr.filter(Boolean).slice(0, 4)),
+  section:              z.enum(['food', 'artisanal']).default('food'),
+  category:             z.string().trim().default(''),
+  active:               z.boolean().default(true),
+  boutiqueId:           z.string().trim().default(''),
 });
 export type ProductBody = z.infer<typeof ProductBody>;
 
@@ -148,12 +162,29 @@ export type PartnerBody = z.infer<typeof PartnerBody>;
 
 // ── Boutique ───────────────────────────────────────────────────────────────
 
+const BoutiqueSocialLinksItem = z.object({
+  instagram: z.string().trim().default(''),
+  website:   z.string().trim().default(''),
+});
+
 export const BoutiqueBody = z.object({
-  name:        z.string().trim(),
-  logoUrl:     z.string().trim().default(''),
-  description: z.string().trim().default(''),
-  location:    z.string().trim().default(''),
-  active:      z.boolean().default(true),
+  name:             z.string().trim(),
+  tagline:          z.string().trim().default(''),
+  bio:              z.string().trim().default(''),
+  originStory:      z.string().trim().default(''),
+  location:         z.string().trim().default(''),
+  locationLat:      z.coerce.number().optional(),
+  locationLng:      z.coerce.number().optional(),
+  coverImageUrl:    z.string().trim().default(''),
+  profileImageUrl:  z.string().trim().default(''),
+  logoUrl:          z.string().trim().default(''),
+  galleryUrls:      z.array(z.string()).default([]).transform((a) => a.filter(Boolean)),
+  category:         z.string().trim().default(''),
+  section:          z.enum(['earth', 'hands']).default('earth'),
+  accentColor:      z.string().trim().default(''),
+  active:           z.boolean().default(true),
+  linkedJourneyIds: z.array(z.string()).default([]).transform((a) => a.filter(Boolean)),
+  socialLinks:      BoutiqueSocialLinksItem.default({ instagram: '', website: '' }),
 });
 export type BoutiqueBody = z.infer<typeof BoutiqueBody>;
 

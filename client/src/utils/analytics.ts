@@ -78,6 +78,16 @@ export type AnalyticsEvent =
   | 'journey_detail_viewed'
   | 'journey_interest_submitted'
   | 'journey_guide_section_viewed'
+  // ── Boutique marketplace ──
+  | 'boutique_directory_viewed'
+  | 'boutique_card_clicked'
+  | 'boutique_page_viewed'
+  | 'boutique_product_clicked'
+  | 'boutique_journey_clicked'
+  | 'boutique_contact_clicked'
+  | 'product_size_selected'
+  | 'product_option_selected'
+  | 'product_custom_order_clicked'
   // ── Globe layers ──
   | 'globe_layer_changed'
   | 'globe_layer_all_viewed'

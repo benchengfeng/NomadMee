@@ -527,4 +527,81 @@ router.post('/public/journey-interest', publicWriteLimiter, async (req: Request,
   }
 });
 
+// ---------------------------------------------------------------------------
+// Public — boutiques
+// ---------------------------------------------------------------------------
+
+router.get('/public/boutiques', async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const boutiques = await BoutiqueModel.find({ active: true }).sort({ createdAt: 1 }).lean();
+    const boutiquIds = boutiques.map((b) => String(b._id));
+    const counts = await ProductModel.aggregate([
+      { $match: { active: true, boutiqueId: { $in: boutiquIds } } },
+      { $group: { _id: '$boutiqueId', count: { $sum: 1 } } },
+    ]);
+    const countMap: Record<string, number> = {};
+    for (const c of counts) countMap[c._id as string] = c.count;
+
+    res.status(200).json({
+      boutiques: boutiques.map((b) => ({
+        _id: b._id,
+        name: b.name,
+        tagline: b.tagline || '',
+        bio: b.bio || '',
+        location: b.location || '',
+        coverImageUrl: b.coverImageUrl || '',
+        profileImageUrl: b.profileImageUrl || '',
+        logoUrl: b.logoUrl || '',
+        category: b.category || '',
+        section: b.section || 'earth',
+        accentColor: b.accentColor || '',
+        socialLinks: b.socialLinks ?? {},
+        productCount: countMap[String(b._id)] ?? 0,
+      })),
+    });
+  } catch {
+    res.status(500).json({ message: 'Failed to load boutiques.' });
+  }
+});
+
+router.get('/public/boutiques/:id', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const boutique = await BoutiqueModel.findById(req.params.id).lean();
+    if (!boutique || !boutique.active) {
+      res.status(404).json({ message: 'Boutique not found.' });
+      return;
+    }
+    res.status(200).json({ boutique });
+  } catch {
+    res.status(500).json({ message: 'Failed to load boutique.' });
+  }
+});
+
+router.get('/public/boutiques/:id/products', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const products = await ProductModel
+      .find({ active: true, boutiqueId: req.params.id })
+      .sort({ position: 1, createdAt: -1 })
+      .lean();
+    res.status(200).json({ products: products.map((p) => mapPublicProduct(p as never)) });
+  } catch {
+    res.status(500).json({ message: 'Failed to load boutique products.' });
+  }
+});
+
+router.get('/public/boutiques/:id/journeys', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const boutique = await BoutiqueModel.findById(req.params.id).select('linkedJourneyIds').lean();
+    if (!boutique) { res.status(404).json({ message: 'Boutique not found.' }); return; }
+    const journeyIds = boutique.linkedJourneyIds ?? [];
+    if (!journeyIds.length) { res.status(200).json({ journeys: [] }); return; }
+    const journeys = await JourneyModel
+      .find({ _id: { $in: journeyIds }, status: { $in: ['active', 'full'] } })
+      .lean();
+    res.status(200).json({ journeys });
+  } catch {
+    res.status(500).json({ message: 'Failed to load boutique journeys.' });
+  }
+});
+
 export default router;

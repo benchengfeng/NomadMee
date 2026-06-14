@@ -207,6 +207,17 @@ export type ProductVariant = {
   price: number;
 };
 
+export type PriceMatrixOption = {
+  label: string;
+  price: number;
+  currency: string;
+};
+
+export type PriceMatrixRow = {
+  label: string;
+  options: PriceMatrixOption[];
+};
+
 export type ProductSection = 'food' | 'artisanal';
 
 export type Product = {
@@ -218,6 +229,9 @@ export type Product = {
   price: number;
   currency: string;
   variants: ProductVariant[];
+  priceMatrix: PriceMatrixRow[];
+  customOrderAvailable: boolean;
+  customOrderNote: string;
   stock: number;
   coverImageUrl: string;
   images: string[];
@@ -233,41 +247,53 @@ export type Product = {
 /** Public-facing product (no `active` flag — only active products are returned). */
 export type PublicProduct = Omit<Product, 'active' | 'createdAt' | 'updatedAt'>;
 
-export type ProductInput = {
+export type ProductInput = Omit<Product, '_id' | 'createdAt' | 'updatedAt'>;
+
+export type BoutiqueSocialLinks = {
+  instagram?: string;
+  website?: string;
+};
+
+export type PublicBoutique = {
+  _id: string;
   name: string;
-  description: string;
-  origin: string;
-  originStory: string;
-  price: number;
-  currency: string;
-  variants: ProductVariant[];
-  stock: number;
+  tagline: string;
+  bio: string;
+  location: string;
   coverImageUrl: string;
-  images: string[];
-  section: ProductSection;
+  profileImageUrl: string;
+  logoUrl: string;
   category: string;
-  active: boolean;
-  boutiqueId?: string;
+  section: 'earth' | 'hands';
+  accentColor: string;
+  socialLinks: BoutiqueSocialLinks;
+  productCount: number;
 };
 
 export type Boutique = {
   _id: string;
   name: string;
-  logoUrl: string;
-  description: string;
+  tagline: string;
+  bio: string;
+  originStory: string;
   location: string;
+  locationLat?: number;
+  locationLng?: number;
+  coverImageUrl: string;
+  profileImageUrl: string;
+  logoUrl: string;
+  galleryUrls: string[];
+  category: string;
+  section: 'earth' | 'hands';
+  accentColor: string;
   active?: boolean;
+  linkedJourneyIds: string[];
+  socialLinks: BoutiqueSocialLinks;
   createdAt?: string;
   updatedAt?: string;
 };
 
-export type BoutiqueInput = {
-  name: string;
-  logoUrl: string;
-  description: string;
-  location: string;
-  active: boolean;
-};
+export type BoutiqueInput = Omit<Boutique, '_id' | 'createdAt' | 'updatedAt'>;
 
 export type ProductOrderInput = {
   productId: string;
@@ -824,6 +850,26 @@ export async function updatePartner(id: string, payload: PartnerInput): Promise<
 export async function deletePartner(id: string): Promise<void> {
   await request<unknown>(`/admin/partners/${id}`, { method: 'DELETE' }, getAdminToken());
 }
+
+// ── Boutiques (public) ──────────────────────────────────────────────────────
+
+export async function getPublicBoutiques(): Promise<{ boutiques: PublicBoutique[] }> {
+  return request<{ boutiques: PublicBoutique[] }>('/public/boutiques', { method: 'GET' });
+}
+
+export async function getPublicBoutique(id: string): Promise<{ boutique: Boutique }> {
+  return request<{ boutique: Boutique }>(`/public/boutiques/${id}`, { method: 'GET' });
+}
+
+export async function getPublicBoutiqueProducts(id: string): Promise<{ products: PublicProduct[] }> {
+  return request<{ products: PublicProduct[] }>(`/public/boutiques/${id}/products`, { method: 'GET' });
+}
+
+export async function getPublicBoutiqueJourneys(id: string): Promise<{ journeys: Journey[] }> {
+  return request<{ journeys: Journey[] }>(`/public/boutiques/${id}/journeys`, { method: 'GET' });
+}
+
+// ── Boutiques (admin) ──────────────────────────────────────────────────────
 
 export async function getAdminBoutiques(): Promise<{ boutiques: Boutique[] }> {
   return request<{ boutiques: Boutique[] }>('/admin/boutiques', { method: 'GET' }, getAdminToken());
