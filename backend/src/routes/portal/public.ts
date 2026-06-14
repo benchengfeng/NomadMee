@@ -177,7 +177,7 @@ router.get('/public/map-data', async (_req: Request, res: Response): Promise<voi
         _id: b._id,
         name: b.name,
         logoUrl: b.logoUrl || '',
-        description: b.description || '',
+        description: b.tagline || '',
         location: b.location || '',
       })),
       journeys: activeJourneys.map((j) => ({
