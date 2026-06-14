@@ -211,6 +211,11 @@ const LandingPage: React.FC = () => {
         </div>
       </nav>
 
+      {/* ── Tagline bar ── */}
+      <div className="landing-tagline-bar" style={{ '--tag-accent': palette.accent } as React.CSSProperties}>
+        <span className="landing-tagline-text">{t('globe.tagline', 'Real cargo · Real returns · Tracked live')}</span>
+      </div>
+
       {/* ── Content ── */}
       <div className={`landing-content ${section === 'globe' ? 'landing-content--globe' : 'landing-content--scroll'}`}>
 
@@ -218,10 +223,6 @@ const LandingPage: React.FC = () => {
         {section === 'globe' && (
           <>
             <WorldMap accentColor={palette.accent} />
-            <div className="landing-hero-overlay" style={{ '--hero-accent': palette.accent } as React.CSSProperties}>
-              <p className="landing-hero-eyebrow">{t('globe.taglineEyebrow')}</p>
-              <h1 className="landing-hero-headline">{t('globe.taglineHeadline')}</h1>
-            </div>
             <div className="landing-stat-strip" style={{ '--stat-accent': palette.accent } as React.CSSProperties}>
               {liveStats ? (
                 <>

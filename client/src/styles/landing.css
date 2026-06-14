@@ -716,38 +716,30 @@
   position: relative;
 }
 
-/* ── Hero text card (eyebrow + headline only, no stats) ── */
-.landing-hero-overlay {
-  position: absolute;
-  bottom: 72px;
-  left: 40px;
-  z-index: 10;
-  pointer-events: none;
-  max-width: 380px;
-  padding: 14px 18px;
-  background: rgba(0, 0, 0, 0.52);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+/* ── Tagline bar — slim line just below the nav ── */
+.landing-tagline-bar {
+  position: relative;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 24px;
+  background: rgba(0, 0, 0, 0.28);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
-.landing-hero-eyebrow {
-  font-size: 0.65rem;
-  font-weight: 700;
+.landing-tagline-text {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  letter-spacing: 0.2em;
-  color: var(--hero-accent, #38bdf8);
-  margin: 0 0 5px;
-  opacity: 0.9;
-}
-
-.landing-hero-headline {
-  font-size: clamp(0.95rem, 2vw, 1.3rem);
-  font-weight: 800;
-  color: #f1f5f9;
-  margin: 0;
-  line-height: 1.3;
+  color: var(--tag-accent, #c8a06a);
+  opacity: 0.85;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ── Live stat strip — full width, pinned to bottom of globe ── */
@@ -813,11 +805,9 @@
 
 /* ── Mobile ── */
 @media (max-width: 768px) {
-  .landing-hero-overlay {
-    bottom: 52px;
-    left: 12px;
-    right: 12px;
-    max-width: none;
+  .landing-tagline-text {
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
   }
 
   .landing-stat-strip {
