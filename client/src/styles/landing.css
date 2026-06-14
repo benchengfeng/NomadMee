@@ -806,7 +806,7 @@
   50%       { opacity: 0.9; }
 }
 
-/* ── Mobile — collapse back to a bottom strip ── */
+/* ── Mobile — keep right-side panel, just scale down ── */
 @media (max-width: 768px) {
   .landing-tagline-text {
     font-size: 0.62rem;
@@ -814,29 +814,7 @@
   }
 
   .landing-stat-strip {
-    top: auto;
-    bottom: 54px;
-    right: 0;
-    left: 0;
-    transform: none;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    padding: 8px 12px;
-    background: linear-gradient(to top, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.0) 100%);
-    border-radius: 0;
-    gap: 6px;
-  }
-
-  .landing-stat-item {
-    align-items: center;
-    padding: 0;
-  }
-
-  .landing-stat-sep {
-    width: 1px;
-    height: 20px;
-    background: rgba(255,255,255,0.12);
+    padding: 10px 10px 10px 14px;
   }
 
   .landing-stat-value {
@@ -844,8 +822,7 @@
   }
 
   .landing-stat-label {
-    font-size: 0.5rem;
+    font-size: 0.48rem;
   }
-
 }
 

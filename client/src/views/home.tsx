@@ -8,13 +8,12 @@ import StoryMediaGallery from '../components/cargo/StoryMediaGallery';
 import LanguageSwitcher from '../components/common/LanguageSwitcher';
 import { SocialLinks } from '../components/common/socialPlatforms';
 import PartnersShowcase from '../components/home/PartnersShowcase';
-import ShopSections from '../components/shop/ShopSections';
 import { track } from '../utils/analytics';
-import { getPublicInvestments, getPublicSiteContent, getPublicProducts, getPublicPartners, getPublicJourneys, getPublicMapData, Partner, PublicInvestment, PublicProduct, PublicBundle, ShopGalleries, SiteContent, Journey, PublicMapStats } from '../api/portalApi';
+import { getPublicInvestments, getPublicSiteContent, getPublicPartners, getPublicJourneys, getPublicMapData, Partner, PublicInvestment, SiteContent, Journey, PublicMapStats } from '../api/portalApi';
 import '../styles/landing.css';
 import '../styles/journeys.css';
 
-type LandingSection = 'globe' | 'investments' | 'journeys' | 'shop' | 'who';
+type LandingSection = 'globe' | 'investments' | 'journeys' | 'who';
 
 const STATUS_STYLE: Record<string, { color: string; bg: string }> = {
   active:      { color: '#22c55e', bg: 'rgba(34,197,94,0.1)' },
@@ -26,7 +25,6 @@ const NAV_ITEMS: Array<{ id: LandingSection; key: string }> = [
   { id: 'globe', key: 'nav.globe' },
   { id: 'investments', key: 'nav.investments' },
   { id: 'journeys', key: 'nav.journeys' },
-  { id: 'shop', key: 'nav.shop' },
   { id: 'who', key: 'nav.whoAreWe' },
 ];
 
@@ -46,12 +44,6 @@ const LandingPage: React.FC = () => {
   const [investments, setInvestments] = useState<PublicInvestment[]>([]);
   const [loadingInvestments, setLoadingInvestments] = useState(false);
   const [investmentsError, setInvestmentsError] = useState(false);
-  const [products, setProducts] = useState<PublicProduct[]>([]);
-  const [bundles, setBundles] = useState<PublicBundle[]>([]);
-  const [shopGalleries, setShopGalleries] = useState<ShopGalleries>({ earth: [], hands: [] });
-  const [loadingProducts, setLoadingProducts] = useState(false);
-  const [productsError, setProductsError] = useState(false);
-  const [productsLoaded, setProductsLoaded] = useState(false);
   const [siteContent, setSiteContent] = useState<SiteContent | null>(null);
   const [partners, setPartners] = useState<Partner[]>([]);
   const [journeys, setJourneys] = useState<Journey[]>([]);
@@ -109,14 +101,6 @@ const LandingPage: React.FC = () => {
         .catch(() => setInvestmentsError(true))
         .finally(() => setLoadingInvestments(false));
     }
-    if (section === 'shop' && !productsLoaded) {
-      setLoadingProducts(true);
-      setProductsError(false);
-      getPublicProducts()
-        .then((r) => { setProducts(r.products); setShopGalleries(r.galleries); setBundles(r.bundles ?? []); setProductsLoaded(true); })
-        .catch(() => setProductsError(true))
-        .finally(() => setLoadingProducts(false));
-    }
     if (section === 'journeys' && !journeysLoaded) {
       setLoadingJourneys(true);
       getPublicJourneys()
@@ -165,6 +149,13 @@ const LandingPage: React.FC = () => {
               {t(item.key)}
             </button>
           ))}
+          <button
+            type="button"
+            className="landing-nav-link"
+            onClick={() => { track('landing-section', { section: 'shop' }); navigate('/shop'); }}
+          >
+            {t('nav.shop')}
+          </button>
         </div>
 
         <div className="landing-nav-right">
@@ -438,47 +429,6 @@ const LandingPage: React.FC = () => {
                 <p className="journeys-founder-name" style={{ color: palette.accent }}>{t('journeys.founderName')}</p>
               </div>
             </div>
-          </div>
-        )}
-
-        {/* Shop */}
-        {section === 'shop' && (
-          <div className="landing-section-inner">
-            {productsError && (
-              <div style={{ textAlign: 'center', marginBottom: 24 }}>
-                <p style={{ color: '#94a3b8', fontSize: '0.9rem', marginBottom: 12 }}>{t('shopUi.loadError')}</p>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setProductsError(false);
-                    setLoadingProducts(true);
-                    getPublicProducts()
-                      .then((r) => { setProducts(r.products); setShopGalleries(r.galleries); setProductsLoaded(true); })
-                      .catch(() => setProductsError(true))
-                      .finally(() => setLoadingProducts(false));
-                  }}
-                  style={{ padding: '8px 20px', borderRadius: 8, border: `1px solid ${palette.accent}55`, background: 'transparent', color: palette.accent, cursor: 'pointer', fontWeight: 700, fontSize: '0.84rem' }}
-                >
-                  {t('shopUi.retry')}
-                </button>
-              </div>
-            )}
-            <ShopSections
-              products={products}
-              bundles={bundles}
-              loading={loadingProducts}
-              galleries={shopGalleries}
-              shipNote={t('shop.shipNote')}
-              labels={{
-                earthTitle: t('shop.earthTitle'),
-                earthSub: t('shop.earthSub'),
-                handsTitle: t('shop.handsTitle'),
-                handsSub: t('shop.handsSub'),
-                empty: t('shop.none'),
-                gallery: t('shop.gallery'),
-              }}
-              onOrdered={(p) => track('order-submit', { product: p.name })}
-            />
           </div>
         )}
 
