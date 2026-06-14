@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
   getAdminBundles,
   getAdminProducts,
+  getAdminBoutiques,
   createBundle,
   updateBundle,
   deleteBundle,
@@ -9,6 +10,7 @@ import {
   Bundle,
   BundleInput,
   Product,
+  Boutique,
 } from '../../../api/portalApi';
 import ImageCropUploader from '../ImageCropUploader';
 
@@ -26,6 +28,7 @@ const emptyForm: BundleInput = {
   currency: 'EUR',
   productIds: [],
   section: 'food',
+  boutiqueId: undefined,
   active: true,
 };
 
@@ -37,6 +40,7 @@ const SECTION_LABELS: Record<string, string> = {
 const AdminBundlesSection: React.FC<Props> = ({ showToast }) => {
   const [bundles, setBundles] = useState<Bundle[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [boutiques, setBoutiques] = useState<Boutique[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [form, setForm] = useState<BundleInput>(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -47,8 +51,8 @@ const AdminBundlesSection: React.FC<Props> = ({ showToast }) => {
   const [savingOrder, setSavingOrder] = useState(false);
 
   useEffect(() => {
-    Promise.all([getAdminBundles(), getAdminProducts()])
-      .then(([br, pr]) => { setBundles(br.bundles); setProducts(pr.products); setLoaded(true); })
+    Promise.all([getAdminBundles(), getAdminProducts(), getAdminBoutiques()])
+      .then(([br, pr, bqr]) => { setBundles(br.bundles); setProducts(pr.products); setBoutiques(bqr.boutiques); setLoaded(true); })
       .catch(() => setLoaded(true));
   }, []);
 
@@ -96,6 +100,7 @@ const AdminBundlesSection: React.FC<Props> = ({ showToast }) => {
       currency: b.currency,
       productIds: b.productIds ?? [],
       section: b.section ?? 'food',
+      boutiqueId: b.boutiqueId ?? undefined,
       active: b.active !== false,
     });
   };
@@ -175,6 +180,17 @@ const AdminBundlesSection: React.FC<Props> = ({ showToast }) => {
           <select value={form.section} onChange={(e) => setForm({ ...form, section: e.target.value as 'food' | 'artisanal' })}>
             <option value="food">From the Earth (food / organic)</option>
             <option value="artisanal">From the Hands (artisanal / instruments)</option>
+          </select>
+
+          <label>Assign to boutique <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 400 }}>(optional — shown on that boutique's page)</span></label>
+          <select
+            value={form.boutiqueId ?? ''}
+            onChange={(e) => setForm({ ...form, boutiqueId: e.target.value || undefined })}
+          >
+            <option value="">— No boutique (global shop bundle) —</option>
+            {boutiques.filter((b) => b.active !== false).map((b) => (
+              <option key={b._id} value={b._id}>{b.name}</option>
+            ))}
           </select>
 
           <label>Included products</label>
@@ -288,6 +304,11 @@ const AdminBundlesSection: React.FC<Props> = ({ showToast }) => {
                         <span className="portal-item-badge" style={{ background: 'rgba(100,116,139,0.15)', color: '#94a3b8' }}>
                           {SECTION_LABELS[b.section ?? 'food']?.split(' (')[0]}
                         </span>
+                        {b.boutiqueId && (
+                          <span className="portal-item-badge" style={{ background: 'rgba(200,160,106,0.12)', color: '#c8a06a' }}>
+                            🏪 {boutiques.find((bq) => bq._id === b.boutiqueId)?.name ?? 'Boutique'}
+                          </span>
+                        )}
                       </p>
                       {includedNames.length > 0 && (
                         <p className="portal-item-meta" style={{ color: '#475569', fontSize: '0.75rem' }}>

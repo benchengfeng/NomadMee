@@ -115,7 +115,7 @@ router.get('/public/map-data', async (_req: Request, res: Response): Promise<voi
       AvatarModel.find().select('imageUrl').lean(),
       BoutiqueModel.find({ active: true }).select('name logoUrl description location').lean(),
       JourneyModel.find({ status: { $in: ['active', 'full'] } }).select('title tagline location locationLat locationLng spotsRemaining status coverImageUrl').lean(),
-      PartnerModel.find({ active: true, locationLat: { $ne: null }, locationLng: { $ne: null } }).select('name logoUrl location locationLat locationLng').lean(),
+      PartnerModel.find({ active: true }).select('name logoUrl location locationLat locationLng').lean(),
     ]);
     const dbAvatarMap = new Map((avatarDocs as Array<{ _id: unknown; imageUrl: string }>).map((a) => [String(a._id), a.imageUrl]));
 
@@ -625,6 +625,32 @@ router.get('/public/boutiques/:id/journeys', async (req: Request, res: Response)
     res.status(200).json({ journeys });
   } catch {
     res.status(500).json({ message: 'Failed to load boutique journeys.' });
+  }
+});
+
+router.get('/public/boutiques/:id/bundles', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const rawBundles = await BundleModel.find({ active: true, boutiqueId: req.params.id }).sort({ position: 1, createdAt: -1 }).lean();
+    const allIds = rawBundles.flatMap((b) => b.productIds);
+    const nameMap = new Map<string, string>();
+    if (allIds.length > 0) {
+      const prods = await ProductModel.find({ _id: { $in: allIds } }).select('name').lean();
+      for (const p of prods) nameMap.set(p._id.toString(), p.name as string);
+    }
+    const bundles = rawBundles.map((b) => ({
+      _id: b._id.toString(),
+      name: b.name,
+      imageUrl: b.imageUrl,
+      description: b.description,
+      price: b.price,
+      currency: b.currency,
+      position: b.position,
+      section: b.section ?? 'food',
+      includedProducts: b.productIds.map((id) => ({ _id: id, name: nameMap.get(id) ?? '?' })),
+    }));
+    res.status(200).json({ bundles });
+  } catch {
+    res.status(500).json({ message: 'Failed to load boutique bundles.' });
   }
 });
 

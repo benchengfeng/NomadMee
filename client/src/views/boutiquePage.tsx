@@ -6,9 +6,11 @@ import {
   getPublicBoutique,
   getPublicBoutiqueProducts,
   getPublicBoutiqueJourneys,
+  getPublicBoutiqueBundles,
   submitProductOrder,
   Boutique,
   PublicProduct,
+  PublicBundle,
   Journey,
 } from '../api/portalApi';
 import '../styles/boutique.css';
@@ -38,6 +40,7 @@ const BoutiquePage: React.FC = () => {
 
   const [boutique, setBoutique] = useState<Boutique | null>(null);
   const [products, setProducts] = useState<PublicProduct[]>([]);
+  const [bundles, setBundles] = useState<PublicBundle[]>([]);
   const [journeys, setJourneys] = useState<Journey[]>([]);
   const [activeTab, setActiveTab] = useState<Tab>('products');
   const [loading, setLoading] = useState(true);
@@ -59,11 +62,13 @@ const BoutiquePage: React.FC = () => {
       getPublicBoutique(id),
       getPublicBoutiqueProducts(id),
       getPublicBoutiqueJourneys(id),
+      getPublicBoutiqueBundles(id),
     ])
-      .then(([{ boutique: b }, { products: ps }, { journeys: js }]) => {
+      .then(([{ boutique: b }, { products: ps }, { journeys: js }, { bundles: bns }]) => {
         setBoutique(b);
         setProducts(ps);
         setJourneys(js);
+        setBundles(bns);
         document.title = `NomadMe — ${b.name}`;
         track('boutique_page_viewed', { boutique: b.name });
       })
@@ -127,7 +132,7 @@ const BoutiquePage: React.FC = () => {
 
   const tabs: Tab[] = ['products', ...(boutique.originStory ? ['story' as Tab] : []), ...(journeys.length > 0 ? ['journeys' as Tab] : []), 'contact'];
   const TAB_LABELS: Record<Tab, string> = {
-    products: `Products (${products.length})`,
+    products: bundles.length > 0 ? `Products & Bundles (${products.length + bundles.length})` : `Products (${products.length})`,
     story: 'Our Story',
     journeys: `Journeys (${journeys.length})`,
     contact: 'Contact',
@@ -228,40 +233,83 @@ const BoutiquePage: React.FC = () => {
 
         {/* Products tab */}
         {activeTab === 'products' && (
-          <div className="boutique-products-grid">
-            {products.length === 0 && (
-              <div className="boutique-empty" style={{ gridColumn: '1 / -1' }}>
-                <div className="boutique-empty-icon">📦</div>
-                <p className="boutique-empty-text">No products listed yet.</p>
+          <>
+            <div className="boutique-products-grid">
+              {products.length === 0 && bundles.length === 0 && (
+                <div className="boutique-empty" style={{ gridColumn: '1 / -1' }}>
+                  <div className="boutique-empty-icon">📦</div>
+                  <p className="boutique-empty-text">No products listed yet.</p>
+                </div>
+              )}
+              {products.map((p) => {
+                const lo = minPrice(p);
+                const matrix = hasMatrix(p);
+                return (
+                  <Link
+                    key={p._id}
+                    to={`/shop/boutique/${id}/product/${p._id}`}
+                    className="boutique-product-card"
+                    onClick={() => track('boutique_product_clicked', { boutique: boutique.name, product: p.name })}
+                  >
+                    {p.coverImageUrl
+                      ? <img className="boutique-product-thumb" src={p.coverImageUrl} alt={p.name} loading="lazy" />
+                      : <div className="boutique-product-thumb-empty">🎁</div>
+                    }
+                    <div className="boutique-product-info">
+                      <p className="boutique-product-name">{p.name}</p>
+                      {p.origin && <p className="boutique-product-origin">{p.origin}</p>}
+                      <p className="boutique-product-price">
+                        {matrix && <span className="boutique-product-price-from">from </span>}
+                        {lo} {p.currency}
+                        {matrix && <span className="boutique-product-matrix-badge">matrix</span>}
+                      </p>
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+
+            {bundles.length > 0 && (
+              <div style={{ marginTop: products.length > 0 ? 32 : 0 }}>
+                {products.length > 0 && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, padding: '0 4px' }}>
+                    <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.07)' }} />
+                    <span style={{ fontSize: '0.72rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.08em', whiteSpace: 'nowrap' }}>
+                      📦 Bundles
+                    </span>
+                    <div style={{ flex: 1, height: 1, background: 'rgba(255,255,255,0.07)' }} />
+                  </div>
+                )}
+                <div className="boutique-products-grid">
+                  {bundles.map((b) => (
+                    <div
+                      key={b._id}
+                      className="boutique-product-card"
+                      style={{ cursor: 'default' }}
+                    >
+                      {b.imageUrl
+                        ? <img className="boutique-product-thumb" src={b.imageUrl} alt={b.name} loading="lazy" />
+                        : <div className="boutique-product-thumb-empty">📦</div>
+                      }
+                      <div className="boutique-product-info">
+                        <p className="boutique-product-name">{b.name}</p>
+                        {b.description && <p className="boutique-product-origin">{b.description}</p>}
+                        {b.includedProducts.length > 0 && (
+                          <p className="boutique-product-origin" style={{ fontSize: '0.68rem', opacity: 0.6 }}>
+                            {b.includedProducts.map((p) => p.name).join(' · ')}
+                          </p>
+                        )}
+                        <p className="boutique-product-price">
+                          {b.price} {b.currency}
+                          <span className="boutique-product-matrix-badge" style={{ background: `${accent}22`, color: accent }}>bundle</span>
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
-            {products.map((p) => {
-              const lo = minPrice(p);
-              const matrix = hasMatrix(p);
-              return (
-                <Link
-                  key={p._id}
-                  to={`/shop/boutique/${id}/product/${p._id}`}
-                  className="boutique-product-card"
-                  onClick={() => track('boutique_product_clicked', { boutique: boutique.name, product: p.name })}
-                >
-                  {p.coverImageUrl
-                    ? <img className="boutique-product-thumb" src={p.coverImageUrl} alt={p.name} loading="lazy" />
-                    : <div className="boutique-product-thumb-empty">🎁</div>
-                  }
-                  <div className="boutique-product-info">
-                    <p className="boutique-product-name">{p.name}</p>
-                    {p.origin && <p className="boutique-product-origin">{p.origin}</p>}
-                    <p className="boutique-product-price">
-                      {matrix && <span className="boutique-product-price-from">from </span>}
-                      {lo} {p.currency}
-                      {matrix && <span className="boutique-product-matrix-badge">matrix</span>}
-                    </p>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
+          </>
         )}
 
         {/* Story tab */}

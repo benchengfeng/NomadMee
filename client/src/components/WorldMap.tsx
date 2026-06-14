@@ -678,7 +678,14 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor, onDataLoaded }) => {
       // PARTNERS
       // ════════════════════════════════════════════════════════════════════════
       for (const partner of partners) {
-        if (!partner.locationLat || !partner.locationLng) continue;
+        let partnerLngLat: [number, number] | null = null;
+        if (partner.locationLat && partner.locationLng) {
+          partnerLngLat = [partner.locationLng, partner.locationLat];
+        } else if (partner.location) {
+          const fallback = findCountryCoords(partner.location);
+          if (fallback) partnerLngLat = fallback;
+        }
+        if (!partnerLngLat) continue;
 
         const el = document.createElement('div');
         el.style.cssText = 'width:36px;height:36px;cursor:pointer;position:relative;transition:opacity 0.3s ease;';
@@ -707,11 +714,11 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor, onDataLoaded }) => {
         el.addEventListener('mouseleave', () => { inner.style.transform = 'scale(1)';    inner.style.boxShadow = `0 0 10px ${CLR_PARTNER}66,0 3px 10px rgba(0,0,0,0.75)`; });
 
         new maplibregl.Marker({ element: el, anchor: 'center' })
-          .setLngLat([partner.locationLng, partner.locationLat])
+          .setLngLat(partnerLngLat)
           .setPopup(popup)
           .addTo(map);
       }
-      setPartnerCount(partners.filter((p) => p.locationLat && p.locationLng).length);
+      setPartnerCount(groups.partners.length);
 
       setDataLoaded(true);
       // Apply the layer that was active when the map finished loading

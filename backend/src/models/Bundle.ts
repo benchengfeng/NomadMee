@@ -8,6 +8,7 @@ export type BundleDocument = {
   currency: string;
   productIds: string[];
   section: 'food' | 'artisanal';
+  boutiqueId?: string;
   active: boolean;
   position: number;
   createdAt?: Date;
@@ -22,8 +23,9 @@ const BundleSchema = new Schema<BundleDocument>(
     price: { type: Number, required: true, min: 0 },
     currency: { type: String, required: true, trim: true, default: 'EUR' },
     productIds: [{ type: String, trim: true }],
-    section: { type: String, enum: ['food', 'artisanal'], default: 'food' },
-    active: { type: Boolean, default: true },
+    section:    { type: String, enum: ['food', 'artisanal'], default: 'food' },
+    boutiqueId: { type: String, trim: true },
+    active:     { type: Boolean, default: true },
     position: { type: Number, default: 0 },
   },
   { timestamps: true }

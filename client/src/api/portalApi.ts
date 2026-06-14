@@ -743,7 +743,7 @@ export type PublicBundle = {
   includedProducts: Array<{ _id: string; name: string }>;
 };
 
-export type Bundle = PublicBundle & { active: boolean; productIds: string[] };
+export type Bundle = PublicBundle & { active: boolean; productIds: string[]; boutiqueId?: string };
 
 export type BundleInput = {
   name: string;
@@ -753,6 +753,7 @@ export type BundleInput = {
   currency: string;
   productIds: string[];
   section: 'food' | 'artisanal';
+  boutiqueId?: string;
   active: boolean;
 };
 
@@ -887,6 +888,10 @@ export async function getPublicBoutiqueProducts(id: string): Promise<{ products:
 
 export async function getPublicBoutiqueJourneys(id: string): Promise<{ journeys: Journey[] }> {
   return request<{ journeys: Journey[] }>(`/public/boutiques/${id}/journeys`, { method: 'GET' });
+}
+
+export async function getPublicBoutiqueBundles(id: string): Promise<{ bundles: PublicBundle[] }> {
+  return request<{ bundles: PublicBundle[] }>(`/public/boutiques/${id}/bundles`, { method: 'GET' });
 }
 
 // ── Boutiques (admin) ──────────────────────────────────────────────────────
