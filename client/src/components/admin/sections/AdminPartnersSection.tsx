@@ -13,7 +13,7 @@ interface Props {
   showToast: (message: string, type?: 'success' | 'error') => void;
 }
 
-const emptyForm = { name: '', logoUrl: '', title: '', description: '', active: true };
+const emptyForm = { name: '', logoUrl: '', title: '', description: '', active: true, location: '', locationLat: '', locationLng: '' };
 
 const AdminPartnersSection: React.FC<Props> = ({ showToast }) => {
   const [partners, setPartners] = useState<Partner[]>([]);
@@ -41,6 +41,9 @@ const AdminPartnersSection: React.FC<Props> = ({ showToast }) => {
         title: form.title.trim(),
         description: form.description.trim(),
         active: form.active,
+        location: form.location.trim() || undefined,
+        locationLat: form.locationLat ? parseFloat(form.locationLat) : undefined,
+        locationLng: form.locationLng ? parseFloat(form.locationLng) : undefined,
       };
       if (editingId) {
         await updatePartner(editingId, payload);
@@ -59,7 +62,7 @@ const AdminPartnersSection: React.FC<Props> = ({ showToast }) => {
 
   const startEdit = (p: Partner) => {
     setEditingId(p._id);
-    setForm({ name: p.name, logoUrl: p.logoUrl ?? '', title: p.title ?? '', description: p.description ?? '', active: p.active !== false });
+    setForm({ name: p.name, logoUrl: p.logoUrl ?? '', title: p.title ?? '', description: p.description ?? '', active: p.active !== false, location: p.location ?? '', locationLat: String(p.locationLat ?? ''), locationLng: String(p.locationLng ?? '') });
   };
 
   const remove = async (id: string) => {
@@ -97,6 +100,20 @@ const AdminPartnersSection: React.FC<Props> = ({ showToast }) => {
 
           <label>Short description <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 400 }}>(who they are)</span></label>
           <textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="A sentence or two about who they are and how you work together…" rows={4} />
+
+          <label>Location <span style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 400 }}>(city, country — shown on globe)</span></label>
+          <input value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} placeholder="e.g. Abidjan, Côte d'Ivoire" />
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: 4 }}>Latitude</label>
+              <input type="number" value={form.locationLat} onChange={(e) => setForm({ ...form, locationLat: e.target.value })} placeholder="5.36" />
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: 4 }}>Longitude</label>
+              <input type="number" value={form.locationLng} onChange={(e) => setForm({ ...form, locationLng: e.target.value })} placeholder="-4.00" />
+            </div>
+          </div>
 
           <label className="portal-hidden-toggle">
             <input type="checkbox" checked={form.active} onChange={(e) => setForm({ ...form, active: e.target.checked })} />

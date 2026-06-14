@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { getPublicMapData, PublicMapCargo, PublicMapInvestor, PublicMapInvestment, PublicMapBoutique, PublicMapData, PublicMapJourney } from '../api/portalApi';
+import { getPublicMapData, PublicMapCargo, PublicMapInvestor, PublicMapInvestment, PublicMapBoutique, PublicMapData, PublicMapJourney, PublicMapPartner } from '../api/portalApi';
 import { buildCargoRoute, getPositionAtProgress } from '../utils/routeBuilder';
 import { findCountryCoords } from '../utils/countries';
 import { track } from '../utils/analytics';
@@ -14,6 +14,7 @@ const CLR_INVESTOR  = '#38bdf8';
 const CLR_INVEST    = '#e879f9';
 const CLR_BOUTIQUE  = '#f59e0b';
 const CLR_JOURNEY   = '#f59e0b';
+const CLR_PARTNER   = '#4ade80';
 const CARGO_COLORS: Record<string, string> = {
   sea: '#38bdf8',
   air: '#a78bfa',
@@ -24,16 +25,16 @@ const OFF_INVESTOR:  [number, number] = [0,   -20];
 const OFF_INVESTMENT:[number, number] = [-32,  22];
 const OFF_BOUTIQUE:  [number, number] = [32,   22];
 
-type LayerVis = { investors: boolean; investments: boolean; boutiques: boolean; cargos: boolean; journeys: boolean };
+type LayerVis = { investors: boolean; investments: boolean; boutiques: boolean; cargos: boolean; journeys: boolean; partners: boolean };
 
 // Which marker groups are visible per layer
 const LAYER_VISIBILITY: Record<GlobeLayer, LayerVis> = {
-  all:         { investors: true,  investments: true,  boutiques: true,  cargos: true,  journeys: true  },
-  trade:       { investors: false, investments: false, boutiques: false, cargos: true,  journeys: false },
-  investments: { investors: false, investments: true,  boutiques: false, cargos: false, journeys: false },
-  shop:        { investors: false, investments: false, boutiques: true,  cargos: false, journeys: false },
-  community:   { investors: true,  investments: false, boutiques: false, cargos: false, journeys: false },
-  journeys:    { investors: false, investments: false, boutiques: false, cargos: false, journeys: true  },
+  all:         { investors: true,  investments: true,  boutiques: true,  cargos: true,  journeys: true,  partners: true  },
+  trade:       { investors: false, investments: false, boutiques: false, cargos: true,  journeys: false, partners: false },
+  investments: { investors: false, investments: true,  boutiques: false, cargos: false, journeys: false, partners: false },
+  shop:        { investors: false, investments: false, boutiques: true,  cargos: false, journeys: false, partners: false },
+  community:   { investors: true,  investments: false, boutiques: false, cargos: false, journeys: false, partners: true  },
+  journeys:    { investors: false, investments: false, boutiques: false, cargos: false, journeys: true,  partners: false },
 };
 
 const LAYER_DEFS: Array<{ id: GlobeLayer; icon: string; label: string; shortLabel: string; color: string; analyticsEvent: string }> = [
@@ -71,7 +72,7 @@ function makeTooltip(): HTMLDivElement {
 }
 
 function applyVisibility(
-  groups: { investors: HTMLElement[]; investments: HTMLElement[]; boutiques: HTMLElement[]; cargos: HTMLElement[]; journeys: HTMLElement[] },
+  groups: { investors: HTMLElement[]; investments: HTMLElement[]; boutiques: HTMLElement[]; cargos: HTMLElement[]; journeys: HTMLElement[]; partners: HTMLElement[] },
   layer: GlobeLayer,
 ) {
   const vis = LAYER_VISIBILITY[layer];
@@ -85,6 +86,7 @@ function applyVisibility(
   toggle(groups.boutiques,   vis['boutiques']);
   toggle(groups.cargos,      vis['cargos']);
   toggle(groups.journeys,    vis['journeys']);
+  toggle(groups.partners,    vis['partners']);
 }
 
 interface WorldMapProps {
@@ -105,7 +107,8 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor, onDataLoaded }) => {
     boutiques:   HTMLElement[];
     cargos:      HTMLElement[];
     journeys:    HTMLElement[];
-  }>({ investors: [], investments: [], boutiques: [], cargos: [], journeys: [] });
+    partners:    HTMLElement[];
+  }>({ investors: [], investments: [], boutiques: [], cargos: [], journeys: [], partners: [] });
 
   const [mapError,        setMapError]        = useState(false);
   const [mapReady,        setMapReady]        = useState(false);
@@ -115,6 +118,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor, onDataLoaded }) => {
   const [investmentCount, setInvestmentCount] = useState(0);
   const [boutiqueCount,   setBoutiqueCount]   = useState(0);
   const [journeyCount,    setJourneyCount]    = useState(0);
+  const [partnerCount,    setPartnerCount]    = useState(0);
   const [animatingLayer,  setAnimatingLayer]  = useState<GlobeLayer | null>(null);
 
   // Keep ref in sync so map.on('load') closure can read current layer
@@ -168,6 +172,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor, onDataLoaded }) => {
       let investments: PublicMapInvestment[] = [];
       let boutiques:   PublicMapBoutique[]   = [];
       let journeys:    PublicMapJourney[]    = [];
+      let partners:    PublicMapPartner[]    = [];
 
       try {
         const data = await getPublicMapData();
@@ -176,6 +181,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor, onDataLoaded }) => {
         investments = data.investments ?? [];
         boutiques   = data.boutiques  ?? [];
         journeys    = data.journeys   ?? [];
+        partners    = data.partners   ?? [];
         onDataLoaded?.(data);
       } catch {
         // Map still shows even if data fetch fails
@@ -187,6 +193,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor, onDataLoaded }) => {
       groups.investments = [];
       groups.boutiques   = [];
       groups.cargos      = [];
+      groups.partners    = [];
       groups.journeys    = [];
 
       function groupByCountry<T extends { location: string }>(items: T[]): Map<string, T[]> {
@@ -654,6 +661,45 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor, onDataLoaded }) => {
       }
       setJourneyCount(visibleJourneys);
 
+      // ════════════════════════════════════════════════════════════════════════
+      // PARTNERS
+      // ════════════════════════════════════════════════════════════════════════
+      for (const partner of partners) {
+        if (!partner.locationLat || !partner.locationLng) continue;
+
+        const el = document.createElement('div');
+        el.style.cssText = 'width:36px;height:36px;cursor:pointer;position:relative;transition:opacity 0.3s ease;';
+        groups.partners.push(el);
+
+        const inner = document.createElement('div');
+        inner.style.cssText = `
+          width:36px;height:36px;border-radius:50%;
+          background:rgba(8,10,18,0.88);
+          border:2.5px solid ${CLR_PARTNER};
+          display:flex;align-items:center;justify-content:center;
+          font-size:16px;line-height:1;
+          box-shadow:0 0 10px ${CLR_PARTNER}66,0 3px 10px rgba(0,0,0,0.75);
+          transition:transform 0.15s,box-shadow 0.15s;
+        `;
+        inner.textContent = '🤝';
+        el.appendChild(inner);
+
+        const popup = new maplibregl.Popup({ closeButton: false, offset: 16, className: 'world-map-popup' }).setHTML(
+          `<strong>🤝 ${esc(partner.name)}</strong>` +
+          (partner.location ? `<br/><span style="color:#94a3b8">📍 ${esc(partner.location)}</span>` : '') +
+          `<br/><span style="color:${CLR_PARTNER};font-size:0.78rem;">NomadMe partner</span>`
+        );
+
+        el.addEventListener('mouseenter', () => { inner.style.transform = 'scale(1.22)'; inner.style.boxShadow = `0 0 18px ${CLR_PARTNER}aa,0 4px 14px rgba(0,0,0,0.9)`; });
+        el.addEventListener('mouseleave', () => { inner.style.transform = 'scale(1)';    inner.style.boxShadow = `0 0 10px ${CLR_PARTNER}66,0 3px 10px rgba(0,0,0,0.75)`; });
+
+        new maplibregl.Marker({ element: el, anchor: 'center' })
+          .setLngLat([partner.locationLng, partner.locationLat])
+          .setPopup(popup)
+          .addTo(map);
+      }
+      setPartnerCount(partners.filter((p) => p.locationLat && p.locationLng).length);
+
       setDataLoaded(true);
       // Apply the layer that was active when the map finished loading
       applyVisibility(groups, activeLayerRef.current);
@@ -685,8 +731,9 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor, onDataLoaded }) => {
   const showLegendBoutiques   = activeLayer === 'all' || activeLayer === 'shop';
   const showLegendCargos      = activeLayer === 'all' || activeLayer === 'trade';
   const showLegendJourneys    = activeLayer === 'all' || activeLayer === 'journeys';
+  const showLegendPartners    = activeLayer === 'all' || activeLayer === 'community';
 
-  const hasData = investorCount > 0 || cargoCount > 0 || investmentCount > 0 || boutiqueCount > 0 || journeyCount > 0;
+  const hasData = investorCount > 0 || cargoCount > 0 || investmentCount > 0 || boutiqueCount > 0 || journeyCount > 0 || partnerCount > 0;
 
   return (
     <div style={{ position: 'relative', flex: 1, minHeight: 0 }}>
@@ -880,6 +927,11 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor, onDataLoaded }) => {
           {journeyCount > 0 && (
             <span className="globe-legend-item" style={{ background: 'rgba(13,16,26,0.88)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: 999, padding: '4px 12px', fontSize: '0.7rem', color: '#f59e0b', fontWeight: 600, opacity: showLegendJourneys ? 1 : 0 }}>
               🧭 {journeyCount} journey{journeyCount !== 1 ? 's' : ''}
+            </span>
+          )}
+          {partnerCount > 0 && (
+            <span className="globe-legend-item" style={{ background: 'rgba(13,16,26,0.88)', border: `1px solid ${CLR_PARTNER}44`, borderRadius: 999, padding: '4px 12px', fontSize: '0.7rem', color: CLR_PARTNER, fontWeight: 600, opacity: showLegendPartners ? 1 : 0 }}>
+              🤝 {partnerCount} partner{partnerCount !== 1 ? 's' : ''}
             </span>
           )}
         </div>

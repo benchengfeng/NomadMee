@@ -6,6 +6,7 @@ import {
   deleteJourney,
   Journey,
 } from '../../../api/portalApi';
+import ImageCropUploader from '../ImageCropUploader';
 
 interface Props {
   showToast: (message: string, type?: 'success' | 'error') => void;
@@ -27,7 +28,6 @@ const emptyForm = {
   locationLng: '',
   coverImageUrl: '',
   coverVideoUrl: '',
-  gallery: '',
   maxGroupSize: '',
   spotsRemaining: '',
   guideName: '',
@@ -47,6 +47,7 @@ const AdminJourneysSection: React.FC<Props> = ({ showToast }) => {
   const [editing, setEditing] = useState<Journey | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ ...emptyForm });
+  const [gallery, setGallery] = useState<string[]>([]);
   const [durations, setDurations] = useState<DurationRow[]>([{ ...emptyDuration }]);
 
   const load = () => {
@@ -62,6 +63,7 @@ const AdminJourneysSection: React.FC<Props> = ({ showToast }) => {
   const openNew = () => {
     setEditing(null);
     setForm({ ...emptyForm });
+    setGallery([]);
     setDurations([{ ...emptyDuration }]);
     setShowForm(true);
   };
@@ -77,7 +79,6 @@ const AdminJourneysSection: React.FC<Props> = ({ showToast }) => {
       locationLng: String(j.locationLng ?? ''),
       coverImageUrl: j.coverImageUrl ?? '',
       coverVideoUrl: j.coverVideoUrl ?? '',
-      gallery: (j.gallery ?? []).join('\n'),
       maxGroupSize: String(j.maxGroupSize ?? ''),
       spotsRemaining: String(j.spotsRemaining ?? ''),
       guideName: j.guideName ?? '',
@@ -89,6 +90,7 @@ const AdminJourneysSection: React.FC<Props> = ({ showToast }) => {
       included: (j.included ?? []).join('\n'),
       notIncluded: (j.notIncluded ?? []).join('\n'),
     });
+    setGallery(j.gallery ?? []);
     setDurations(
       j.durations.length > 0
         ? j.durations.map((d) => ({ label: d.label, description: d.description, price: d.price, currency: d.currency }))
@@ -98,6 +100,12 @@ const AdminJourneysSection: React.FC<Props> = ({ showToast }) => {
   };
 
   const set = (k: keyof typeof emptyForm, v: string) => setForm((f) => ({ ...f, [k]: v }));
+
+  const addGalleryImg = () => setGallery((g) => [...g, '']);
+  const setGalleryImg = (i: number, url: string) =>
+    setGallery((g) => { const n = [...g]; n[i] = url; return n; });
+  const removeGalleryImg = (i: number) =>
+    setGallery((g) => g.filter((_, idx) => idx !== i));
 
   const setDur = (i: number, k: keyof DurationRow, v: string | number) =>
     setDurations((ds) => ds.map((d, idx) => idx === i ? { ...d, [k]: v } : d));
@@ -114,7 +122,7 @@ const AdminJourneysSection: React.FC<Props> = ({ showToast }) => {
     locationLng: parseFloat(form.locationLng) || 0,
     coverImageUrl: form.coverImageUrl.trim(),
     coverVideoUrl: form.coverVideoUrl.trim(),
-    gallery: form.gallery.split('\n').map((s) => s.trim()).filter(Boolean),
+    gallery: gallery.filter(Boolean),
     durations: durations.filter((d) => d.label).map((d) => ({
       label: d.label,
       description: d.description,
@@ -212,16 +220,38 @@ const AdminJourneysSection: React.FC<Props> = ({ showToast }) => {
           </Section>
         </div>
 
-        <Section label="Cover image URL">
-          <input value={form.coverImageUrl} onChange={(e) => set('coverImageUrl', e.target.value)} style={inputStyle} placeholder="https://res.cloudinary.com/…" />
+        <Section label="Cover image">
+          <ImageCropUploader
+            value={form.coverImageUrl}
+            onChange={(url) => set('coverImageUrl', url)}
+            aspect={16 / 9}
+            label="Cover image"
+            previewHeight={160}
+          />
         </Section>
 
         <Section label="Cover video URL (optional)">
           <input value={form.coverVideoUrl} onChange={(e) => set('coverVideoUrl', e.target.value)} style={inputStyle} placeholder="https://res.cloudinary.com/…/video.mp4" />
         </Section>
 
-        <Section label="Gallery image URLs (one per line)">
-          <textarea value={form.gallery} onChange={(e) => set('gallery', e.target.value)} rows={4} style={inputStyle} placeholder={"https://res.cloudinary.com/…/img1.jpg\nhttps://…/img2.jpg"} />
+        <Section label="Gallery images">
+          {gallery.map((url, i) => (
+            <div key={i} style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginBottom: 10 }}>
+              <div style={{ flex: 1 }}>
+                <ImageCropUploader
+                  value={url}
+                  onChange={(newUrl) => setGalleryImg(i, newUrl)}
+                  aspect={4 / 3}
+                  label={`Gallery image ${i + 1}`}
+                  previewHeight={110}
+                />
+              </div>
+              <button onClick={() => removeGalleryImg(i)} style={{ background: 'none', border: '1px solid #334155', borderRadius: 8, padding: '5px 10px', color: '#ef4444', cursor: 'pointer', fontSize: '0.9rem', marginTop: 4, flexShrink: 0 }}>✕</button>
+            </div>
+          ))}
+          <button onClick={addGalleryImg} style={{ fontSize: '0.82rem', color: '#94a3b8', background: 'none', border: '1px dashed #334155', borderRadius: 8, padding: '6px 14px', cursor: 'pointer', marginTop: 4 }}>
+            + Add gallery image
+          </button>
         </Section>
 
         <Section label="Duration options">
@@ -266,8 +296,15 @@ const AdminJourneysSection: React.FC<Props> = ({ showToast }) => {
           <input value={form.guideName} onChange={(e) => set('guideName', e.target.value)} style={inputStyle} placeholder="Youssef El Amine" />
         </Section>
 
-        <Section label="Guide photo URL">
-          <input value={form.guidePhoto} onChange={(e) => set('guidePhoto', e.target.value)} style={inputStyle} placeholder="https://res.cloudinary.com/…/guide.jpg" />
+        <Section label="Guide photo">
+          <ImageCropUploader
+            value={form.guidePhoto}
+            onChange={(url) => set('guidePhoto', url)}
+            aspect={1}
+            cropShape="round"
+            label="Guide photo"
+            previewHeight={100}
+          />
         </Section>
 
         <Section label="Guide bio">

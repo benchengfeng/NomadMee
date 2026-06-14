@@ -6,6 +6,9 @@ export type PartnerDocument = {
   title: string;
   description: string;
   active: boolean;
+  location?: string;
+  locationLat?: number | null;
+  locationLng?: number | null;
   createdAt?: Date;
   updatedAt?: Date;
 };
@@ -17,6 +20,9 @@ const PartnerSchema = new Schema<PartnerDocument>(
     title: { type: String, default: '', trim: true },
     description: { type: String, default: '', trim: true },
     active: { type: Boolean, default: true },
+    location: { type: String, default: '', trim: true },
+    locationLat: { type: Number, default: null },
+    locationLng: { type: Number, default: null },
   },
   { timestamps: true }
 );

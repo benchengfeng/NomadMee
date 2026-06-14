@@ -124,6 +124,7 @@ export type PublicMapData = {
   investments: PublicMapInvestment[];
   boutiques: PublicMapBoutique[];
   journeys: PublicMapJourney[];
+  partners: PublicMapPartner[];
   stats: PublicMapStats;
 };
 
@@ -325,6 +326,9 @@ export type Partner = {
   title: string;
   description: string;
   active?: boolean;
+  location?: string;
+  locationLat?: number;
+  locationLng?: number;
   createdAt?: string;
   updatedAt?: string;
 };
@@ -335,6 +339,18 @@ export type PartnerInput = {
   title: string;
   description: string;
   active: boolean;
+  location?: string;
+  locationLat?: number;
+  locationLng?: number;
+};
+
+export type PublicMapPartner = {
+  _id: string;
+  name: string;
+  logoUrl: string;
+  location: string;
+  locationLat: number;
+  locationLng: number;
 };
 
 export type SiteContent = {

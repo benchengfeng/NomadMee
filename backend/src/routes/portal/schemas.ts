@@ -157,6 +157,9 @@ export const PartnerBody = z.object({
   title:       z.string().trim().default(''),
   description: z.string().trim().default(''),
   active:      z.boolean().default(true),
+  location:    z.string().trim().default(''),
+  locationLat: z.number().optional(),
+  locationLng: z.number().optional(),
 });
 export type PartnerBody = z.infer<typeof PartnerBody>;
 

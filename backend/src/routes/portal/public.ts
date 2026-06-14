@@ -103,7 +103,7 @@ router.get('/public/map-data', async (_req: Request, res: Response): Promise<voi
   try {
     const now = new Date();
 
-    const [investors, cargos, investmentCount, allInvestors, investorInvestmentCounts, avatarDocs, boutiques, activeJourneys] = await Promise.all([
+    const [investors, cargos, investmentCount, allInvestors, investorInvestmentCounts, avatarDocs, boutiques, activeJourneys, geoPartners] = await Promise.all([
       InvestorModel.find({ kycCompleted: true }).select('displayName name avatar location').lean(),
       CargoModel.find({ hidden: { $ne: true } }).select('productBeingShipped shippingType purchaseLocation shippingDestination estimatedTimeOfArrival createdAt purchaseDate purchasePrice').lean(),
       InvestmentModel.countDocuments({ hidden: { $ne: true } }),
@@ -115,6 +115,7 @@ router.get('/public/map-data', async (_req: Request, res: Response): Promise<voi
       AvatarModel.find().select('imageUrl').lean(),
       BoutiqueModel.find({ active: true }).select('name logoUrl description location').lean(),
       JourneyModel.find({ status: { $in: ['active', 'full'] } }).select('title tagline location locationLat locationLng spotsRemaining status coverImageUrl').lean(),
+      PartnerModel.find({ active: true, locationLat: { $ne: null }, locationLng: { $ne: null } }).select('name logoUrl location locationLat locationLng').lean(),
     ]);
     const dbAvatarMap = new Map((avatarDocs as Array<{ _id: unknown; imageUrl: string }>).map((a) => [String(a._id), a.imageUrl]));
 
@@ -208,6 +209,14 @@ router.get('/public/map-data', async (_req: Request, res: Response): Promise<voi
         spotsRemaining: j.spotsRemaining ?? 0,
         status: j.status,
         coverImageUrl: j.coverImageUrl || '',
+      })),
+      partners: geoPartners.map((p) => ({
+        _id: p._id,
+        name: p.name,
+        logoUrl: p.logoUrl || '',
+        location: p.location || '',
+        locationLat: (p as typeof p & { locationLat?: number }).locationLat ?? 0,
+        locationLng: (p as typeof p & { locationLng?: number }).locationLng ?? 0,
       })),
       stats: {
         totalInvested: Math.round(totalInvested),
