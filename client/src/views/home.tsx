@@ -10,10 +10,11 @@ import { SocialLinks } from '../components/common/socialPlatforms';
 import PartnersShowcase from '../components/home/PartnersShowcase';
 import ShopSections from '../components/shop/ShopSections';
 import { track } from '../utils/analytics';
-import { getPublicInvestments, getPublicSiteContent, getPublicProducts, getPublicPartners, Partner, PublicInvestment, PublicProduct, PublicBundle, ShopGalleries, SiteContent } from '../api/portalApi';
+import { getPublicInvestments, getPublicSiteContent, getPublicProducts, getPublicPartners, getPublicJourneys, Partner, PublicInvestment, PublicProduct, PublicBundle, ShopGalleries, SiteContent, Journey } from '../api/portalApi';
 import '../styles/landing.css';
+import '../styles/journeys.css';
 
-type LandingSection = 'globe' | 'investments' | 'shop' | 'who';
+type LandingSection = 'globe' | 'investments' | 'journeys' | 'shop' | 'who';
 
 const STATUS_STYLE: Record<string, { color: string; bg: string }> = {
   active:      { color: '#22c55e', bg: 'rgba(34,197,94,0.1)' },
@@ -24,6 +25,7 @@ const STATUS_STYLE: Record<string, { color: string; bg: string }> = {
 const NAV_ITEMS: Array<{ id: LandingSection; key: string }> = [
   { id: 'globe', key: 'nav.globe' },
   { id: 'investments', key: 'nav.investments' },
+  { id: 'journeys', key: 'nav.journeys' },
   { id: 'shop', key: 'nav.shop' },
   { id: 'who', key: 'nav.whoAreWe' },
 ];
@@ -52,6 +54,9 @@ const LandingPage: React.FC = () => {
   const [productsLoaded, setProductsLoaded] = useState(false);
   const [siteContent, setSiteContent] = useState<SiteContent | null>(null);
   const [partners, setPartners] = useState<Partner[]>([]);
+  const [journeys, setJourneys] = useState<Journey[]>([]);
+  const [loadingJourneys, setLoadingJourneys] = useState(false);
+  const [journeysLoaded, setJourneysLoaded] = useState(false);
 
   const idx = Math.min(Math.max(selectedTheme, 0), landingThemes.length - 1);
   const palette = landingThemes[idx] as (typeof landingThemes)[number];
@@ -103,6 +108,14 @@ const LandingPage: React.FC = () => {
         .then((r) => { setProducts(r.products); setShopGalleries(r.galleries); setBundles(r.bundles ?? []); setProductsLoaded(true); })
         .catch(() => setProductsError(true))
         .finally(() => setLoadingProducts(false));
+    }
+    if (section === 'journeys' && !journeysLoaded) {
+      setLoadingJourneys(true);
+      getPublicJourneys()
+        .then((r) => { setJourneys(r.journeys); setJourneysLoaded(true); })
+        .catch(() => {})
+        .finally(() => setLoadingJourneys(false));
+      track('journey_section_viewed');
     }
     if (section === 'who' && !siteContent) {
       getPublicSiteContent('who_are_we').then((r) => setSiteContent(r.content)).catch(() => {});
@@ -297,6 +310,95 @@ const LandingPage: React.FC = () => {
                 })}
               </div>
             )}
+          </div>
+        )}
+
+        {/* Journeys */}
+        {section === 'journeys' && (
+          <div className="landing-section-inner">
+            <div className="journeys-section">
+              <p className="journeys-eyebrow" style={{ color: palette.accent }}>{t('journeys.eyebrow')}</p>
+              <h2 className="journeys-headline" style={{ color: palette.text }}>{t('journeys.title')}</h2>
+              <p className="journeys-sub" style={{ color: palette.textMuted }}>{t('journeys.sub')}</p>
+
+              {/* Journey cards */}
+              {loadingJourneys ? (
+                <div className="journeys-grid">
+                  {[1,2].map((i) => (
+                    <div key={i} className="journey-card" style={{ height: 380, background: `${palette.surface}`, animation: 'shimmer 1.6s infinite linear', backgroundSize: '200% 100%' }} />
+                  ))}
+                </div>
+              ) : journeys.length === 0 ? (
+                <div style={{ textAlign: 'center', padding: '60px 0', opacity: 0.5 }}>
+                  <div style={{ fontSize: '2.2rem', marginBottom: 14 }}>🧭</div>
+                  <p style={{ color: palette.textMuted, fontSize: '0.9rem' }}>{t('journeys.comingSoon')}</p>
+                </div>
+              ) : (
+                <div className="journeys-grid">
+                  {journeys.map((j) => {
+                    const minPrice = j.durations.length > 0 ? Math.min(...j.durations.map((d) => d.price)) : null;
+                    const minCurrency = j.durations[0]?.currency ?? 'USD';
+                    return (
+                      <a
+                        key={j._id}
+                        href={`/journeys/${j._id}`}
+                        className="journey-card"
+                        style={{ borderColor: `${palette.accent}22` }}
+                        onClick={(e) => { e.preventDefault(); navigate(`/journeys/${j._id}`); track('journey_card_clicked', { journeyId: j._id }); }}
+                      >
+                        <div className="journey-card-cover">
+                          {j.coverImageUrl ? (
+                            <img src={j.coverImageUrl} alt={j.title} loading="lazy" />
+                          ) : (
+                            <div style={{ width: '100%', height: '100%', background: `linear-gradient(135deg, ${palette.accent}22, ${palette.surface})`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '3rem', opacity: 0.4 }}>🌍</div>
+                          )}
+                          <div className="journey-card-cover-overlay" />
+                          <span className={`journey-spots-badge${j.status === 'full' ? ' journey-full-badge' : ''}`} style={{ color: j.status === 'full' ? undefined : palette.accent }}>
+                            {j.status === 'full' ? t('journeys.full') : `${j.spotsRemaining} ${t('journeys.spotsLeft')}`}
+                          </span>
+                        </div>
+                        <div className="journey-card-body">
+                          <span className="journey-card-location" style={{ color: palette.accent }}>📍 {j.location}</span>
+                          <h3 className="journey-card-title" style={{ color: palette.text }}>{j.title}</h3>
+                          <p className="journey-card-excerpt" style={{ color: palette.textMuted }}>{j.tagline || j.story.slice(0, 160)}</p>
+                          <div className="journey-card-durations">
+                            {j.durations.map((d, i) => (
+                              <span key={i} className="journey-duration-chip" style={{ borderColor: `${palette.accent}33`, color: palette.textMuted }}>{d.label}</span>
+                            ))}
+                          </div>
+                          <div className="journey-card-footer">
+                            {minPrice != null ? (
+                              <span className="journey-card-price" style={{ color: palette.textMuted }}>
+                                {t('journeys.from')} <strong style={{ color: palette.text }}>{minPrice.toLocaleString()} {minCurrency}</strong>
+                              </span>
+                            ) : <span />}
+                            <span className="journey-card-cta" style={{ background: palette.accent, color: '#000' }}>{t('journeys.learnMore')}</span>
+                          </div>
+                        </div>
+                      </a>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* How it works */}
+              <div className="journeys-how" style={{ background: `${palette.surface}88` }}>
+                {(Array.isArray(t('journeys.howSteps', { returnObjects: true })) ? t('journeys.howSteps', { returnObjects: true }) as Array<{ icon: string; text: string }> : []).map((step, i) => (
+                  <div key={i} className="journeys-how-step">
+                    <span className="journeys-how-icon">{step.icon}</span>
+                    <span className="journeys-how-label" style={{ color: palette.text }}>{step.text}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* Founder note */}
+              <div className="journeys-founder-note" style={{ borderLeftColor: palette.accent, background: `${palette.surface}44` }}>
+                <p className="journeys-founder-text" style={{ color: palette.text }}>
+                  {t('journeys.founderNote')}
+                </p>
+                <p className="journeys-founder-name" style={{ color: palette.accent }}>{t('journeys.founderName')}</p>
+              </div>
+            </div>
           </div>
         )}
 

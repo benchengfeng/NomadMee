@@ -18,6 +18,7 @@ import { CargoModel } from '../../models/Cargo';
 import { SessionModel } from '../../models/Session';
 import { ProductModel } from '../../models/Product';
 import { BundleModel } from '../../models/Bundle';
+import { JourneyModel } from '../../models/Journey';
 
 const router = Router();
 
@@ -248,6 +249,22 @@ router.get('/investor/products', async (req: Request, res: Response): Promise<vo
     res.status(200).json({ products: products.map((p) => mapPublicProduct(p as never)), galleries, bundles });
   } catch {
     res.status(500).json({ message: 'Failed to load products.' });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Investor — journeys (same list as public, labelled as partner-access)
+// ---------------------------------------------------------------------------
+
+router.get('/investor/journeys', async (req: Request, res: Response): Promise<void> => {
+  if (!await requireInvestor(req, res)) return;
+  try {
+    const journeys = await JourneyModel.find({ status: { $in: ['active', 'full', 'draft'] } })
+      .sort({ createdAt: -1 })
+      .lean();
+    res.status(200).json({ journeys });
+  } catch {
+    res.status(500).json({ message: 'Failed to load journeys.' });
   }
 });
 

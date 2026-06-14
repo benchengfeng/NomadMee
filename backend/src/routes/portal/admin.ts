@@ -22,6 +22,7 @@ import {
   PartnerBody,
   BoutiqueBody,
   BundleBody,
+  JourneyBody,
   zodErr,
 } from './schemas';
 import { CargoModel } from '../../models/Cargo';
@@ -36,6 +37,7 @@ import { ProductOrderModel } from '../../models/ProductOrder';
 import { PartnerModel } from '../../models/Partner';
 import { BoutiqueModel } from '../../models/Boutique';
 import { BundleModel } from '../../models/Bundle';
+import { JourneyModel } from '../../models/Journey';
 
 const router = Router();
 
@@ -790,6 +792,53 @@ router.delete('/admin/bundles/:id', async (req: Request, res: Response): Promise
     res.status(200).json({ message: 'Bundle deleted.' });
   } catch (error) {
     res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to delete bundle.' });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Admin — journeys
+// ---------------------------------------------------------------------------
+
+router.get('/admin/journeys', async (req: Request, res: Response): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  const journeys = await JourneyModel.find().sort({ createdAt: -1 }).lean();
+  res.status(200).json({ journeys });
+});
+
+router.post('/admin/journeys', async (req: Request, res: Response): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  try {
+    const b = JourneyBody.parse(req.body);
+    const journey = await JourneyModel.create(b);
+    res.status(201).json({ journey });
+  } catch (error) {
+    res.status(400).json({ message: zodErr(error, 'Failed to create journey.') });
+  }
+});
+
+router.put('/admin/journeys/:id', async (req: Request, res: Response): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  try {
+    const b = JourneyBody.parse(req.body);
+    const journey = await JourneyModel.findByIdAndUpdate(
+      req.params.id,
+      { $set: b },
+      { new: true, runValidators: true }
+    ).lean();
+    if (!journey) { res.status(404).json({ message: 'Journey not found.' }); return; }
+    res.status(200).json({ journey });
+  } catch (error) {
+    res.status(400).json({ message: zodErr(error, 'Failed to update journey.') });
+  }
+});
+
+router.delete('/admin/journeys/:id', async (req: Request, res: Response): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+  try {
+    await JourneyModel.findByIdAndDelete(req.params.id);
+    res.status(200).json({ message: 'Journey deleted.' });
+  } catch (error) {
+    res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to delete journey.' });
   }
 });
 

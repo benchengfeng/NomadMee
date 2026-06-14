@@ -171,6 +171,54 @@ export const BundleBody = z.object({
 });
 export type BundleBody = z.infer<typeof BundleBody>;
 
+// ── Journey ────────────────────────────────────────────────────────────────
+
+const DurationOptionItem = z.object({
+  label:       z.string().trim(),
+  price:       z.coerce.number().min(0).default(0),
+  currency:    z.string().trim().default('USD'),
+  description: z.string().trim().default(''),
+});
+
+export const JourneyBody = z.object({
+  title:          z.string().trim(),
+  tagline:        z.string().trim().default(''),
+  story:          z.string().trim().default(''),
+  location:       z.string().trim().default(''),
+  locationLat:    z.coerce.number().default(0),
+  locationLng:    z.coerce.number().default(0),
+  coverImageUrl:  z.string().trim().default(''),
+  coverVideoUrl:  z.string().trim().default(''),
+  gallery:        z.array(z.string()).default([]).transform((a) => a.filter(Boolean)),
+  durations:      z.array(DurationOptionItem).default([]).transform((a) => a.filter((d) => d.label)),
+  included:       z.array(z.string()).default([]).transform((a) => a.filter(Boolean)),
+  notIncluded:    z.array(z.string()).default([]).transform((a) => a.filter(Boolean)),
+  maxGroupSize:   z.coerce.number().min(1).default(6),
+  spotsRemaining: z.coerce.number().min(0).default(6),
+  guideName:      z.string().trim().default(''),
+  guidePhoto:     z.string().trim().default(''),
+  guideBio:       z.string().trim().default(''),
+  guideQuote:     z.string().trim().default(''),
+  availableDates: z.array(z.string()).default([]).transform((a) => a.filter(Boolean)),
+  status:         z.enum(['draft', 'active', 'full', 'past']).default('draft'),
+});
+export type JourneyBody = z.infer<typeof JourneyBody>;
+
+// ── Journey interest ────────────────────────────────────────────────────────
+
+export const JourneyInterestBody = z.object({
+  journeyId:        z.string().trim(),
+  journeyTitle:     z.string().trim().default(''),
+  fullName:         z.string().trim(),
+  contactMethod:    z.enum(['whatsapp', 'email']),
+  contactDetail:    z.string().trim(),
+  preferredDuration: z.string().trim().default(''),
+  preferredDates:   z.string().trim().default(''),
+  note:             z.string().trim().default(''),
+  website:          z.string().optional(), // honeypot
+});
+export type JourneyInterestBody = z.infer<typeof JourneyInterestBody>;
+
 // ── Error helper ───────────────────────────────────────────────────────────
 
 export function zodErr(err: unknown, fallback: string): string {

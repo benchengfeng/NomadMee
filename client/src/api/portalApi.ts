@@ -102,12 +102,72 @@ export type PublicMapBoutique = {
   location: string;
 };
 
+export type PublicMapJourney = {
+  _id: string;
+  title: string;
+  tagline: string;
+  location: string;
+  locationLat: number;
+  locationLng: number;
+  spotsRemaining: number;
+  status: 'active' | 'full' | 'past';
+  coverImageUrl: string;
+};
+
 export type PublicMapData = {
   investors: PublicMapInvestor[];
   cargos: PublicMapCargo[];
   investments: PublicMapInvestment[];
   boutiques: PublicMapBoutique[];
+  journeys: PublicMapJourney[];
   stats: PublicMapStats;
+};
+
+export type DurationOption = {
+  label: string;
+  price: number;
+  currency: string;
+  description: string;
+};
+
+export type JourneyStatus = 'draft' | 'active' | 'full' | 'past';
+
+export type Journey = {
+  _id: string;
+  title: string;
+  tagline: string;
+  story: string;
+  location: string;
+  locationLat: number;
+  locationLng: number;
+  coverImageUrl: string;
+  coverVideoUrl: string;
+  gallery: string[];
+  durations: DurationOption[];
+  included: string[];
+  notIncluded: string[];
+  maxGroupSize: number;
+  spotsRemaining: number;
+  guideName: string;
+  guidePhoto: string;
+  guideBio: string;
+  guideQuote: string;
+  availableDates: string[];
+  status: JourneyStatus;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
+export type JourneyInterestInput = {
+  journeyId: string;
+  journeyTitle: string;
+  fullName: string;
+  contactMethod: 'whatsapp' | 'email';
+  contactDetail: string;
+  preferredDuration: string;
+  preferredDates: string;
+  note: string;
+  website?: string;
 };
 
 export type InvestmentStatus = 'active' | 'in_progress' | 'waiting' | 'successful';
@@ -788,3 +848,53 @@ export async function updateBoutique(id: string, payload: BoutiqueInput): Promis
 export async function deleteBoutique(id: string): Promise<void> {
   await request<unknown>(`/admin/boutiques/${id}`, { method: 'DELETE' }, getAdminToken());
 }
+
+// ── Journeys (public) ──────────────────────────────────────────────────────
+
+export async function getPublicJourneys(): Promise<{ journeys: Journey[] }> {
+  return request<{ journeys: Journey[] }>('/public/journeys', { method: 'GET' });
+}
+
+export async function getPublicJourney(id: string): Promise<{ journey: Journey }> {
+  return request<{ journey: Journey }>(`/public/journeys/${id}`, { method: 'GET' });
+}
+
+export async function submitJourneyInterest(payload: JourneyInterestInput): Promise<{ ok: boolean }> {
+  return request<{ ok: boolean }>('/public/journey-interest', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+// ── Journeys (investor) ────────────────────────────────────────────────────
+
+export async function getInvestorJourneys(): Promise<{ journeys: Journey[] }> {
+  return request<{ journeys: Journey[] }>('/investor/journeys', { method: 'GET' }, getInvestorToken());
+}
+
+// ── Journeys (admin) ───────────────────────────────────────────────────────
+
+export async function getAdminJourneys(): Promise<{ journeys: Journey[] }> {
+  return request<{ journeys: Journey[] }>('/admin/journeys', { method: 'GET' }, getAdminToken());
+}
+
+export async function createJourney(payload: Omit<Journey, '_id' | 'createdAt' | 'updatedAt'>): Promise<Journey> {
+  const res = await request<{ journey: Journey }>('/admin/journeys', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  }, getAdminToken());
+  return res.journey;
+}
+
+export async function updateJourney(id: string, payload: Omit<Journey, '_id' | 'createdAt' | 'updatedAt'>): Promise<Journey> {
+  const res = await request<{ journey: Journey }>(`/admin/journeys/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  }, getAdminToken());
+  return res.journey;
+}
+
+export async function deleteJourney(id: string): Promise<void> {
+  await request<unknown>(`/admin/journeys/${id}`, { method: 'DELETE' }, getAdminToken());
+}
+

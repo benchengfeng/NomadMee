@@ -3,16 +3,29 @@
     "globe": "地球",
     "investments": "投资项目",
     "whoAreWe": "关于我们",
-    "shop": "商店"
+    "shop": "商店",
+    "journeys": "旅程"
   },
   "globe": {
     "taglineEyebrow": "投资 · 采购 · 追踪",
     "taglineHeadline": "真实货物。真实收益 — 全球实时追踪。",
     "trustStats": [
-      { "value": "2021", "label": "成立于" },
-      { "value": "12+", "label": "进行中货物" },
-      { "value": "7+", "label": "覆盖国家" },
-      { "value": "100%", "label": "全程可溯" }
+      {
+        "value": "2021",
+        "label": "成立于"
+      },
+      {
+        "value": "12+",
+        "label": "进行中货物"
+      },
+      {
+        "value": "7+",
+        "label": "覆盖国家"
+      },
+      {
+        "value": "100%",
+        "label": "全程可溯"
+      }
     ]
   },
   "how": {
@@ -108,5 +121,58 @@
   "partners": {
     "tapToLearn": "点击了解更多",
     "tapToFlip": "点击翻回"
+  },
+  "journeys": {
+    "eyebrow": "精选体验",
+    "title": "旅程",
+    "sub": "由NomadMee精心策划的非寻常体验——小团队、本地向导、无大众旅游。",
+    "comingSoon": "旅程即将推出——敬请期待。",
+    "learnMore": "了解更多 →",
+    "from": "起价",
+    "spotsLeft": "个名额剩余",
+    "full": "已满",
+    "howSteps": [
+      {
+        "icon": "🔍",
+        "text": "浏览并选择您的旅程"
+      },
+      {
+        "icon": "✍️",
+        "text": "提交意向 — 现在无需付款"
+      },
+      {
+        "icon": "📞",
+        "text": "我们将联系您确认并共同规划"
+      }
+    ],
+    "founderNote": "我们提供的每一段旅程都是我自己愿意去的。小团队、真实体验、没有任何造作。我们直接与了解这些地方的本地向导合作。",
+    "founderName": "— Amine，NomadMee创始人",
+    "scrollHint": "滚动探索",
+    "notFound": "旅程未找到。",
+    "guideRole": "您的向导",
+    "detailLocation": "地点",
+    "detailGroupSize": "团队规模",
+    "maxPeople": "人上限",
+    "detailDates": "可用日期",
+    "detailStatus": "状态",
+    "included": "包含内容",
+    "notIncluded": "不包含",
+    "pricing": "价格",
+    "whereYoullBe": "您将身处",
+    "interestTitle": "表达您的兴趣",
+    "interestSub": "现在无需付款 — 我们将联系您确认日期并共同规划详情。",
+    "successTitle": "已收到您的兴趣！",
+    "successBody": "感谢您的关注。我们将在48小时内与您联系。",
+    "labelDuration": "偏好时长",
+    "durationAny": "任意时长",
+    "labelDates": "偏好日期",
+    "datesPlaceholder": "例如：2026年3月，或灵活",
+    "notePlaceholder": "请告诉我们一些关于您自己以及吸引您参加这次旅程的原因…",
+    "submitInterest": "表达兴趣",
+    "noPaymentYet": "现在无需付款 — 我们将联系您确认。",
+    "submitError": "无法提交您的兴趣。请重试。",
+    "ofMax": "共",
+    "partnerPreview": "合作伙伴预览",
+    "partnerDesc": "作为合作伙伴，您可以在旅程公开发布前提前访问。"
   }
 }

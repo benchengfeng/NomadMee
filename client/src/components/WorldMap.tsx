@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import { getPublicMapData, PublicMapCargo, PublicMapInvestor, PublicMapInvestment, PublicMapBoutique, PublicMapData } from '../api/portalApi';
+import { getPublicMapData, PublicMapCargo, PublicMapInvestor, PublicMapInvestment, PublicMapBoutique, PublicMapData, PublicMapJourney } from '../api/portalApi';
 import { buildCargoRoute, getPositionAtProgress } from '../utils/routeBuilder';
 import { findCountryCoords } from '../utils/countries';
 import { track } from '../utils/analytics';
@@ -64,6 +64,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ onDataLoaded }) => {
   const [cargoCount,      setCargoCount]      = useState(0);
   const [investmentCount, setInvestmentCount] = useState(0);
   const [boutiqueCount,   setBoutiqueCount]   = useState(0);
+  const [journeyCount,    setJourneyCount]    = useState(0);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -94,6 +95,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ onDataLoaded }) => {
       let cargos:      PublicMapCargo[]      = [];
       let investments: PublicMapInvestment[] = [];
       let boutiques:   PublicMapBoutique[]   = [];
+      let journeys:    PublicMapJourney[]    = [];
 
       try {
         const data = await getPublicMapData();
@@ -101,6 +103,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ onDataLoaded }) => {
         cargos      = data.cargos;
         investments = data.investments ?? [];
         boutiques   = data.boutiques  ?? [];
+        journeys    = data.journeys   ?? [];
         onDataLoaded?.(data);
       } catch {
         // Map still shows even if data fetch fails
@@ -512,6 +515,65 @@ const WorldMap: React.FC<WorldMapProps> = ({ onDataLoaded }) => {
           .addTo(map);
       }
       setCargoCount(visibleCargos);
+
+      // ════════════════════════════════════════════════════════════════════════
+      // JOURNEYS — amber compass markers with pulse for active spots
+      // ════════════════════════════════════════════════════════════════════════
+      const CLR_JOURNEY = '#f59e0b';
+      let visibleJourneys = 0;
+      for (const journey of journeys) {
+        if (!journey.locationLat || !journey.locationLng) continue;
+        visibleJourneys++;
+
+        const el = document.createElement('div');
+        el.style.cssText = 'width:38px;height:38px;cursor:pointer;position:relative;';
+
+        const inner = document.createElement('div');
+        inner.style.cssText = `
+          width:38px;height:38px;border-radius:50%;
+          background:rgba(8,10,18,0.88);
+          border:2.5px solid ${CLR_JOURNEY};
+          display:flex;align-items:center;justify-content:center;
+          font-size:17px;line-height:1;
+          box-shadow:0 0 12px ${CLR_JOURNEY}66,0 3px 10px rgba(0,0,0,0.75);
+          transition:transform 0.15s,box-shadow 0.15s;
+        `;
+        inner.textContent = '🧭';
+        el.appendChild(inner);
+
+        if (journey.status === 'active' && journey.spotsRemaining > 0) {
+          const ring = document.createElement('div');
+          ring.style.cssText = `
+            position:absolute;top:-4px;left:-4px;width:46px;height:46px;
+            border-radius:50%;border:2px solid ${CLR_JOURNEY};
+            animation:worldMapPulse 2.4s ease-out infinite;opacity:0.45;
+          `;
+          el.appendChild(ring);
+        }
+
+        const spotsText = journey.status === 'full'
+          ? '<span style="color:#f87171">Full</span>'
+          : journey.spotsRemaining > 0
+            ? `<span style="color:${CLR_JOURNEY}">${journey.spotsRemaining} spot${journey.spotsRemaining !== 1 ? 's' : ''} left</span>`
+            : '';
+
+        const popup = new maplibregl.Popup({ closeButton: false, offset: 16, className: 'world-map-popup' }).setHTML(
+          `<strong>🧭 ${esc(journey.title)}</strong>` +
+          `<br/><span style="color:#94a3b8">📍 ${esc(journey.location)}</span>` +
+          (spotsText ? `<br/>${spotsText}` : '') +
+          `<br/><span style="color:${CLR_JOURNEY};font-size:0.78rem;cursor:pointer;" onclick="window.location.href='/journeys/${journey._id}'">View journey →</span>`
+        );
+
+        el.addEventListener('mouseenter', () => { inner.style.transform = 'scale(1.22)'; inner.style.boxShadow = `0 0 20px ${CLR_JOURNEY}aa,0 4px 14px rgba(0,0,0,0.9)`; });
+        el.addEventListener('mouseleave', () => { inner.style.transform = 'scale(1)';    inner.style.boxShadow = `0 0 12px ${CLR_JOURNEY}66,0 3px 10px rgba(0,0,0,0.75)`; });
+        el.addEventListener('click', () => { track('journey_card_clicked', { journeyId: journey._id, context: 'globe' }); window.location.href = `/journeys/${journey._id}`; });
+
+        new maplibregl.Marker({ element: el, anchor: 'center' })
+          .setLngLat([journey.locationLng, journey.locationLat])
+          .setPopup(popup)
+          .addTo(map);
+      }
+      setJourneyCount(visibleJourneys);
     });
 
     map.once('idle', () => setMapReady(true));
@@ -532,7 +594,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ onDataLoaded }) => {
     );
   }
 
-  const hasData = investorCount > 0 || cargoCount > 0 || investmentCount > 0 || boutiqueCount > 0;
+  const hasData = investorCount > 0 || cargoCount > 0 || investmentCount > 0 || boutiqueCount > 0 || journeyCount > 0;
 
   return (
     <div style={{ position: 'relative', flex: 1, minHeight: 0 }}>
@@ -605,6 +667,11 @@ const WorldMap: React.FC<WorldMapProps> = ({ onDataLoaded }) => {
           {cargoCount > 0 && (
             <span style={{ background: 'rgba(13,16,26,0.88)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 999, padding: '4px 12px', fontSize: '0.7rem', color: '#94a3b8', fontWeight: 600 }}>
               ✈ {cargoCount} cargo{cargoCount !== 1 ? 's' : ''} in transit
+            </span>
+          )}
+          {journeyCount > 0 && (
+            <span style={{ background: 'rgba(13,16,26,0.88)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: 999, padding: '4px 12px', fontSize: '0.7rem', color: '#f59e0b', fontWeight: 600 }}>
+              🧭 {journeyCount} journey{journeyCount !== 1 ? 's' : ''}
             </span>
           )}
         </div>

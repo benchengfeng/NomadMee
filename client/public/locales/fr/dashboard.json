@@ -14,7 +14,9 @@
     "supportShort": "Aide",
     "shopShort": "Boutique",
     "settingsShort": "Réglages",
-    "globe": "Globe"
+    "globe": "Globe",
+    "journeys": "Voyages",
+    "journeysShort": "Voyages"
   },
   "topbar": {
     "portal": "nomadme — portail investisseur",
@@ -91,11 +93,26 @@
     "exploreRoute": "Explorer l'itinéraire →",
     "faqTitle": "Questions fréquentes",
     "faqs": [
-      { "q": "Comment suivre ma cargaison ?", "a": "Allez dans l'onglet Cargaisons, puis appuyez sur 'Voir l'itinéraire' pour ouvrir la carte en direct." },
-      { "q": "Quand vais-je recevoir mon retour ?", "a": "Les retours sont traités après la vente de chaque cargaison. Votre gestionnaire vous enverra le détail du versement." },
-      { "q": "Comment changer ma devise d'affichage ?", "a": "Allez dans Paramètres et modifiez votre devise. Tous les montants du tableau de bord seront convertis automatiquement." },
-      { "q": "Que se passe-t-il si ma cargaison est retardée ?", "a": "Les retards peuvent survenir à cause des douanes ou de la logistique. Votre ETA sera mis à jour et votre gestionnaire vous tiendra informé." },
-      { "q": "Comment contacter mon gestionnaire de compte ?", "a": "Appuyez sur 'Contacter l'assistance' ci-dessus pour envoyer un e-mail pré-rempli à notre équipe. Nous répondons sous 24 heures." }
+      {
+        "q": "Comment suivre ma cargaison ?",
+        "a": "Allez dans l'onglet Cargaisons, puis appuyez sur 'Voir l'itinéraire' pour ouvrir la carte en direct."
+      },
+      {
+        "q": "Quand vais-je recevoir mon retour ?",
+        "a": "Les retours sont traités après la vente de chaque cargaison. Votre gestionnaire vous enverra le détail du versement."
+      },
+      {
+        "q": "Comment changer ma devise d'affichage ?",
+        "a": "Allez dans Paramètres et modifiez votre devise. Tous les montants du tableau de bord seront convertis automatiquement."
+      },
+      {
+        "q": "Que se passe-t-il si ma cargaison est retardée ?",
+        "a": "Les retards peuvent survenir à cause des douanes ou de la logistique. Votre ETA sera mis à jour et votre gestionnaire vous tiendra informé."
+      },
+      {
+        "q": "Comment contacter mon gestionnaire de compte ?",
+        "a": "Appuyez sur 'Contacter l'assistance' ci-dessus pour envoyer un e-mail pré-rempli à notre équipe. Nous répondons sous 24 heures."
+      }
     ]
   },
   "settings": {

@@ -71,7 +71,13 @@ export type AnalyticsEvent =
   | 'contact-method-select'
   // ── Navigation ──
   | 'nav-click'
-  | 'page-view';
+  | 'page-view'
+  // ── Journeys ──
+  | 'journey_section_viewed'
+  | 'journey_card_clicked'
+  | 'journey_detail_viewed'
+  | 'journey_interest_submitted'
+  | 'journey_guide_section_viewed';
 
 /** Inject the Umami script once, on app boot. No-op if unconfigured. */
 export function initAnalytics(): void {

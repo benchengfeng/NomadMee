@@ -3,16 +3,29 @@
     "globe": "The Globe",
     "investments": "Investments",
     "whoAreWe": "Who Are We?",
-    "shop": "Shop"
+    "shop": "Shop",
+    "journeys": "Journeys"
   },
   "globe": {
     "taglineEyebrow": "Invest · Source · Track",
     "taglineHeadline": "Real cargo. Real goods. Real returns — tracked across the globe.",
     "trustStats": [
-      { "value": "2021", "label": "Est." },
-      { "value": "12+", "label": "Active cargos" },
-      { "value": "7+", "label": "Countries" },
-      { "value": "100%", "label": "Traceable" }
+      {
+        "value": "2021",
+        "label": "Est."
+      },
+      {
+        "value": "12+",
+        "label": "Active cargos"
+      },
+      {
+        "value": "7+",
+        "label": "Countries"
+      },
+      {
+        "value": "100%",
+        "label": "Traceable"
+      }
     ]
   },
   "cta": {
@@ -108,5 +121,58 @@
   "partners": {
     "tapToLearn": "Tap to learn more",
     "tapToFlip": "Tap to flip back"
+  },
+  "journeys": {
+    "eyebrow": "Curated experiences",
+    "title": "Journeys",
+    "sub": "Off-the-beaten-path experiences curated by NomadMee — small groups, local guides, no mass tourism.",
+    "comingSoon": "Journeys coming soon — stay tuned.",
+    "learnMore": "Learn more →",
+    "from": "From",
+    "spotsLeft": "spots left",
+    "full": "Full",
+    "howSteps": [
+      {
+        "icon": "🔍",
+        "text": "Browse & pick your journey"
+      },
+      {
+        "icon": "✍️",
+        "text": "Submit your interest — no payment now"
+      },
+      {
+        "icon": "📞",
+        "text": "We reach out to confirm & plan together"
+      }
+    ],
+    "founderNote": "Each journey we offer is one I'd take myself. Small groups, real access, nothing staged. We work directly with local guides who know these places better than any travel agency.",
+    "founderName": "— Amine, NomadMee founder",
+    "scrollHint": "Scroll to explore",
+    "notFound": "Journey not found.",
+    "guideRole": "Your guide",
+    "detailLocation": "Location",
+    "detailGroupSize": "Group size",
+    "maxPeople": "people max",
+    "detailDates": "Available dates",
+    "detailStatus": "Status",
+    "included": "What's included",
+    "notIncluded": "Not included",
+    "pricing": "Pricing",
+    "whereYoullBe": "Where you'll be",
+    "interestTitle": "Express your interest",
+    "interestSub": "No payment now — we'll reach out to confirm dates, answer questions, and plan the details together.",
+    "successTitle": "Interest received!",
+    "successBody": "Thanks for your interest. We'll be in touch within 48 hours to discuss dates and next steps.",
+    "labelDuration": "Preferred duration",
+    "durationAny": "Any duration",
+    "labelDates": "Preferred dates",
+    "datesPlaceholder": "e.g. March 2026, or flexible",
+    "notePlaceholder": "Tell us a bit about yourself and what draws you to this journey…",
+    "submitInterest": "Express interest",
+    "noPaymentYet": "No payment now — we'll contact you to confirm.",
+    "submitError": "Could not submit your interest. Please try again.",
+    "ofMax": "of",
+    "partnerPreview": "Partner preview",
+    "partnerDesc": "As a partner, you get early access to upcoming journeys before they go public."
   }
 }

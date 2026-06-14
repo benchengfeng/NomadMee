@@ -21,6 +21,8 @@ import { ProductOrderModel } from '../../models/ProductOrder';
 import { PartnerModel } from '../../models/Partner';
 import { BoutiqueModel } from '../../models/Boutique';
 import { BundleModel } from '../../models/Bundle';
+import { JourneyModel } from '../../models/Journey';
+import { JourneyInterestBody, zodErr } from './schemas';
 
 const router = Router();
 
@@ -101,7 +103,7 @@ router.get('/public/map-data', async (_req: Request, res: Response): Promise<voi
   try {
     const now = new Date();
 
-    const [investors, cargos, investmentCount, allInvestors, investorInvestmentCounts, avatarDocs, boutiques] = await Promise.all([
+    const [investors, cargos, investmentCount, allInvestors, investorInvestmentCounts, avatarDocs, boutiques, activeJourneys] = await Promise.all([
       InvestorModel.find({ kycCompleted: true }).select('displayName name avatar location').lean(),
       CargoModel.find({ hidden: { $ne: true } }).select('productBeingShipped shippingType purchaseLocation shippingDestination estimatedTimeOfArrival createdAt purchaseDate').lean(),
       InvestmentModel.countDocuments({ hidden: { $ne: true } }),
@@ -112,6 +114,7 @@ router.get('/public/map-data', async (_req: Request, res: Response): Promise<voi
       ]),
       AvatarModel.find().select('imageUrl').lean(),
       BoutiqueModel.find({ active: true }).select('name logoUrl description location').lean(),
+      JourneyModel.find({ status: { $in: ['active', 'full'] } }).select('title tagline location locationLat locationLng spotsRemaining status coverImageUrl').lean(),
     ]);
     const dbAvatarMap = new Map((avatarDocs as Array<{ _id: unknown; imageUrl: string }>).map((a) => [String(a._id), a.imageUrl]));
 
@@ -176,6 +179,17 @@ router.get('/public/map-data', async (_req: Request, res: Response): Promise<voi
         logoUrl: b.logoUrl || '',
         description: b.description || '',
         location: b.location || '',
+      })),
+      journeys: activeJourneys.map((j) => ({
+        _id: j._id,
+        title: j.title,
+        tagline: j.tagline || '',
+        location: j.location || '',
+        locationLat: j.locationLat ?? 0,
+        locationLng: j.locationLng ?? 0,
+        spotsRemaining: j.spotsRemaining ?? 0,
+        status: j.status,
+        coverImageUrl: j.coverImageUrl || '',
       })),
       stats: {
         totalInvested: Math.round(totalInvested),
@@ -442,6 +456,74 @@ router.post('/public/bundle-order', publicWriteLimiter, async (req: Request, res
     res.status(201).json({ ok: true, order: { _id: order._id } });
   } catch (error) {
     res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to submit bundle order.' });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Public — journeys
+// ---------------------------------------------------------------------------
+
+router.get('/public/journeys', async (_req: Request, res: Response): Promise<void> => {
+  try {
+    const journeys = await JourneyModel.find({ status: { $in: ['active', 'full'] } })
+      .sort({ createdAt: -1 })
+      .lean();
+    res.status(200).json({ journeys });
+  } catch {
+    res.status(500).json({ message: 'Failed to load journeys.' });
+  }
+});
+
+router.get('/public/journeys/:id', async (req: Request, res: Response): Promise<void> => {
+  try {
+    const journey = await JourneyModel.findById(req.params.id).lean();
+    if (!journey || (journey.status === 'draft')) {
+      res.status(404).json({ message: 'Journey not found.' });
+      return;
+    }
+    res.status(200).json({ journey });
+  } catch {
+    res.status(500).json({ message: 'Failed to load journey.' });
+  }
+});
+
+router.post('/public/journey-interest', publicWriteLimiter, async (req: Request, res: Response): Promise<void> => {
+  try {
+    if (isHoneypotTripped(req)) {
+      res.status(201).json({ ok: true });
+      return;
+    }
+
+    const parsed = JourneyInterestBody.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ message: zodErr(parsed.error, 'Invalid submission.') });
+      return;
+    }
+
+    const { journeyId, journeyTitle, fullName, contactMethod, contactDetail, preferredDuration, preferredDates, note } = parsed.data;
+
+    let resolvedTitle = journeyTitle;
+    if (!resolvedTitle && journeyId) {
+      const journey = await JourneyModel.findById(journeyId).lean();
+      resolvedTitle = journey?.title ?? '';
+    }
+
+    const contactRequest = await ContactRequestModel.create({
+      type: 'journey_interest',
+      journeyId:        capStr(journeyId, 64),
+      journeyTitle:     capStr(resolvedTitle, 200),
+      fullName:         capStr(fullName, 120),
+      contactMethod,
+      contactDetail:    capStr(contactDetail, 200),
+      preferredDuration: capStr(preferredDuration, 100),
+      preferredDates:   capStr(preferredDates, 200),
+      note:             capStr(note, 2000),
+      status: 'new',
+    });
+
+    res.status(201).json({ ok: true, request: { _id: contactRequest._id } });
+  } catch (error) {
+    res.status(400).json({ message: error instanceof Error ? error.message : 'Failed to submit interest.' });
   }
 });
 

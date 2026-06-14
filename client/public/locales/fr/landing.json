@@ -3,16 +3,29 @@
     "globe": "Le Globe",
     "investments": "Investissements",
     "whoAreWe": "Qui sommes-nous ?",
-    "shop": "Boutique"
+    "shop": "Boutique",
+    "journeys": "Voyages"
   },
   "globe": {
     "taglineEyebrow": "Investir · Sourcer · Suivre",
     "taglineHeadline": "Des marchandises réelles. Des retours réels — tracés à travers le globe.",
     "trustStats": [
-      { "value": "2021", "label": "Fondé en" },
-      { "value": "12+", "label": "Cargaisons actives" },
-      { "value": "7+", "label": "Pays" },
-      { "value": "100%", "label": "Traçable" }
+      {
+        "value": "2021",
+        "label": "Fondé en"
+      },
+      {
+        "value": "12+",
+        "label": "Cargaisons actives"
+      },
+      {
+        "value": "7+",
+        "label": "Pays"
+      },
+      {
+        "value": "100%",
+        "label": "Traçable"
+      }
     ]
   },
   "cta": {
@@ -108,5 +121,58 @@
   "partners": {
     "tapToLearn": "Appuyez pour en savoir plus",
     "tapToFlip": "Appuyez pour retourner"
+  },
+  "journeys": {
+    "eyebrow": "Expériences sur mesure",
+    "title": "Voyages",
+    "sub": "Des expériences hors des sentiers battus, conçues par NomadMee — petits groupes, guides locaux, sans tourisme de masse.",
+    "comingSoon": "Voyages à venir — restez connectés.",
+    "learnMore": "En savoir plus →",
+    "from": "À partir de",
+    "spotsLeft": "places restantes",
+    "full": "Complet",
+    "howSteps": [
+      {
+        "icon": "🔍",
+        "text": "Parcourez & choisissez votre voyage"
+      },
+      {
+        "icon": "✍️",
+        "text": "Soumettez votre intérêt — sans paiement maintenant"
+      },
+      {
+        "icon": "📞",
+        "text": "Nous vous contactons pour confirmer & planifier ensemble"
+      }
+    ],
+    "founderNote": "Chaque voyage que nous proposons est un voyage que je ferais moi-même. Petits groupes, accès authentique, rien de mis en scène. Nous travaillons directement avec des guides locaux.",
+    "founderName": "— Amine, fondateur de NomadMee",
+    "scrollHint": "Faites défiler pour explorer",
+    "notFound": "Voyage introuvable.",
+    "guideRole": "Votre guide",
+    "detailLocation": "Lieu",
+    "detailGroupSize": "Taille du groupe",
+    "maxPeople": "personnes max",
+    "detailDates": "Dates disponibles",
+    "detailStatus": "Statut",
+    "included": "Ce qui est inclus",
+    "notIncluded": "Non inclus",
+    "pricing": "Tarifs",
+    "whereYoullBe": "Où vous serez",
+    "interestTitle": "Exprimez votre intérêt",
+    "interestSub": "Sans paiement maintenant — nous vous contacterons pour confirmer les dates et planifier ensemble.",
+    "successTitle": "Intérêt reçu !",
+    "successBody": "Merci pour votre intérêt. Nous vous contacterons dans les 48 heures.",
+    "labelDuration": "Durée préférée",
+    "durationAny": "Toute durée",
+    "labelDates": "Dates préférées",
+    "datesPlaceholder": "ex. Mars 2026, ou flexible",
+    "notePlaceholder": "Parlez-nous un peu de vous et de ce qui vous attire dans ce voyage…",
+    "submitInterest": "Exprimer mon intérêt",
+    "noPaymentYet": "Sans paiement maintenant — nous vous contacterons pour confirmer.",
+    "submitError": "Impossible de soumettre votre intérêt. Veuillez réessayer.",
+    "ofMax": "sur",
+    "partnerPreview": "Aperçu partenaire",
+    "partnerDesc": "En tant que partenaire, vous bénéficiez d'un accès anticipé aux voyages avant leur publication."
   }
 }

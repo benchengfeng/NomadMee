@@ -14,6 +14,7 @@ import AdminDashboard from "../views/adminDashboard";
 import JoinInvestment from "../views/joinInvestment";
 import ContactUs from "../views/contactUs";
 import ShopPage from "../views/shopPage";
+import JourneyDetail from "../views/journeyDetail";
 import NotFound from "../views/notFound";
 import { getAdminToken, getSessionToken } from "../utils/auth";
 
@@ -79,6 +80,7 @@ const AppRouter = () => {
         <Route path="/contact-us" element={<ContactUs />} />
         <Route path="/shop" element={<ShopPage />} />
         <Route path="/shop/:productId" element={<ShopPage />} />
+        <Route path="/journeys/:id" element={<JourneyDetail />} />
         <Route path="/landing" element={<AppHome />} />
         <Route path="/hotDeals" element={<AppHotDeals />} />
         <Route path="/aboutUs" element={<AboutUs />} />

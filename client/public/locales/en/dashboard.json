@@ -14,7 +14,9 @@
     "supportShort": "Help",
     "shopShort": "Shop",
     "settingsShort": "Settings",
-    "globe": "Globe"
+    "globe": "Globe",
+    "journeys": "Journeys",
+    "journeysShort": "Journeys"
   },
   "topbar": {
     "portal": "nomadme — investor portal",
@@ -91,11 +93,26 @@
     "exploreRoute": "Explore shipment route →",
     "faqTitle": "Frequently asked questions",
     "faqs": [
-      { "q": "How do I track my cargo?", "a": "Go to the Cargos tab to see your shipments, then tap 'View route' to open the live map for any cargo." },
-      { "q": "When will I receive my return?", "a": "Returns are processed after each cargo sells. Your account manager will notify you with the payout breakdown." },
-      { "q": "How do I change my display currency?", "a": "Go to Settings and update your Display Currency. All amounts in the dashboard will convert automatically." },
-      { "q": "What happens if my cargo is delayed?", "a": "Delays can occur due to customs or logistics. Your ETA will update and your account manager will keep you informed." },
-      { "q": "How do I contact my account manager?", "a": "Tap 'Contact support' above to send a pre-filled email to our team. We respond within 24 hours." }
+      {
+        "q": "How do I track my cargo?",
+        "a": "Go to the Cargos tab to see your shipments, then tap 'View route' to open the live map for any cargo."
+      },
+      {
+        "q": "When will I receive my return?",
+        "a": "Returns are processed after each cargo sells. Your account manager will notify you with the payout breakdown."
+      },
+      {
+        "q": "How do I change my display currency?",
+        "a": "Go to Settings and update your Display Currency. All amounts in the dashboard will convert automatically."
+      },
+      {
+        "q": "What happens if my cargo is delayed?",
+        "a": "Delays can occur due to customs or logistics. Your ETA will update and your account manager will keep you informed."
+      },
+      {
+        "q": "How do I contact my account manager?",
+        "a": "Tap 'Contact support' above to send a pre-filled email to our team. We respond within 24 hours."
+      }
     ]
   },
   "settings": {

@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { FiHome, FiPackage, FiMap, FiHeadphones, FiSettings, FiShoppingBag } from 'react-icons/fi';
+import { FiHome, FiPackage, FiMap, FiHeadphones, FiSettings, FiShoppingBag, FiCompass } from 'react-icons/fi';
 import type { IconType } from 'react-icons';
-import { getInvestorHome, logoutInvestor, completeInvestorKyc, getPublicAvatars, changeInvestorPassword, getInvestorProducts, AvatarData, InvestorHomeResponse, PublicProduct, PublicBundle, ShopGalleries } from '../api/portalApi';
+import { getInvestorHome, logoutInvestor, completeInvestorKyc, getPublicAvatars, changeInvestorPassword, getInvestorProducts, getInvestorJourneys, AvatarData, InvestorHomeResponse, PublicProduct, PublicBundle, ShopGalleries, Journey } from '../api/portalApi';
 import { useAppDispatch, useAppSelector } from '../redux/hooks';
 import { setTheme } from '../redux/slices/themeSlice';
 import { PanelId, setActivePanel, setSelectedCargoId } from '../redux/slices/dashboardUiSlice';
@@ -14,6 +14,7 @@ import WorldMap from '../components/WorldMap';
 import LanguageSwitcher from '../components/common/LanguageSwitcher';
 import ShopSections from '../components/shop/ShopSections';
 import { track } from '../utils/analytics';
+import '../styles/journeys.css';
 
 const currencyRatesToUSD: Record<string, number> = {
   USD: 1,
@@ -57,12 +58,13 @@ function formatDate(value: string | null | undefined): string {
 
 
 const panelButtons: Array<{ id: PanelId; labelKey: string; mobileKey: string; Icon: IconType }> = [
-  { id: 'summary',  labelKey: 'nav.summary', mobileKey: 'nav.summaryShort',  Icon: FiHome },
-  { id: 'cargos',   labelKey: 'nav.cargos',  mobileKey: 'nav.cargosShort',   Icon: FiPackage },
-  { id: 'map',      labelKey: 'nav.map',     mobileKey: 'nav.mapShort',      Icon: FiMap },
-  { id: 'shop',     labelKey: 'nav.shop',    mobileKey: 'nav.shopShort',     Icon: FiShoppingBag },
-  { id: 'support',  labelKey: 'nav.support', mobileKey: 'nav.supportShort',  Icon: FiHeadphones },
-  { id: 'settings', labelKey: 'nav.settings',mobileKey: 'nav.settingsShort', Icon: FiSettings },
+  { id: 'summary',  labelKey: 'nav.summary',  mobileKey: 'nav.summaryShort',  Icon: FiHome },
+  { id: 'cargos',   labelKey: 'nav.cargos',   mobileKey: 'nav.cargosShort',   Icon: FiPackage },
+  { id: 'map',      labelKey: 'nav.map',      mobileKey: 'nav.mapShort',      Icon: FiMap },
+  { id: 'shop',     labelKey: 'nav.shop',     mobileKey: 'nav.shopShort',     Icon: FiShoppingBag },
+  { id: 'journeys', labelKey: 'nav.journeys', mobileKey: 'nav.journeysShort', Icon: FiCompass },
+  { id: 'support',  labelKey: 'nav.support',  mobileKey: 'nav.supportShort',  Icon: FiHeadphones },
+  { id: 'settings', labelKey: 'nav.settings', mobileKey: 'nav.settingsShort', Icon: FiSettings },
 ];
 
 const InvestorHome: React.FC = () => {
@@ -91,6 +93,11 @@ const InvestorHome: React.FC = () => {
   const [productsLoaded, setProductsLoaded] = useState(false);
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [productsError, setProductsError] = useState(false);
+
+  // Journeys
+  const [journeys, setJourneys] = useState<Journey[]>([]);
+  const [journeysLoaded, setJourneysLoaded] = useState(false);
+  const [loadingJourneys, setLoadingJourneys] = useState(false);
 
   // Settings panel state
   const [settingsName, setSettingsName] = useState('');
@@ -193,7 +200,15 @@ const InvestorHome: React.FC = () => {
         .catch(() => setProductsError(true))
         .finally(() => setLoadingProducts(false));
     }
-  }, [activePanel, productsLoaded]);
+    if (activePanel === 'journeys' && !journeysLoaded) {
+      setLoadingJourneys(true);
+      getInvestorJourneys()
+        .then((r) => { setJourneys(r.journeys); setJourneysLoaded(true); })
+        .catch(() => {})
+        .finally(() => setLoadingJourneys(false));
+      track('journey_section_viewed', { context: 'investor' });
+    }
+  }, [activePanel, productsLoaded, journeysLoaded]);
 
   const renderSummary = () => {
     if (!data) return null;
@@ -524,6 +539,75 @@ const InvestorHome: React.FC = () => {
             }}
             onOrdered={(p) => track('order-submit', { product: p.name })}
           />
+        )}
+      </div>
+    );
+  };
+
+  const renderJourneys = () => {
+    const CLR = theme.accent;
+    return (
+      <div className="journeys-investor-panel" style={{ color: theme.text }}>
+        {/* Partner access banner */}
+        <div className="journeys-partner-banner" style={{ background: `${CLR}11`, borderColor: `${CLR}33` }}>
+          <span className="journeys-partner-badge" style={{ color: CLR, borderColor: `${CLR}55` }}>{t('shop.partnerBadge')}</span>
+          <p className="journeys-partner-desc" style={{ color: theme.secondaryText }}>{t('journeys.partnerDesc')}</p>
+        </div>
+
+        {loadingJourneys ? (
+          <div style={{ display: 'flex', gap: 16 }}>
+            {[1,2].map((i) => <div key={i} style={{ flex: 1, height: 260, borderRadius: 18, background: theme.surface, opacity: 0.5 }} />)}
+          </div>
+        ) : journeys.filter((j) => j.status !== 'past').length === 0 ? (
+          <div style={{ textAlign: 'center', padding: '40px 0', opacity: 0.5 }}>
+            <div style={{ fontSize: '2rem', marginBottom: 12 }}>🧭</div>
+            <p style={{ color: theme.secondaryText, fontSize: '0.86rem' }}>{t('journeys.comingSoon')}</p>
+          </div>
+        ) : (
+          <div className="journeys-grid">
+            {journeys.filter((j) => j.status !== 'past').map((j) => {
+              const minPrice = j.durations.length > 0 ? Math.min(...j.durations.map((d) => d.price)) : null;
+              const minCurrency = j.durations[0]?.currency ?? 'USD';
+              return (
+                <div
+                  key={j._id}
+                  className="journey-card"
+                  style={{ background: theme.surface, borderColor: `${CLR}22`, cursor: 'pointer' }}
+                  onClick={() => { navigate(`/journeys/${j._id}`); track('journey_card_clicked', { journeyId: j._id, context: 'investor' }); }}
+                >
+                  <div className="journey-card-cover">
+                    {j.coverImageUrl ? (
+                      <img src={j.coverImageUrl} alt={j.title} loading="lazy" />
+                    ) : (
+                      <div style={{ width: '100%', height: '100%', background: `${CLR}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2.5rem', opacity: 0.5 }}>🌍</div>
+                    )}
+                    <div className="journey-card-cover-overlay" />
+                    <span className={`journey-spots-badge${j.status === 'full' ? ' journey-full-badge' : ''}`} style={{ color: j.status === 'full' ? undefined : CLR }}>
+                      {j.status === 'draft' ? '🔒 ' + t('journeys.partnerPreview') : j.status === 'full' ? t('journeys.full') : `${j.spotsRemaining} ${t('journeys.spotsLeft')}`}
+                    </span>
+                  </div>
+                  <div className="journey-card-body">
+                    <span className="journey-card-location" style={{ color: CLR }}>📍 {j.location}</span>
+                    <h3 className="journey-card-title" style={{ color: theme.text }}>{j.title}</h3>
+                    <p className="journey-card-excerpt" style={{ color: theme.secondaryText }}>{j.tagline || j.story.slice(0, 140)}</p>
+                    <div className="journey-card-durations">
+                      {j.durations.map((d, i) => (
+                        <span key={i} className="journey-duration-chip" style={{ borderColor: `${CLR}33`, color: theme.secondaryText }}>{d.label}</span>
+                      ))}
+                    </div>
+                    <div className="journey-card-footer">
+                      {minPrice != null ? (
+                        <span className="journey-card-price" style={{ color: theme.secondaryText }}>
+                          {t('journeys.from')} <strong style={{ color: theme.text }}>{minPrice.toLocaleString()} {minCurrency}</strong>
+                        </span>
+                      ) : <span />}
+                      <span className="journey-card-cta" style={{ background: CLR, color: '#000' }}>{t('journeys.learnMore')}</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         )}
       </div>
     );
@@ -936,6 +1020,7 @@ const InvestorHome: React.FC = () => {
           {activePanel === 'cargos' && renderCargos()}
           {activePanel === 'map' && renderMap()}
           {activePanel === 'shop' && renderShop()}
+          {activePanel === 'journeys' && renderJourneys()}
           {activePanel === 'support' && renderSupport()}
           {activePanel === 'settings' && renderSettings()}
         </section>

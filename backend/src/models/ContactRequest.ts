@@ -1,9 +1,13 @@
 import mongoose, { Schema } from 'mongoose';
 
 export type ContactRequestDocument = {
-  type: 'investment' | 'contact_us';
+  type: 'investment' | 'contact_us' | 'journey_interest';
   investmentId?: string;
   investmentTitle?: string;
+  journeyId?: string;
+  journeyTitle?: string;
+  preferredDuration?: string;
+  preferredDates?: string;
   fullName: string;
   contactMethod: 'whatsapp' | 'email';
   contactDetail: string;
@@ -16,9 +20,13 @@ export type ContactRequestDocument = {
 
 const ContactRequestSchema = new Schema<ContactRequestDocument>(
   {
-    type: { type: String, enum: ['investment', 'contact_us'], default: 'investment' },
+    type: { type: String, enum: ['investment', 'contact_us', 'journey_interest'], default: 'investment' },
     investmentId: { type: String, trim: true },
     investmentTitle: { type: String, trim: true },
+    journeyId: { type: String, trim: true },
+    journeyTitle: { type: String, trim: true },
+    preferredDuration: { type: String, trim: true },
+    preferredDates: { type: String, trim: true },
     fullName: { type: String, required: true, trim: true },
     contactMethod: { type: String, enum: ['whatsapp', 'email'], required: true },
     contactDetail: { type: String, required: true, trim: true },
