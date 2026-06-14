@@ -10,7 +10,7 @@ import { SocialLinks } from '../components/common/socialPlatforms';
 import PartnersShowcase from '../components/home/PartnersShowcase';
 import ShopSections from '../components/shop/ShopSections';
 import { track } from '../utils/analytics';
-import { getPublicInvestments, getPublicSiteContent, getPublicProducts, getPublicPartners, getPublicJourneys, Partner, PublicInvestment, PublicProduct, PublicBundle, ShopGalleries, SiteContent, Journey } from '../api/portalApi';
+import { getPublicInvestments, getPublicSiteContent, getPublicProducts, getPublicPartners, getPublicJourneys, getPublicMapData, Partner, PublicInvestment, PublicProduct, PublicBundle, ShopGalleries, SiteContent, Journey, PublicMapStats } from '../api/portalApi';
 import '../styles/landing.css';
 import '../styles/journeys.css';
 
@@ -57,6 +57,7 @@ const LandingPage: React.FC = () => {
   const [journeys, setJourneys] = useState<Journey[]>([]);
   const [loadingJourneys, setLoadingJourneys] = useState(false);
   const [journeysLoaded, setJourneysLoaded] = useState(false);
+  const [liveStats, setLiveStats] = useState<PublicMapStats | null>(null);
 
   const idx = Math.min(Math.max(selectedTheme, 0), landingThemes.length - 1);
   const palette = landingThemes[idx] as (typeof landingThemes)[number];
@@ -91,6 +92,13 @@ const LandingPage: React.FC = () => {
     '--lt-tag-text':     palette.tagText,
     '--lt-glow':         palette.glow,
   } as React.CSSProperties;
+
+  // Fetch live stats once on mount — powers the globe stat strip
+  useEffect(() => {
+    getPublicMapData()
+      .then((r) => setLiveStats(r.stats))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (section === 'investments' && investments.length === 0) {
@@ -213,14 +221,44 @@ const LandingPage: React.FC = () => {
             <div className="landing-hero-overlay" style={{ '--hero-accent': palette.accent } as React.CSSProperties}>
               <p className="landing-hero-eyebrow">{t('globe.taglineEyebrow')}</p>
               <h1 className="landing-hero-headline">{t('globe.taglineHeadline')}</h1>
-              <div className="landing-trust-bar">
-                {(Array.isArray(t('globe.trustStats', { returnObjects: true })) ? t('globe.trustStats', { returnObjects: true }) as Array<{ value: string; label: string }> : []).map((s, i) => (
-                  <div key={i} className="landing-trust-chip" style={{ borderColor: `${palette.accent}44` }}>
-                    <span className="landing-trust-value" style={{ color: palette.accent }}>{s.value}</span>
-                    <span className="landing-trust-label">{s.label}</span>
+            </div>
+            <div className="landing-stat-strip" style={{ '--stat-accent': palette.accent } as React.CSSProperties}>
+              {liveStats ? (
+                <>
+                  <div className="landing-stat-item">
+                    <span className="landing-stat-value">{liveStats.activeShipments}+</span>
+                    <span className="landing-stat-label">{t('globe.statCargos', 'Active Shipments')}</span>
                   </div>
-                ))}
-              </div>
+                  <span className="landing-stat-sep">·</span>
+                  <div className="landing-stat-item">
+                    <span className="landing-stat-value">{liveStats.countryCount}+</span>
+                    <span className="landing-stat-label">{t('globe.statCountries', 'Countries')}</span>
+                  </div>
+                  <span className="landing-stat-sep">·</span>
+                  <div className="landing-stat-item">
+                    <span className="landing-stat-value">
+                      {liveStats.goodsInTransitValue >= 1_000_000
+                        ? `$${(liveStats.goodsInTransitValue / 1_000_000).toFixed(1)}M`
+                        : liveStats.goodsInTransitValue >= 1_000
+                        ? `$${Math.round(liveStats.goodsInTransitValue / 1_000)}K`
+                        : `$${liveStats.goodsInTransitValue}`}
+                    </span>
+                    <span className="landing-stat-label">{t('globe.statTransit', 'In Transit')}</span>
+                  </div>
+                  <span className="landing-stat-sep">·</span>
+                  <div className="landing-stat-item">
+                    <span className="landing-stat-value">{liveStats.investorCount}</span>
+                    <span className="landing-stat-label">{t('globe.statInvestors', 'Investors')}</span>
+                  </div>
+                  <span className="landing-stat-sep">·</span>
+                  <div className="landing-stat-item">
+                    <span className="landing-stat-value">{liveStats.journeyCount}</span>
+                    <span className="landing-stat-label">{t('globe.statJourneys', 'Journeys')}</span>
+                  </div>
+                </>
+              ) : (
+                <div className="landing-stat-skeleton" />
+              )}
             </div>
           </>
         )}
