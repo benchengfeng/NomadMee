@@ -5,23 +5,45 @@ import { getPublicMapData, PublicMapCargo, PublicMapInvestor, PublicMapInvestmen
 import { buildCargoRoute, getPositionAtProgress } from '../utils/routeBuilder';
 import { findCountryCoords } from '../utils/countries';
 import { track } from '../utils/analytics';
+import { useAppDispatch, useAppSelector } from '../redux/hooks';
+import { GlobeLayer, setGlobeLayer } from '../redux/slices/globeLayerSlice';
 
 const MAP_STYLE = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
 
-// Per-category accent colours
-const CLR_INVESTOR  = '#38bdf8'; // cyan
-const CLR_INVEST    = '#e879f9'; // fuchsia — distinct from cargo air purple
-const CLR_BOUTIQUE  = '#f59e0b'; // amber
+const CLR_INVESTOR  = '#38bdf8';
+const CLR_INVEST    = '#e879f9';
+const CLR_BOUTIQUE  = '#f59e0b';
+const CLR_JOURNEY   = '#f59e0b';
 const CARGO_COLORS: Record<string, string> = {
   sea: '#38bdf8',
   air: '#a78bfa',
   land: '#fb923c',
 };
 
-// Pixel offsets from country centre — keeps categories separated at every zoom
-const OFF_INVESTOR: [number, number]  = [0,   -20];
-const OFF_INVESTMENT: [number, number] = [-32,  22];
-const OFF_BOUTIQUE: [number, number]  = [32,   22];
+const OFF_INVESTOR:  [number, number] = [0,   -20];
+const OFF_INVESTMENT:[number, number] = [-32,  22];
+const OFF_BOUTIQUE:  [number, number] = [32,   22];
+
+type LayerVis = { investors: boolean; investments: boolean; boutiques: boolean; cargos: boolean; journeys: boolean };
+
+// Which marker groups are visible per layer
+const LAYER_VISIBILITY: Record<GlobeLayer, LayerVis> = {
+  all:         { investors: true,  investments: true,  boutiques: true,  cargos: true,  journeys: true  },
+  trade:       { investors: false, investments: false, boutiques: false, cargos: true,  journeys: false },
+  investments: { investors: false, investments: true,  boutiques: false, cargos: false, journeys: false },
+  shop:        { investors: false, investments: false, boutiques: true,  cargos: false, journeys: false },
+  community:   { investors: true,  investments: false, boutiques: false, cargos: false, journeys: false },
+  journeys:    { investors: false, investments: false, boutiques: false, cargos: false, journeys: true  },
+};
+
+const LAYER_DEFS: Array<{ id: GlobeLayer; icon: string; label: string; shortLabel: string; color: string; analyticsEvent: string }> = [
+  { id: 'all',         icon: '🌍', label: 'All',         shortLabel: 'All',     color: '#94a3b8', analyticsEvent: 'globe_layer_all_viewed'         },
+  { id: 'trade',       icon: '🚢', label: 'Trade',       shortLabel: 'Trade',   color: '#38bdf8', analyticsEvent: 'globe_layer_trade_viewed'       },
+  { id: 'investments', icon: '💰', label: 'Investments', shortLabel: 'Capital', color: '#e879f9', analyticsEvent: 'globe_layer_investments_viewed' },
+  { id: 'shop',        icon: '🛍', label: 'Shop',        shortLabel: 'Shop',    color: '#f59e0b', analyticsEvent: 'globe_layer_shop_viewed'        },
+  { id: 'community',   icon: '👥', label: 'Community',   shortLabel: 'People',  color: '#4ade80', analyticsEvent: 'globe_layer_community_viewed'   },
+  { id: 'journeys',    icon: '🗺', label: 'Journeys',    shortLabel: 'Trips',   color: '#a78bfa', analyticsEvent: 'globe_layer_journeys_viewed'    },
+];
 
 function cargoProgress(cargo: PublicMapCargo): number {
   const start = new Date(cargo.purchaseDate || cargo.createdAt).getTime();
@@ -34,7 +56,6 @@ function cargoProgress(cargo: PublicMapCargo): number {
 const esc = (s: string) =>
   s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]!));
 
-// Shared tooltip container style
 function makeTooltip(): HTMLDivElement {
   const t = document.createElement('div');
   t.style.cssText = `
@@ -49,14 +70,43 @@ function makeTooltip(): HTMLDivElement {
   return t;
 }
 
+function applyVisibility(
+  groups: { investors: HTMLElement[]; investments: HTMLElement[]; boutiques: HTMLElement[]; cargos: HTMLElement[]; journeys: HTMLElement[] },
+  layer: GlobeLayer,
+) {
+  const vis = LAYER_VISIBILITY[layer];
+  const toggle = (els: HTMLElement[], show: boolean) =>
+    els.forEach((el) => {
+      el.style.opacity = show ? '1' : '0';
+      el.style.pointerEvents = show ? 'auto' : 'none';
+    });
+  toggle(groups.investors,   vis['investors']);
+  toggle(groups.investments, vis['investments']);
+  toggle(groups.boutiques,   vis['boutiques']);
+  toggle(groups.cargos,      vis['cargos']);
+  toggle(groups.journeys,    vis['journeys']);
+}
+
 interface WorldMapProps {
   accentColor?: string;
   onDataLoaded?: (data: PublicMapData) => void;
 }
 
-const WorldMap: React.FC<WorldMapProps> = ({ onDataLoaded }) => {
-  const containerRef  = useRef<HTMLDivElement>(null);
-  const mapRef        = useRef<maplibregl.Map | null>(null);
+const WorldMap: React.FC<WorldMapProps> = ({ accentColor, onDataLoaded }) => {
+  const dispatch      = useAppDispatch();
+  const activeLayer   = useAppSelector((s: any) => s.globeLayer.activeLayer as GlobeLayer);
+  const activeLayerRef = useRef<GlobeLayer>(activeLayer);
+
+  const containerRef   = useRef<HTMLDivElement>(null);
+  const mapRef         = useRef<maplibregl.Map | null>(null);
+  const markerGroupsRef = useRef<{
+    investors:   HTMLElement[];
+    investments: HTMLElement[];
+    boutiques:   HTMLElement[];
+    cargos:      HTMLElement[];
+    journeys:    HTMLElement[];
+  }>({ investors: [], investments: [], boutiques: [], cargos: [], journeys: [] });
+
   const [mapError,        setMapError]        = useState(false);
   const [mapReady,        setMapReady]        = useState(false);
   const [dataLoaded,      setDataLoaded]      = useState(false);
@@ -65,6 +115,28 @@ const WorldMap: React.FC<WorldMapProps> = ({ onDataLoaded }) => {
   const [investmentCount, setInvestmentCount] = useState(0);
   const [boutiqueCount,   setBoutiqueCount]   = useState(0);
   const [journeyCount,    setJourneyCount]    = useState(0);
+  const [animatingLayer,  setAnimatingLayer]  = useState<GlobeLayer | null>(null);
+
+  // Keep ref in sync so map.on('load') closure can read current layer
+  useEffect(() => { activeLayerRef.current = activeLayer; }, [activeLayer]);
+
+  // Apply visibility whenever layer changes or data finishes loading
+  useEffect(() => {
+    if (!dataLoaded) return;
+    applyVisibility(markerGroupsRef.current, activeLayer);
+  }, [activeLayer, dataLoaded]);
+
+  const handleLayerChange = (layer: GlobeLayer) => {
+    if (layer === activeLayer) return;
+    dispatch(setGlobeLayer(layer));
+    setAnimatingLayer(layer);
+    setTimeout(() => setAnimatingLayer(null), 300);
+    const def = LAYER_DEFS.find((d) => d.id === layer);
+    if (def) {
+      track('globe_layer_changed', { layer });
+      track(def.analyticsEvent as any);
+    }
+  };
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -108,32 +180,36 @@ const WorldMap: React.FC<WorldMapProps> = ({ onDataLoaded }) => {
       } catch {
         // Map still shows even if data fetch fails
       }
-      setDataLoaded(true);
 
-      // ── Helper: group an array by a string key ──────────────────────────────
+      // Reset marker groups for this load
+      const groups = markerGroupsRef.current;
+      groups.investors   = [];
+      groups.investments = [];
+      groups.boutiques   = [];
+      groups.cargos      = [];
+      groups.journeys    = [];
+
       function groupByCountry<T extends { location: string }>(items: T[]): Map<string, T[]> {
-        const map = new Map<string, T[]>();
+        const m = new Map<string, T[]>();
         for (const item of items) {
           if (!item.location || !findCountryCoords(item.location)) continue;
           const key = item.location.trim().toLowerCase();
-          const arr = map.get(key);
+          const arr = m.get(key);
           if (arr) arr.push(item);
-          else map.set(key, [item]);
+          else m.set(key, [item]);
         }
-        return map;
+        return m;
       }
 
-      // ── Helper: shared wrapper + inner + hover wiring ──────────────────────
       function makeMarkerShell(size = 44): { wrapper: HTMLDivElement; inner: HTMLDivElement } {
         const wrapper = document.createElement('div');
-        wrapper.style.cssText = `cursor:pointer;width:${size}px;height:${size}px;`;
+        wrapper.style.cssText = `cursor:pointer;width:${size}px;height:${size}px;transition:opacity 0.3s ease;`;
         const inner = document.createElement('div');
         inner.style.cssText = `position:relative;width:${size}px;height:${size}px;transition:transform 0.16s ease;`;
         wrapper.appendChild(inner);
         return { wrapper, inner };
       }
 
-      // ── Helper: count badge ────────────────────────────────────────────────
       function makeBadge(count: number, color: string): HTMLDivElement {
         const badge = document.createElement('div');
         badge.style.cssText = `
@@ -147,7 +223,6 @@ const WorldMap: React.FC<WorldMapProps> = ({ onDataLoaded }) => {
         return badge;
       }
 
-      // ── Helper: cluster popup ──────────────────────────────────────────────
       function makeClusterPopup(location: string, label: string, color: string, rows: string): maplibregl.Popup {
         return new maplibregl.Popup({
           closeButton: true,
@@ -162,7 +237,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ onDataLoaded }) => {
       }
 
       // ════════════════════════════════════════════════════════════════════════
-      // INVESTORS — circles, cyan, offset top-centre
+      // INVESTORS
       // ════════════════════════════════════════════════════════════════════════
       const investorGroups = groupByCountry(investors);
       let visibleInvestors = 0;
@@ -173,6 +248,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ onDataLoaded }) => {
         visibleInvestors += count;
 
         const { wrapper, inner } = makeMarkerShell(44);
+        groups.investors.push(wrapper);
 
         if (count === 1) {
           const av = document.createElement('div');
@@ -251,7 +327,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ onDataLoaded }) => {
       setInvestorCount(visibleInvestors);
 
       // ════════════════════════════════════════════════════════════════════════
-      // INVESTMENTS — rotated-diamond shape, purple, offset bottom-left
+      // INVESTMENTS
       // ════════════════════════════════════════════════════════════════════════
       const investGroups = groupByCountry(investments);
       let visibleInvestments = 0;
@@ -262,6 +338,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ onDataLoaded }) => {
         visibleInvestments += count;
 
         const { wrapper, inner } = makeMarkerShell(44);
+        groups.investments.push(wrapper);
 
         const makeDiamond = (size: number, borderColor: string, zIdx: number, top: number, left: number) => {
           const d = document.createElement('div');
@@ -354,7 +431,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ onDataLoaded }) => {
       setInvestmentCount(visibleInvestments);
 
       // ════════════════════════════════════════════════════════════════════════
-      // BOUTIQUES — rounded-square logos, amber, offset bottom-right
+      // BOUTIQUES
       // ════════════════════════════════════════════════════════════════════════
       const boutiqueGroups = groupByCountry(boutiques);
       let visibleBoutiques = 0;
@@ -365,6 +442,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ onDataLoaded }) => {
         visibleBoutiques += count;
 
         const { wrapper, inner } = makeMarkerShell(46);
+        groups.boutiques.push(wrapper);
 
         const logoStyle = (b: PublicMapBoutique) =>
           b.logoUrl
@@ -448,7 +526,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ onDataLoaded }) => {
       setBoutiqueCount(visibleBoutiques);
 
       // ════════════════════════════════════════════════════════════════════════
-      // CARGOS — animated pill with transport emoji, positioned along route
+      // CARGOS
       // ════════════════════════════════════════════════════════════════════════
       let visibleCargos = 0;
       for (const cargo of cargos) {
@@ -462,8 +540,9 @@ const WorldMap: React.FC<WorldMapProps> = ({ onDataLoaded }) => {
 
         const emojiIcon = shippingType === 'air' ? '✈️' : shippingType === 'land' ? '🚛' : '🚢';
 
-        const pulseEl   = document.createElement('div');
-        pulseEl.style.cssText = `width:34px;height:34px;cursor:pointer;`;
+        const pulseEl = document.createElement('div');
+        pulseEl.style.cssText = `width:34px;height:34px;cursor:pointer;transition:opacity 0.3s ease;`;
+        groups.cargos.push(pulseEl);
 
         const cargoInner = document.createElement('div');
         cargoInner.style.cssText = `
@@ -489,8 +568,8 @@ const WorldMap: React.FC<WorldMapProps> = ({ onDataLoaded }) => {
           pulseEl.appendChild(ring);
         }
 
-        const icon      = shippingType === 'air' ? '✈' : shippingType === 'land' ? '🚛' : '🚢';
-        const eta       = new Date(cargo.estimatedTimeOfArrival).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+        const icon       = shippingType === 'air' ? '✈' : shippingType === 'land' ? '🚛' : '🚢';
+        const eta        = new Date(cargo.estimatedTimeOfArrival).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
         const statusText = arrived
           ? '<span style="color:#4ade80">✓ Arrived</span>'
           : `<span style="color:${color}">${Math.round(progress * 100)}% — ETA ${eta}</span>`;
@@ -517,16 +596,16 @@ const WorldMap: React.FC<WorldMapProps> = ({ onDataLoaded }) => {
       setCargoCount(visibleCargos);
 
       // ════════════════════════════════════════════════════════════════════════
-      // JOURNEYS — amber compass markers with pulse for active spots
+      // JOURNEYS
       // ════════════════════════════════════════════════════════════════════════
-      const CLR_JOURNEY = '#f59e0b';
       let visibleJourneys = 0;
       for (const journey of journeys) {
         if (!journey.locationLat || !journey.locationLng) continue;
         visibleJourneys++;
 
         const el = document.createElement('div');
-        el.style.cssText = 'width:38px;height:38px;cursor:pointer;position:relative;';
+        el.style.cssText = 'width:38px;height:38px;cursor:pointer;position:relative;transition:opacity 0.3s ease;';
+        groups.journeys.push(el);
 
         const inner = document.createElement('div');
         inner.style.cssText = `
@@ -574,6 +653,10 @@ const WorldMap: React.FC<WorldMapProps> = ({ onDataLoaded }) => {
           .addTo(map);
       }
       setJourneyCount(visibleJourneys);
+
+      setDataLoaded(true);
+      // Apply the layer that was active when the map finished loading
+      applyVisibility(groups, activeLayerRef.current);
     });
 
     map.once('idle', () => setMapReady(true));
@@ -594,6 +677,15 @@ const WorldMap: React.FC<WorldMapProps> = ({ onDataLoaded }) => {
     );
   }
 
+  const accent = accentColor ?? '#38bdf8';
+
+  // Which legend items to show based on active layer
+  const showLegendInvestors   = activeLayer === 'all' || activeLayer === 'community';
+  const showLegendInvestments = activeLayer === 'all' || activeLayer === 'investments';
+  const showLegendBoutiques   = activeLayer === 'all' || activeLayer === 'shop';
+  const showLegendCargos      = activeLayer === 'all' || activeLayer === 'trade';
+  const showLegendJourneys    = activeLayer === 'all' || activeLayer === 'journeys';
+
   const hasData = investorCount > 0 || cargoCount > 0 || investmentCount > 0 || boutiqueCount > 0 || journeyCount > 0;
 
   return (
@@ -603,6 +695,11 @@ const WorldMap: React.FC<WorldMapProps> = ({ onDataLoaded }) => {
           0%   { transform: scale(1);   opacity: 0.6; }
           70%  { transform: scale(2.4); opacity: 0; }
           100% { transform: scale(1);   opacity: 0; }
+        }
+        @keyframes globePillSelect {
+          0%   { transform: scale(1); }
+          50%  { transform: scale(1.06); }
+          100% { transform: scale(1); }
         }
         .world-map-popup .maplibregl-popup-content {
           background: rgba(13,16,26,0.97);
@@ -622,6 +719,90 @@ const WorldMap: React.FC<WorldMapProps> = ({ onDataLoaded }) => {
         .world-map-cluster-popup .maplibregl-popup-content > div:last-child::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 99px; }
         .world-map-cluster-popup .maplibregl-popup-close-button { color: #94a3b8; font-size: 18px; padding: 2px 7px; border-radius: 6px; }
         .world-map-cluster-popup .maplibregl-popup-close-button:hover { background: rgba(255,255,255,0.08); color: #fff; }
+
+        .globe-layer-bar {
+          position: absolute;
+          bottom: 54px;
+          left: 14px;
+          display: flex;
+          gap: 6px;
+          overflow-x: auto;
+          max-width: calc(100% - 90px);
+          padding: 8px 10px;
+          border-radius: 14px;
+          background: rgba(10, 12, 20, 0.72);
+          backdrop-filter: blur(14px);
+          -webkit-backdrop-filter: blur(14px);
+          border: 1px solid rgba(255, 255, 255, 0.08);
+          box-shadow: 0 4px 20px rgba(0,0,0,0.55);
+          scrollbar-width: none;
+          z-index: 10;
+        }
+        .globe-layer-bar::-webkit-scrollbar { display: none; }
+
+        .globe-layer-pill {
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          padding: 5px 12px;
+          border-radius: 999px;
+          font-size: 0.72rem;
+          font-weight: 700;
+          white-space: nowrap;
+          cursor: pointer;
+          border: 1px solid rgba(255,255,255,0.1);
+          background: rgba(255,255,255,0.04);
+          color: rgba(255,255,255,0.5);
+          transition: all 0.2s ease;
+          user-select: none;
+          flex-shrink: 0;
+          letter-spacing: 0.02em;
+        }
+        .globe-layer-pill:hover {
+          color: rgba(255,255,255,0.85);
+          background: rgba(255,255,255,0.09);
+          border-color: rgba(255,255,255,0.2);
+        }
+        .globe-layer-pill.active {
+          color: #000;
+          opacity: 1;
+          border-color: transparent;
+          box-shadow: 0 0 14px var(--pill-glow, rgba(56,189,248,0.5));
+        }
+        .globe-layer-pill.animating {
+          animation: globePillSelect 0.28s ease;
+        }
+        .globe-layer-pill-icon {
+          font-size: 14px;
+          line-height: 1;
+        }
+
+        @media (max-width: 480px) {
+          .globe-layer-bar {
+            bottom: 50px;
+            padding: 6px 8px;
+            gap: 5px;
+          }
+          .globe-layer-pill {
+            padding: 4px 10px;
+            font-size: 0.68rem;
+          }
+        }
+        @media (max-width: 380px) {
+          .globe-layer-pill-label { display: none; }
+          .globe-layer-pill { padding: 5px 8px; }
+        }
+
+        /* Legend fade */
+        .globe-legend-item {
+          transition: opacity 0.3s ease;
+        }
+
+        [dir="rtl"] .globe-layer-bar {
+          flex-direction: row-reverse;
+          left: auto;
+          right: 14px;
+        }
       `}</style>
 
       {/* Map canvas */}
@@ -646,31 +827,58 @@ const WorldMap: React.FC<WorldMapProps> = ({ onDataLoaded }) => {
         </div>
       )}
 
+      {/* Layer filter bar */}
+      {mapReady && (
+        <div className="globe-layer-bar" role="tablist" aria-label="Globe layer filter">
+          {LAYER_DEFS.map((def) => {
+            const isActive = activeLayer === def.id;
+            const isAnimating = animatingLayer === def.id;
+            return (
+              <button
+                key={def.id}
+                role="tab"
+                aria-selected={isActive}
+                className={`globe-layer-pill${isActive ? ' active' : ''}${isAnimating ? ' animating' : ''}`}
+                style={isActive ? {
+                  background: accent,
+                  // @ts-ignore CSS custom property
+                  '--pill-glow': `${accent}55`,
+                } : {}}
+                onClick={() => handleLayerChange(def.id)}
+              >
+                <span className="globe-layer-pill-icon">{def.icon}</span>
+                <span className="globe-layer-pill-label">{def.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       {/* Legend / stats bar */}
       {hasData && (
         <div style={{ position: 'absolute', bottom: 14, left: 14, display: 'flex', flexWrap: 'wrap', gap: 6, pointerEvents: 'none', maxWidth: 'calc(100% - 80px)' }}>
           {investorCount > 0 && (
-            <span style={{ background: 'rgba(13,16,26,0.88)', border: `1px solid ${CLR_INVESTOR}44`, borderRadius: 999, padding: '4px 12px', fontSize: '0.7rem', color: CLR_INVESTOR, fontWeight: 700 }}>
+            <span className="globe-legend-item" style={{ background: 'rgba(13,16,26,0.88)', border: `1px solid ${CLR_INVESTOR}44`, borderRadius: 999, padding: '4px 12px', fontSize: '0.7rem', color: CLR_INVESTOR, fontWeight: 700, opacity: showLegendInvestors ? 1 : 0 }}>
               ● {investorCount} investor{investorCount !== 1 ? 's' : ''}
             </span>
           )}
           {investmentCount > 0 && (
-            <span style={{ background: 'rgba(13,16,26,0.88)', border: `1px solid ${CLR_INVEST}44`, borderRadius: 999, padding: '4px 12px', fontSize: '0.7rem', color: CLR_INVEST, fontWeight: 700 }}>
+            <span className="globe-legend-item" style={{ background: 'rgba(13,16,26,0.88)', border: `1px solid ${CLR_INVEST}44`, borderRadius: 999, padding: '4px 12px', fontSize: '0.7rem', color: CLR_INVEST, fontWeight: 700, opacity: showLegendInvestments ? 1 : 0 }}>
               ◆ {investmentCount} investment{investmentCount !== 1 ? 's' : ''}
             </span>
           )}
           {boutiqueCount > 0 && (
-            <span style={{ background: 'rgba(13,16,26,0.88)', border: `1px solid ${CLR_BOUTIQUE}44`, borderRadius: 999, padding: '4px 12px', fontSize: '0.7rem', color: CLR_BOUTIQUE, fontWeight: 700 }}>
+            <span className="globe-legend-item" style={{ background: 'rgba(13,16,26,0.88)', border: `1px solid ${CLR_BOUTIQUE}44`, borderRadius: 999, padding: '4px 12px', fontSize: '0.7rem', color: CLR_BOUTIQUE, fontWeight: 700, opacity: showLegendBoutiques ? 1 : 0 }}>
               ▪ {boutiqueCount} boutique{boutiqueCount !== 1 ? 's' : ''}
             </span>
           )}
           {cargoCount > 0 && (
-            <span style={{ background: 'rgba(13,16,26,0.88)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 999, padding: '4px 12px', fontSize: '0.7rem', color: '#94a3b8', fontWeight: 600 }}>
+            <span className="globe-legend-item" style={{ background: 'rgba(13,16,26,0.88)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 999, padding: '4px 12px', fontSize: '0.7rem', color: '#94a3b8', fontWeight: 600, opacity: showLegendCargos ? 1 : 0 }}>
               ✈ {cargoCount} cargo{cargoCount !== 1 ? 's' : ''} in transit
             </span>
           )}
           {journeyCount > 0 && (
-            <span style={{ background: 'rgba(13,16,26,0.88)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: 999, padding: '4px 12px', fontSize: '0.7rem', color: '#f59e0b', fontWeight: 600 }}>
+            <span className="globe-legend-item" style={{ background: 'rgba(13,16,26,0.88)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: 999, padding: '4px 12px', fontSize: '0.7rem', color: '#f59e0b', fontWeight: 600, opacity: showLegendJourneys ? 1 : 0 }}>
               🧭 {journeyCount} journey{journeyCount !== 1 ? 's' : ''}
             </span>
           )}

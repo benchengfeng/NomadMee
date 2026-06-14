@@ -77,7 +77,15 @@ export type AnalyticsEvent =
   | 'journey_card_clicked'
   | 'journey_detail_viewed'
   | 'journey_interest_submitted'
-  | 'journey_guide_section_viewed';
+  | 'journey_guide_section_viewed'
+  // ── Globe layers ──
+  | 'globe_layer_changed'
+  | 'globe_layer_all_viewed'
+  | 'globe_layer_trade_viewed'
+  | 'globe_layer_investments_viewed'
+  | 'globe_layer_shop_viewed'
+  | 'globe_layer_community_viewed'
+  | 'globe_layer_journeys_viewed';
 
 /** Inject the Umami script once, on app boot. No-op if unconfigured. */
 export function initAnalytics(): void {
