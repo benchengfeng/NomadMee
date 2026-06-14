@@ -230,12 +230,12 @@ const LandingPage: React.FC = () => {
                     <span className="landing-stat-value">{liveStats.activeShipments}+</span>
                     <span className="landing-stat-label">{t('globe.statCargos', 'Active Shipments')}</span>
                   </div>
-                  <span className="landing-stat-sep">·</span>
+                  <div className="landing-stat-sep" />
                   <div className="landing-stat-item">
                     <span className="landing-stat-value">{liveStats.countryCount}+</span>
                     <span className="landing-stat-label">{t('globe.statCountries', 'Countries')}</span>
                   </div>
-                  <span className="landing-stat-sep">·</span>
+                  <div className="landing-stat-sep" />
                   <div className="landing-stat-item">
                     <span className="landing-stat-value">
                       {liveStats.goodsInTransitValue >= 1_000_000
@@ -246,12 +246,12 @@ const LandingPage: React.FC = () => {
                     </span>
                     <span className="landing-stat-label">{t('globe.statTransit', 'In Transit')}</span>
                   </div>
-                  <span className="landing-stat-sep">·</span>
+                  <div className="landing-stat-sep" />
                   <div className="landing-stat-item">
                     <span className="landing-stat-value">{liveStats.investorCount}</span>
                     <span className="landing-stat-label">{t('globe.statInvestors', 'Investors')}</span>
                   </div>
-                  <span className="landing-stat-sep">·</span>
+                  <div className="landing-stat-sep" />
                   <div className="landing-stat-item">
                     <span className="landing-stat-value">{liveStats.journeyCount}</span>
                     <span className="landing-stat-label">{t('globe.statJourneys', 'Journeys')}</span>

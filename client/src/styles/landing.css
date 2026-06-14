@@ -745,28 +745,29 @@
 /* ── Live stat strip — full width, pinned to bottom of globe ── */
 .landing-stat-strip {
   position: absolute;
-  bottom: 0;
-  left: 0;
+  top: 50%;
   right: 0;
+  transform: translateY(-50%);
   z-index: 10;
   pointer-events: none;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 10px 20px 12px;
-  background: linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.0) 100%);
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0;
+  padding: 16px 14px 16px 18px;
+  background: linear-gradient(to left, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.0) 100%);
+  border-radius: 16px 0 0 16px;
 }
 
 .landing-stat-item {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 1px;
+  align-items: flex-end;
+  padding: 7px 0;
 }
 
 .landing-stat-value {
-  font-size: 0.9rem;
+  font-size: 1rem;
   font-weight: 800;
   color: var(--stat-accent, #c8a06a);
   line-height: 1;
@@ -775,24 +776,26 @@
 }
 
 .landing-stat-label {
-  font-size: 0.55rem;
+  font-size: 0.52rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.45);
   white-space: nowrap;
+  margin-top: 2px;
 }
 
 .landing-stat-sep {
-  color: rgba(255, 255, 255, 0.2);
-  font-size: 0.9rem;
-  line-height: 1;
+  width: 100%;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
   flex-shrink: 0;
+  align-self: stretch;
 }
 
 .landing-stat-skeleton {
-  width: 280px;
-  height: 28px;
+  width: 60px;
+  height: 120px;
   border-radius: 8px;
   background: rgba(255,255,255,0.06);
   animation: statPulse 1.4s ease-in-out infinite;
@@ -803,7 +806,7 @@
   50%       { opacity: 0.9; }
 }
 
-/* ── Mobile ── */
+/* ── Mobile — collapse back to a bottom strip ── */
 @media (max-width: 768px) {
   .landing-tagline-text {
     font-size: 0.62rem;
@@ -811,19 +814,38 @@
   }
 
   .landing-stat-strip {
+    top: auto;
+    bottom: 54px;
+    right: 0;
+    left: 0;
+    transform: none;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 12px;
+    background: linear-gradient(to top, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.0) 100%);
+    border-radius: 0;
     gap: 6px;
-    padding: 8px 12px 10px;
+  }
+
+  .landing-stat-item {
+    align-items: center;
+    padding: 0;
+  }
+
+  .landing-stat-sep {
+    width: 1px;
+    height: 20px;
+    background: rgba(255,255,255,0.12);
   }
 
   .landing-stat-value {
-    font-size: 0.8rem;
+    font-size: 0.82rem;
   }
 
   .landing-stat-label {
     font-size: 0.5rem;
   }
 
-  .landing-stat-sep {
-    font-size: 0.75rem;
-  }
 }
+
