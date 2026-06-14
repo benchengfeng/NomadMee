@@ -120,6 +120,8 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor, onDataLoaded }) => {
   const [journeyCount,    setJourneyCount]    = useState(0);
   const [partnerCount,    setPartnerCount]    = useState(0);
   const [animatingLayer,  setAnimatingLayer]  = useState<GlobeLayer | null>(null);
+  const [filterToast,     setFilterToast]     = useState<{ text: string; color: string } | null>(null);
+  const filterToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Keep ref in sync so map.on('load') closure can read current layer
   useEffect(() => { activeLayerRef.current = activeLayer; }, [activeLayer]);
@@ -130,12 +132,19 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor, onDataLoaded }) => {
     applyVisibility(markerGroupsRef.current, activeLayer);
   }, [activeLayer, dataLoaded]);
 
+  const showFilterToast = (def: typeof LAYER_DEFS[number]) => {
+    if (filterToastTimer.current) clearTimeout(filterToastTimer.current);
+    setFilterToast({ text: `${def.icon} ${def.label}`, color: def.color });
+    filterToastTimer.current = setTimeout(() => setFilterToast(null), 1600);
+  };
+
   const handleLayerChange = (layer: GlobeLayer) => {
+    const def = LAYER_DEFS.find((d) => d.id === layer);
+    if (def) showFilterToast(def);
     if (layer === activeLayer) return;
     dispatch(setGlobeLayer(layer));
     setAnimatingLayer(layer);
     setTimeout(() => setAnimatingLayer(null), 300);
-    const def = LAYER_DEFS.find((d) => d.id === layer);
     if (def) {
       track('globe_layer_changed', { layer });
       track(def.analyticsEvent as any);
@@ -851,6 +860,15 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor, onDataLoaded }) => {
           left: auto;
           right: 14px;
         }
+
+        @keyframes filterToastIn {
+          from { opacity: 0; transform: translateX(-50%) translateY(6px) scale(0.92); }
+          to   { opacity: 1; transform: translateX(-50%) translateY(0)    scale(1);   }
+        }
+        @keyframes filterToastOut {
+          from { opacity: 1; }
+          to   { opacity: 0; }
+        }
       `}</style>
 
       {/* Map canvas */}
@@ -872,6 +890,31 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor, onDataLoaded }) => {
           <p style={{ color: '#475569', fontSize: '0.72rem', margin: 0, maxWidth: 240, lineHeight: 1.6 }}>
             Investors, cargos, and boutiques appear here as they go live — check back once an investment round is active.
           </p>
+        </div>
+      )}
+
+      {/* Filter toast — shown briefly after clicking a layer pill */}
+      {filterToast && (
+        <div style={{
+          position: 'absolute', bottom: 110, left: '50%',
+          transform: 'translateX(-50%)',
+          background: 'rgba(10,12,20,0.92)',
+          border: `1px solid ${filterToast.color}55`,
+          borderRadius: 999,
+          padding: '7px 20px',
+          color: filterToast.color,
+          fontSize: '0.84rem',
+          fontWeight: 700,
+          whiteSpace: 'nowrap',
+          pointerEvents: 'none',
+          zIndex: 30,
+          backdropFilter: 'blur(14px)',
+          WebkitBackdropFilter: 'blur(14px)',
+          boxShadow: `0 4px 20px rgba(0,0,0,0.6), 0 0 0 1px ${filterToast.color}22`,
+          animation: 'filterToastIn 0.22s cubic-bezier(0.22,1,0.36,1) both',
+          letterSpacing: '0.02em',
+        }}>
+          {filterToast.text}
         </div>
       )}
 

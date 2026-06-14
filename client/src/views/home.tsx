@@ -25,7 +25,6 @@ const NAV_ITEMS: Array<{ id: LandingSection; key: string }> = [
   { id: 'globe', key: 'nav.globe' },
   { id: 'investments', key: 'nav.investments' },
   { id: 'journeys', key: 'nav.journeys' },
-  { id: 'who', key: 'nav.whoAreWe' },
 ];
 
 const LandingPage: React.FC = () => {
@@ -155,6 +154,14 @@ const LandingPage: React.FC = () => {
             onClick={() => { track('landing-section', { section: 'shop' }); navigate('/shop'); }}
           >
             {t('nav.shop')}
+          </button>
+          <button
+            type="button"
+            className={`landing-nav-link${section === 'who' ? ' landing-nav-link--active' : ''}`}
+            style={section === 'who' ? { background: palette.accent } : undefined}
+            onClick={() => { setSection('who'); track('landing-section', { section: 'who' }); }}
+          >
+            {t('nav.whoAreWe')}
           </button>
         </div>
 
