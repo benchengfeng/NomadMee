@@ -166,7 +166,15 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor, onDataLoaded }) => {
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-right');
     map.on('error', () => setMapError(true));
 
+    // Re-apply layer visibility after every move/zoom in case MapLibre
+    // re-fires load or repositions markers during tile fetching.
+    map.on('moveend', () => applyVisibility(markerGroupsRef.current, activeLayerRef.current));
+    map.on('zoomend', () => applyVisibility(markerGroupsRef.current, activeLayerRef.current));
+
+    let mapLoaded = false;
     map.on('load', async () => {
+      if (mapLoaded) return;
+      mapLoaded = true;
       let investors:   PublicMapInvestor[]   = [];
       let cargos:      PublicMapCargo[]      = [];
       let investments: PublicMapInvestment[] = [];
@@ -400,34 +408,31 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor, onDataLoaded }) => {
 
         wrapper.addEventListener('mouseenter', () => { inner.style.transform = 'scale(1.16)'; tooltip.style.opacity = '1'; });
         wrapper.addEventListener('mouseleave', () => { inner.style.transform = 'scale(1)';    tooltip.style.opacity = '0'; });
-        wrapper.addEventListener('click', () => track('map-marker-click', { category: 'investment', location: group[0]!.location, count }));
 
         const marker = new maplibregl.Marker({ element: wrapper, anchor: 'center', offset: OFF_INVESTMENT })
           .setLngLat(coords as [number, number]);
 
         if (count === 1) {
           const inv = group[0]!;
-          marker.setPopup(
-            new maplibregl.Popup({ closeButton: false, offset: 14, className: 'world-map-popup' }).setHTML(
-              `<strong>💼 ${esc(inv.title)}</strong>` +
-              `<br/><span>📍 ${esc(inv.location)}</span>` +
-              `<br/><span style="color:${CLR_INVEST}">` +
-              `${inv.cargoCount} cargo${inv.cargoCount !== 1 ? 's' : ''} · ${inv.investorCount} investor${inv.investorCount !== 1 ? 's' : ''} · ${inv.status.replace('_', ' ')}` +
-              `</span>`
-            )
-          );
+          const investmentId = String(inv._id);
+          wrapper.addEventListener('click', () => {
+            track('map-marker-click', { category: 'investment', investmentId, location: inv.location });
+            window.location.href = `/join/${investmentId}`;
+          });
         } else {
+          wrapper.addEventListener('click', () => track('map-marker-click', { category: 'investment', location: group[0]!.location, count }));
           const rows = group.map((inv) =>
-            `<div style="display:flex;align-items:center;gap:10px;padding:7px 4px;border-bottom:1px solid rgba(255,255,255,0.06);">` +
+            `<div onclick="window.location.href='/join/${String(inv._id)}'" style="display:flex;align-items:center;gap:10px;padding:7px 4px;border-bottom:1px solid rgba(255,255,255,0.06);cursor:pointer;" onmouseenter="this.style.background='rgba(232,121,249,0.06)'" onmouseleave="this.style.background='transparent'">` +
               `<div style="width:30px;height:30px;flex-shrink:0;display:flex;align-items:center;justify-content:center;">` +
                 `<div style="width:22px;height:22px;background:rgba(8,10,18,0.9);border:1.5px solid ${CLR_INVEST};border-radius:4px;transform:rotate(45deg);display:flex;align-items:center;justify-content:center;">` +
                   `<span style="transform:rotate(-45deg);font-size:10px;">💼</span>` +
                 `</div>` +
               `</div>` +
-              `<div style="min-width:0;">` +
+              `<div style="min-width:0;flex:1;">` +
                 `<div style="color:#f1f5f9;font-size:0.8rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(inv.title)}</div>` +
                 `<div style="color:#64748b;font-size:0.67rem;">${inv.cargoCount} cargo${inv.cargoCount !== 1 ? 's' : ''} · ${inv.status.replace('_', ' ')}</div>` +
               `</div>` +
+              `<span style="color:${CLR_INVEST};font-size:0.68rem;font-weight:700;flex-shrink:0;">Join →</span>` +
             `</div>`
           ).join('');
           marker.setPopup(makeClusterPopup(group[0]!.location, `${count} investments`, CLR_INVEST, rows));
@@ -499,30 +504,29 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor, onDataLoaded }) => {
 
         wrapper.addEventListener('mouseenter', () => { inner.style.transform = 'scale(1.16)'; tooltip.style.opacity = '1'; });
         wrapper.addEventListener('mouseleave', () => { inner.style.transform = 'scale(1)';    tooltip.style.opacity = '0'; });
-        wrapper.addEventListener('click', () => track('map-marker-click', { category: 'boutique', location: group[0]!.location, count }));
 
         const marker = new maplibregl.Marker({ element: wrapper, anchor: 'center', offset: OFF_BOUTIQUE })
           .setLngLat(coords as [number, number]);
 
         if (count === 1) {
-          marker.setPopup(
-            new maplibregl.Popup({ closeButton: false, offset: 14, className: 'world-map-popup' }).setHTML(
-              `<strong>🏪 ${esc(group[0]!.name)}</strong>` +
-              `<br/><span>📍 ${esc(group[0]!.location)}</span>` +
-              (group[0]!.description ? `<br/><span style="color:#94a3b8">${esc(group[0]!.description)}</span>` : '')
-            )
-          );
+          const boutiqueId = String(group[0]!._id);
+          wrapper.addEventListener('click', () => {
+            track('map-marker-click', { category: 'boutique', boutiqueId, location: group[0]!.location });
+            window.location.href = `/shop/boutique/${boutiqueId}`;
+          });
         } else {
+          wrapper.addEventListener('click', () => track('map-marker-click', { category: 'boutique', location: group[0]!.location, count }));
           const rows = group.map((b) =>
-            `<div style="display:flex;align-items:center;gap:10px;padding:7px 4px;border-bottom:1px solid rgba(255,255,255,0.06);">` +
+            `<div onclick="window.location.href='/shop/boutique/${String(b._id)}'" style="display:flex;align-items:center;gap:10px;padding:7px 4px;border-bottom:1px solid rgba(255,255,255,0.06);cursor:pointer;" onmouseenter="this.style.background='rgba(245,158,11,0.06)'" onmouseleave="this.style.background='transparent'">` +
               (b.logoUrl
                 ? `<img src="${b.logoUrl}" style="width:32px;height:32px;border-radius:7px;object-fit:cover;border:1.5px solid ${CLR_BOUTIQUE};flex-shrink:0;" />`
                 : `<div style="width:32px;height:32px;border-radius:7px;background:#1e2535;border:1.5px solid ${CLR_BOUTIQUE};flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:15px;">🏪</div>`
               ) +
-              `<div style="min-width:0;">` +
+              `<div style="min-width:0;flex:1;">` +
                 `<div style="color:#f1f5f9;font-size:0.8rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(b.name)}</div>` +
                 (b.description ? `<div style="color:#64748b;font-size:0.67rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(b.description)}</div>` : '') +
               `</div>` +
+              `<span style="color:${CLR_BOUTIQUE};font-size:0.68rem;font-weight:700;flex-shrink:0;">View →</span>` +
             `</div>`
           ).join('');
           marker.setPopup(makeClusterPopup(group[0]!.location, `${count} boutiques`, CLR_BOUTIQUE, rows));
@@ -725,15 +729,17 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor, onDataLoaded }) => {
 
   const accent = accentColor ?? '#38bdf8';
 
-  // Which legend items to show based on active layer
-  const showLegendInvestors   = activeLayer === 'all' || activeLayer === 'community';
-  const showLegendInvestments = activeLayer === 'all' || activeLayer === 'investments';
-  const showLegendBoutiques   = activeLayer === 'all' || activeLayer === 'shop';
-  const showLegendCargos      = activeLayer === 'all' || activeLayer === 'trade';
-  const showLegendJourneys    = activeLayer === 'all' || activeLayer === 'journeys';
-  const showLegendPartners    = activeLayer === 'all' || activeLayer === 'community';
-
   const hasData = investorCount > 0 || cargoCount > 0 || investmentCount > 0 || boutiqueCount > 0 || journeyCount > 0 || partnerCount > 0;
+
+  // Count of visible markers per layer — shown in the filter pill
+  const layerCount: Record<GlobeLayer, number> = {
+    all:         investorCount + investmentCount + boutiqueCount + cargoCount + journeyCount + partnerCount,
+    trade:       cargoCount,
+    investments: investmentCount,
+    shop:        boutiqueCount,
+    community:   investorCount + partnerCount,
+    journeys:    journeyCount,
+  };
 
   return (
     <div style={{ position: 'relative', flex: 1, minHeight: 0 }}>
@@ -840,11 +846,6 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor, onDataLoaded }) => {
           .globe-layer-pill { padding: 5px 8px; }
         }
 
-        /* Legend fade */
-        .globe-legend-item {
-          transition: opacity 0.3s ease;
-        }
-
         [dir="rtl"] .globe-layer-bar {
           flex-direction: row-reverse;
           left: auto;
@@ -895,47 +896,17 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor, onDataLoaded }) => {
               >
                 <span className="globe-layer-pill-icon">{def.icon}</span>
                 <span className="globe-layer-pill-label">{def.label}</span>
+                {dataLoaded && layerCount[def.id] > 0 && (
+                  <span style={{ fontSize: '0.65rem', fontWeight: 700, opacity: 0.75, marginLeft: 1 }}>
+                    {layerCount[def.id]}
+                  </span>
+                )}
               </button>
             );
           })}
         </div>
       )}
 
-      {/* Legend / stats bar */}
-      {hasData && (
-        <div style={{ position: 'absolute', bottom: 14, left: 14, display: 'flex', flexWrap: 'wrap', gap: 6, pointerEvents: 'none', maxWidth: 'calc(100% - 80px)' }}>
-          {investorCount > 0 && (
-            <span className="globe-legend-item" style={{ background: 'rgba(13,16,26,0.88)', border: `1px solid ${CLR_INVESTOR}44`, borderRadius: 999, padding: '4px 12px', fontSize: '0.7rem', color: CLR_INVESTOR, fontWeight: 700, opacity: showLegendInvestors ? 1 : 0 }}>
-              ● {investorCount} investor{investorCount !== 1 ? 's' : ''}
-            </span>
-          )}
-          {investmentCount > 0 && (
-            <span className="globe-legend-item" style={{ background: 'rgba(13,16,26,0.88)', border: `1px solid ${CLR_INVEST}44`, borderRadius: 999, padding: '4px 12px', fontSize: '0.7rem', color: CLR_INVEST, fontWeight: 700, opacity: showLegendInvestments ? 1 : 0 }}>
-              ◆ {investmentCount} investment{investmentCount !== 1 ? 's' : ''}
-            </span>
-          )}
-          {boutiqueCount > 0 && (
-            <span className="globe-legend-item" style={{ background: 'rgba(13,16,26,0.88)', border: `1px solid ${CLR_BOUTIQUE}44`, borderRadius: 999, padding: '4px 12px', fontSize: '0.7rem', color: CLR_BOUTIQUE, fontWeight: 700, opacity: showLegendBoutiques ? 1 : 0 }}>
-              ▪ {boutiqueCount} boutique{boutiqueCount !== 1 ? 's' : ''}
-            </span>
-          )}
-          {cargoCount > 0 && (
-            <span className="globe-legend-item" style={{ background: 'rgba(13,16,26,0.88)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 999, padding: '4px 12px', fontSize: '0.7rem', color: '#94a3b8', fontWeight: 600, opacity: showLegendCargos ? 1 : 0 }}>
-              ✈ {cargoCount} cargo{cargoCount !== 1 ? 's' : ''} in transit
-            </span>
-          )}
-          {journeyCount > 0 && (
-            <span className="globe-legend-item" style={{ background: 'rgba(13,16,26,0.88)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: 999, padding: '4px 12px', fontSize: '0.7rem', color: '#f59e0b', fontWeight: 600, opacity: showLegendJourneys ? 1 : 0 }}>
-              🧭 {journeyCount} journey{journeyCount !== 1 ? 's' : ''}
-            </span>
-          )}
-          {partnerCount > 0 && (
-            <span className="globe-legend-item" style={{ background: 'rgba(13,16,26,0.88)', border: `1px solid ${CLR_PARTNER}44`, borderRadius: 999, padding: '4px 12px', fontSize: '0.7rem', color: CLR_PARTNER, fontWeight: 600, opacity: showLegendPartners ? 1 : 0 }}>
-              🤝 {partnerCount} partner{partnerCount !== 1 ? 's' : ''}
-            </span>
-          )}
-        </div>
-      )}
     </div>
   );
 };

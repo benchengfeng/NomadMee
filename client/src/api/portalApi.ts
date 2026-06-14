@@ -81,10 +81,10 @@ export type PublicMapStats = {
   totalExpectedProfit: number;
   activeInvestments: number;
   activeShipments: number;
-  goodsInTransitValue: number;
   countryCount: number;
   investorCount: number;
   journeyCount: number;
+  boutiqueCount: number;
 };
 
 export type PublicMapInvestment = {

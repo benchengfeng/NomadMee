@@ -105,7 +105,7 @@ router.get('/public/map-data', async (_req: Request, res: Response): Promise<voi
 
     const [investors, cargos, investmentCount, allInvestors, investorInvestmentCounts, avatarDocs, boutiques, activeJourneys, geoPartners] = await Promise.all([
       InvestorModel.find({ kycCompleted: true }).select('displayName name avatar location').lean(),
-      CargoModel.find({ hidden: { $ne: true } }).select('productBeingShipped shippingType purchaseLocation shippingDestination estimatedTimeOfArrival createdAt purchaseDate purchasePrice').lean(),
+      CargoModel.find({ hidden: { $ne: true } }).select('productBeingShipped shippingType purchaseLocation shippingDestination estimatedTimeOfArrival createdAt purchaseDate').lean(),
       InvestmentModel.countDocuments({ hidden: { $ne: true } }),
       InvestorModel.find().select('investmentAmount profitPercentageOnInvestment').lean(),
       InvestmentModel.aggregate<{ _id: string; count: number }>([
@@ -130,16 +130,9 @@ router.get('/public/map-data', async (_req: Request, res: Response): Promise<voi
     const cargoPurchaseMap = Object.fromEntries(cargos.map((c) => [String(c._id), c.purchaseLocation]));
 
     // All non-hidden cargos appear on the map, not just investment-linked ones.
-    const activeCargos = cargos.filter(
+    const activeShipments = cargos.filter(
       (c) => c.createdAt != null && c.createdAt <= now && new Date(c.estimatedTimeOfArrival) >= now
-    );
-    const activeShipments = activeCargos.length;
-
-    // Sum of purchase prices for active cargo shipments — real "goods in transit" value.
-    const goodsInTransitValue = activeCargos.reduce(
-      (sum, c) => sum + ((c as typeof c & { purchasePrice?: number }).purchasePrice || 0),
-      0
-    );
+    ).length;
 
     // Unique countries: deduplicate purchaseLocation + shippingDestination across all cargos.
     const locationSet = new Set<string>();
@@ -223,10 +216,10 @@ router.get('/public/map-data', async (_req: Request, res: Response): Promise<voi
         totalExpectedProfit: Math.round(totalExpectedProfit),
         activeInvestments: investmentCount,
         activeShipments,
-        goodsInTransitValue: Math.round(goodsInTransitValue),
         countryCount,
         investorCount,
         journeyCount,
+        boutiqueCount: boutiques.length,
       },
     });
   } catch {

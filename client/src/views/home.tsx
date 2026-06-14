@@ -229,18 +229,23 @@ const LandingPage: React.FC = () => {
                   <div className="landing-stat-sep" />
                   <div className="landing-stat-item">
                     <span className="landing-stat-value">
-                      {liveStats.goodsInTransitValue >= 1_000_000
-                        ? `$${(liveStats.goodsInTransitValue / 1_000_000).toFixed(1)}M`
-                        : liveStats.goodsInTransitValue >= 1_000
-                        ? `$${Math.round(liveStats.goodsInTransitValue / 1_000)}K`
-                        : `$${liveStats.goodsInTransitValue}`}
+                      {liveStats.totalInvested >= 1_000_000
+                        ? `$${(liveStats.totalInvested / 1_000_000).toFixed(1)}M`
+                        : liveStats.totalInvested >= 1_000
+                        ? `$${Math.round(liveStats.totalInvested / 1_000)}K`
+                        : `$${liveStats.totalInvested}`}
                     </span>
-                    <span className="landing-stat-label">{t('globe.statTransit', 'In Transit')}</span>
+                    <span className="landing-stat-label">{t('globe.statInvested', 'Capital Invested')}</span>
                   </div>
                   <div className="landing-stat-sep" />
                   <div className="landing-stat-item">
                     <span className="landing-stat-value">{liveStats.investorCount}</span>
                     <span className="landing-stat-label">{t('globe.statInvestors', 'Investors')}</span>
+                  </div>
+                  <div className="landing-stat-sep" />
+                  <div className="landing-stat-item">
+                    <span className="landing-stat-value">{liveStats.boutiqueCount}</span>
+                    <span className="landing-stat-label">{t('globe.statShops', 'Shops')}</span>
                   </div>
                   <div className="landing-stat-sep" />
                   <div className="landing-stat-item">
