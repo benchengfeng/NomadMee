@@ -621,12 +621,12 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor, onDataLoaded }) => {
         visibleJourneys++;
 
         const el = document.createElement('div');
-        el.style.cssText = 'width:38px;height:38px;cursor:pointer;position:relative;transition:opacity 0.3s ease;';
+        el.style.cssText = 'width:38px;height:38px;cursor:pointer;transition:opacity 0.3s ease;';
         groups.journeys.push(el);
 
         const inner = document.createElement('div');
         inner.style.cssText = `
-          width:38px;height:38px;border-radius:50%;
+          position:relative;width:38px;height:38px;border-radius:50%;
           background:rgba(8,10,18,0.88);
           border:2.5px solid ${CLR_JOURNEY};
           display:flex;align-items:center;justify-content:center;
@@ -644,7 +644,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor, onDataLoaded }) => {
             border-radius:50%;border:2px solid ${CLR_JOURNEY};
             animation:worldMapPulse 2.4s ease-out infinite;opacity:0.45;
           `;
-          el.appendChild(ring);
+          inner.appendChild(ring);
         }
 
         const spotsText = journey.status === 'full'
@@ -685,12 +685,12 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor, onDataLoaded }) => {
         if (!partnerLngLat) continue;
 
         const el = document.createElement('div');
-        el.style.cssText = 'width:36px;height:36px;cursor:pointer;position:relative;transition:opacity 0.3s ease;';
+        el.style.cssText = 'width:36px;height:36px;cursor:pointer;transition:opacity 0.3s ease;';
         groups.partners.push(el);
 
         const inner = document.createElement('div');
         inner.style.cssText = `
-          width:36px;height:36px;border-radius:50%;
+          position:relative;width:36px;height:36px;border-radius:50%;
           background:rgba(8,10,18,0.88);
           border:2.5px solid ${CLR_PARTNER};
           display:flex;align-items:center;justify-content:center;
