@@ -211,7 +211,7 @@ const LandingPage: React.FC = () => {
 
       {/* ── Tagline bar ── */}
       <div className="landing-tagline-bar" style={{ '--tag-accent': palette.accent } as React.CSSProperties}>
-        <span className="landing-tagline-text">{t('globe.tagline', 'Real cargo · Real returns · Tracked live')}</span>
+        <span className="landing-tagline-text">{t('globe.tagline', 'Some people see borders. We see routes.')}</span>
       </div>
 
       {/* ── Content ── */}
