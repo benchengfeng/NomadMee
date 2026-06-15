@@ -21,9 +21,6 @@ const CARGO_COLORS: Record<string, string> = {
   land: '#fb923c',
 };
 
-const OFF_INVESTOR:  [number, number] = [0,   -20];
-const OFF_INVESTMENT:[number, number] = [-32,  22];
-const OFF_BOUTIQUE:  [number, number] = [32,   22];
 
 type LayerVis = { investors: boolean; investments: boolean; boutiques: boolean; cargos: boolean; journeys: boolean; partners: boolean };
 
@@ -318,7 +315,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor, onDataLoaded }) => {
         wrapper.addEventListener('mouseleave', () => { inner.style.transform = 'scale(1)';    tooltip.style.opacity = '0'; });
         wrapper.addEventListener('click', () => track('map-marker-click', { category: 'investor', location: group[0]!.location, count }));
 
-        const marker = new maplibregl.Marker({ element: wrapper, anchor: 'center', offset: OFF_INVESTOR })
+        const marker = new maplibregl.Marker({ element: wrapper, anchor: 'center' })
           .setLngLat(coords as [number, number]);
 
         if (count > 1) {
@@ -418,7 +415,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor, onDataLoaded }) => {
         wrapper.addEventListener('mouseenter', () => { inner.style.transform = 'scale(1.16)'; tooltip.style.opacity = '1'; });
         wrapper.addEventListener('mouseleave', () => { inner.style.transform = 'scale(1)';    tooltip.style.opacity = '0'; });
 
-        const marker = new maplibregl.Marker({ element: wrapper, anchor: 'center', offset: OFF_INVESTMENT })
+        const marker = new maplibregl.Marker({ element: wrapper, anchor: 'center' })
           .setLngLat(coords as [number, number]);
 
         if (count === 1) {
@@ -514,7 +511,7 @@ const WorldMap: React.FC<WorldMapProps> = ({ accentColor, onDataLoaded }) => {
         wrapper.addEventListener('mouseenter', () => { inner.style.transform = 'scale(1.16)'; tooltip.style.opacity = '1'; });
         wrapper.addEventListener('mouseleave', () => { inner.style.transform = 'scale(1)';    tooltip.style.opacity = '0'; });
 
-        const marker = new maplibregl.Marker({ element: wrapper, anchor: 'center', offset: OFF_BOUTIQUE })
+        const marker = new maplibregl.Marker({ element: wrapper, anchor: 'center' })
           .setLngLat(coords as [number, number]);
 
         if (count === 1) {
