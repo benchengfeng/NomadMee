@@ -316,6 +316,58 @@ router.delete('/admin/investors/:id', async (req: Request, res: Response): Promi
 });
 
 // ---------------------------------------------------------------------------
+// Admin — registered users (self-registered, not manually created)
+// ---------------------------------------------------------------------------
+
+router.get('/admin/registered-users', async (req: Request, res: Response): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+
+  const users = await InvestorModel.find({
+    registrationMethod: { $in: ['email', 'google'] },
+  }).sort({ createdAt: -1 }).lean();
+
+  const safeUsers = users.map((u) => ({
+    _id: u._id,
+    name: u.name,
+    username: u.username,
+    email: u.email,
+    emailVerified: u.emailVerified,
+    googleId: u.googleId ? '(linked)' : null,
+    registrationMethod: u.registrationMethod,
+    accountStatus: u.accountStatus,
+    assignedInvestmentIds: u.assignedInvestmentIds || [],
+    kycCompleted: u.kycCompleted,
+    createdAt: u.createdAt,
+  }));
+
+  res.status(200).json({ users: safeUsers });
+});
+
+router.put('/admin/registered-users/:id/status', async (req: Request, res: Response): Promise<void> => {
+  if (!await requireAdmin(req, res)) return;
+
+  const { status } = req.body as { status?: string };
+  const validStatuses = ['active', 'suspended', 'pending_verification'];
+  if (!status || !validStatuses.includes(status)) {
+    res.status(400).json({ message: 'Invalid status.' });
+    return;
+  }
+
+  const user = await InvestorModel.findByIdAndUpdate(
+    req.params.id,
+    { accountStatus: status },
+    { new: true }
+  ).lean();
+
+  if (!user) {
+    res.status(404).json({ message: 'User not found.' });
+    return;
+  }
+
+  res.status(200).json({ message: 'Status updated.' });
+});
+
+// ---------------------------------------------------------------------------
 // Admin — dashboard
 // ---------------------------------------------------------------------------
 

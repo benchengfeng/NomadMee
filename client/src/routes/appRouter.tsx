@@ -18,6 +18,11 @@ import BoutiquePage from "../views/boutiquePage";
 import ProductDetailPage from "../views/productDetailPage";
 import JourneyDetail from "../views/journeyDetail";
 import NotFound from "../views/notFound";
+import RegisterPage from "../views/register";
+import VerifyEmailPage from "../views/verifyEmail";
+import ForgotPasswordPage from "../views/forgotPassword";
+import ResetPasswordPage from "../views/resetPassword";
+import AuthCallbackPage from "../views/authCallback";
 import { getAdminToken, getSessionToken } from "../utils/auth";
 
 const PageTracker: React.FC = () => {
@@ -78,6 +83,11 @@ const AppRouter = () => {
             </AdminProtectedRoute>
           }
         />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/verify-email" element={<VerifyEmailPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/auth/callback" element={<AuthCallbackPage />} />
         <Route path="/join/:investmentId" element={<JoinInvestment />} />
         <Route path="/contact-us" element={<ContactUs />} />
         <Route path="/shop" element={<ShopPage />} />

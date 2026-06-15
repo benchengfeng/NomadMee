@@ -6,6 +6,7 @@ import helmet from 'helmet';
 import bodyParser from 'body-parser';
 import statusRoutes from './routes/status';
 import portalRoutes from './routes/portal';
+import authRoutes from './routes/auth';
 import { connectMongo } from './config/mongoose';
 
 const app = express();
@@ -40,6 +41,7 @@ app.use(bodyParser.json({ limit: '64kb' }));
 // Routes
 app.use('/api/status', statusRoutes);
 app.use('/api/portal', portalRoutes);
+app.use('/api/auth', authRoutes);
 
 async function startServer(): Promise<void> {
   await connectMongo();

@@ -405,13 +405,18 @@ export type InvestorProfile = {
   name: string;
   displayName: string;
   username: string;
-  investmentAmount: number;
-  profitPercentageOnInvestment: number;
-  estimatedROI: number;
+  email?: string;
+  investmentAmount?: number;
+  profitPercentageOnInvestment?: number;
+  estimatedROI?: number;
   currency: string;
   preferredCurrency: string;
   avatar?: string;
   kycCompleted: boolean;
+  registrationMethod?: 'manual' | 'email' | 'google';
+  hasPassword?: boolean;
+  googleLinked?: boolean;
+  assignedInvestmentIds?: string[];
 };
 
 export type InvestorInvestmentStatus = {
@@ -967,5 +972,91 @@ export async function updateJourney(id: string, payload: Omit<Journey, '_id' | '
 
 export async function deleteJourney(id: string): Promise<void> {
   await request<unknown>(`/admin/journeys/${id}`, { method: 'DELETE' }, getAdminToken());
+}
+
+// ── Self-registration (auth) ───────────────────────────────────────────────
+
+const AUTH_BASE = API_BASE.replace('/portal', '');
+
+async function authRequest<T>(path: string, init?: RequestInit, token?: string | null): Promise<T> {
+  const response = await fetch(`${AUTH_BASE}/auth${path}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(init?.headers || {}),
+    },
+    ...init,
+  });
+  return parseJsonOrThrow<T>(response);
+}
+
+export async function registerUser(payload: { name: string; email: string; password: string }): Promise<{ message: string }> {
+  return authRequest<{ message: string }>('/register', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function verifyEmail(token: string): Promise<{ message: string; token: string }> {
+  return authRequest<{ message: string; token: string }>('/verify-email', {
+    method: 'POST',
+    body: JSON.stringify({ token }),
+  });
+}
+
+export async function forgotPassword(email: string): Promise<{ message: string }> {
+  return authRequest<{ message: string }>('/forgot-password', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+  });
+}
+
+export async function resetPassword(token: string, password: string): Promise<{ message: string }> {
+  return authRequest<{ message: string }>('/reset-password', {
+    method: 'POST',
+    body: JSON.stringify({ token, password }),
+  });
+}
+
+export async function resendVerification(email: string): Promise<{ message: string }> {
+  return authRequest<{ message: string }>('/resend-verification', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+  });
+}
+
+export function getGoogleAuthUrl(): string {
+  return `${AUTH_BASE}/auth/google`;
+}
+
+export async function unlinkGoogle(): Promise<{ message: string }> {
+  return authRequest<{ message: string }>('/google/link', { method: 'DELETE' }, getInvestorToken());
+}
+
+// ── Admin registered users ─────────────────────────────────────────────────
+
+export type RegisteredUser = {
+  _id: string;
+  name: string;
+  username: string;
+  email?: string;
+  emailVerified: boolean;
+  googleId: string | null;
+  registrationMethod: 'email' | 'google';
+  accountStatus: 'pending_verification' | 'active' | 'suspended';
+  assignedInvestmentIds: string[];
+  kycCompleted: boolean;
+  createdAt?: string;
+};
+
+export async function getAdminRegisteredUsers(): Promise<{ users: RegisteredUser[] }> {
+  return request<{ users: RegisteredUser[] }>('/admin/registered-users', { method: 'GET' }, getAdminToken());
+}
+
+export async function updateRegisteredUserStatus(id: string, status: RegisteredUser['accountStatus']): Promise<void> {
+  await request<unknown>(`/admin/registered-users/${id}/status`, {
+    method: 'PUT',
+    body: JSON.stringify({ status }),
+  }, getAdminToken());
 }
 

@@ -95,7 +95,12 @@ export type AnalyticsEvent =
   | 'globe_layer_investments_viewed'
   | 'globe_layer_shop_viewed'
   | 'globe_layer_community_viewed'
-  | 'globe_layer_journeys_viewed';
+  | 'globe_layer_journeys_viewed'
+  // ── Auth / registration ──
+  | 'register'
+  | 'register-click'
+  | 'email-verified'
+  | 'login-click';
 
 /** Inject the Umami script once, on app boot. No-op if unconfigured. */
 export function initAnalytics(): void {

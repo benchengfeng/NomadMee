@@ -34,12 +34,23 @@ router.post('/investor/login', loginLimiter, async (req: Request, res: Response)
     return;
   }
 
+  const identifier = username.trim().toLowerCase();
   const investor = await InvestorModel.findOne({
-    username: username.trim().toLowerCase(),
+    $or: [{ username: identifier }, { email: identifier }],
   }).lean();
 
   if (!investor) {
-    res.status(401).json({ message: 'Invalid investor credentials.' });
+    res.status(401).json({ message: 'Invalid credentials.' });
+    return;
+  }
+
+  if (investor.accountStatus === 'suspended') {
+    res.status(403).json({ message: 'Account suspended. Please contact support.' });
+    return;
+  }
+
+  if (!investor.password) {
+    res.status(401).json({ message: 'This account uses Google sign-in. Please sign in with Google.' });
     return;
   }
 
@@ -58,7 +69,7 @@ router.post('/investor/login', loginLimiter, async (req: Request, res: Response)
   }
 
   if (!passwordValid) {
-    res.status(401).json({ message: 'Invalid investor credentials.' });
+    res.status(401).json({ message: 'Invalid credentials.' });
     return;
   }
 
@@ -102,6 +113,7 @@ router.post('/investor/change-password', async (req: Request, res: Response): Pr
     }
     const investor = await InvestorModel.findById(investorId);
     if (!investor) { res.status(404).json({ message: 'Investor not found.' }); return; }
+    if (!investor.password) { res.status(400).json({ message: 'This account has no password set. Use Google sign-in.' }); return; }
     const isValid = await bcrypt.compare(currentPassword, investor.password);
     if (!isValid) { res.status(400).json({ message: 'Current password is incorrect.' }); return; }
     const hashed = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
@@ -137,6 +149,7 @@ router.get('/investor/home', async (req: Request, res: Response): Promise<void> 
         name: investor.name,
         displayName: investor.displayName || investor.name,
         username: investor.username,
+        email: investor.email,
         investmentAmount: investor.investmentAmount,
         profitPercentageOnInvestment: investor.profitPercentageOnInvestment,
         estimatedROI: investor.estimatedROI,
@@ -144,6 +157,10 @@ router.get('/investor/home', async (req: Request, res: Response): Promise<void> 
         preferredCurrency: investor.preferredCurrency || investor.currency || 'USD',
         avatar: investor.avatar,
         kycCompleted: investor.kycCompleted === true,
+        registrationMethod: investor.registrationMethod || 'manual',
+        hasPassword: !!investor.password,
+        googleLinked: !!investor.googleId,
+        assignedInvestmentIds: investor.assignedInvestmentIds || [],
       },
       cargos,
       investments: assignedInvestments.map((inv) => ({

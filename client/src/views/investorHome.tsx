@@ -13,6 +13,7 @@ import CargoMap from '../components/cargo/CargoMap';
 import WorldMap from '../components/WorldMap';
 import LanguageSwitcher from '../components/common/LanguageSwitcher';
 import ShopSections from '../components/shop/ShopSections';
+import WaitingRoom from '../components/WaitingRoom';
 import { track } from '../utils/analytics';
 import '../styles/journeys.css';
 
@@ -902,6 +903,15 @@ const InvestorHome: React.FC = () => {
         <Link to="/">{t('error.backToLogin')}</Link>
       </div>
     );
+  }
+
+  // Self-registered users with no assigned investments see the waiting room
+  const isWaitingRoom =
+    (data.investor.registrationMethod === 'email' || data.investor.registrationMethod === 'google') &&
+    (!data.investor.assignedInvestmentIds || data.investor.assignedInvestmentIds.length === 0);
+
+  if (isWaitingRoom) {
+    return <WaitingRoom investor={data.investor} onLogout={handleLogout} />;
   }
 
   const avatarBadgeMap: Record<string, string> = { ...LEGACY_AVATAR_MAP };
